@@ -1,8 +1,7 @@
-mod engine;
-mod gui;
-mod guts;
-mod world;
+extern crate eyes2;
+
+use eyes2::gui;
 
 fn main() {
-    println!("Hello, world!");
+    gui::render();
 }
