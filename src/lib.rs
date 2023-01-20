@@ -1,8 +1,10 @@
-// implements the assembler disassembler and executor for the RISC `processor`
+// implement the assembler disassembler and executor for the RISC `processor`
 mod code;
-// represents an individual creature in the world
+// represent an individual creature in the world
 mod creature;
-// inspects the world an renders it (using curses?)
+// inspect the world and renders it (using curses?)
 pub mod gui;
 // represent the state of the world as a grid of cells
 pub mod world;
+// some common types used throughout the project
+pub mod types;
