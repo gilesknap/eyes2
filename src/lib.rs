@@ -8,5 +8,3 @@ pub mod gui;
 pub mod world;
 // some common types used throughout the project
 pub mod types;
-
-mod tests;

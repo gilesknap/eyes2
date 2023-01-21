@@ -51,7 +51,7 @@ impl World {
         self.cells[position.x as usize][position.y as usize] = cell;
     }
 
-    pub fn add_creature(&mut self, creature: Creature) -> bool {
+    fn add_creature(&mut self, creature: Creature) -> bool {
         match self.get_cell(creature.position) {
             Cell::Empty => {
                 self.set_cell(creature.position, Cell::Creature(creature.num));
@@ -62,7 +62,7 @@ impl World {
         }
     }
 
-    pub fn add_grass(&mut self, position: Position) -> bool {
+    fn add_grass(&mut self, position: Position) -> bool {
         match self.get_cell(position) {
             Cell::Empty => {
                 self.set_cell(position, Cell::Grass);
@@ -96,18 +96,72 @@ impl World {
         );
     }
 
-    pub fn run(&mut self) {
-        loop {
-            for (_, creature) in &self.creatures {
-                match creature.tick() {
-                    Status::Alive => {}
-                    Status::Dead => {
-                        self.set_cell(creature.position, Cell::Empty);
+    // TODO ideas for getters ....
+    // pub fn creature(&self, num: u64) -> Option<&Creature> {
+    //     self.creatures.get(&num)
+    // }
 
-                        self.creatures.remove(&creature.num);
-                    }
-                }
-            }
+    // pub fn creature(&self, x: u16, y: u16) -> Option<&Creature> {
+    //     match self.get_cell(position) {
+    //         Cell::Creature(_) => self.creatures.get(&num),
+    //         _ => None,
+    //     }
+    // }
+
+    // // TODO this is the crux of the ownership problem
+    // // resolve this and all will be good right? :)
+    // pub fn run(&mut self) {
+    //     loop {
+    //         for (_, creature) in &self.creatures {
+    //             match creature.tick() {
+    //                 Status::Alive => {}
+    //                 Status::Dead => {
+    //                     self.set_cell(creature.position, Cell::Empty);
+
+    //                     self.creatures.remove(&creature.num);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+}
+#[cfg(test)]
+mod test {
+    // use all items from the parent module
+    use super::*;
+
+    #[test]
+    fn check_add_creature() {
+        let mut world = World::new(10);
+        let position = Position { x: 0, y: 0 };
+        let creature = Creature::new(position, 1000);
+
+        let creature_num = creature.num;
+        world.add_creature(creature);
+
+        // previous creature was moved into the world so we can't use it again
+        let creature = Creature::new(position, 1000);
+        assert_eq!(world.add_creature(creature), false);
+        assert!(world.creatures.len() == 1);
+
+        // verify lookup cells via position in the world
+        assert!(matches!(
+            world.get_cell(Position { x: 1, y: 1 }),
+            Cell::Empty
+        ));
+        assert!(matches!(world.get_cell(position), Cell::Creature(_)));
+
+        for (key, value) in &world.creatures {
+            println!("{}: {:?}", key, value);
         }
+
+        // verify lookup creature via its number
+        let creature_pos = world
+            .creatures
+            .get(&creature_num)
+            .expect("can't find creature {}")
+            .position;
+
+        assert_eq!(creature_pos, position);
     }
 }

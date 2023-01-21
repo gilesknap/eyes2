@@ -6,7 +6,7 @@ pub enum Status {
     Dead,
 }
 
-#[derive(Debug, Copy, Clone)] // TODO I'd like to avoid making this copyable
+#[derive(Debug)] // TODO I'd like to avoid making this copyable
 pub struct Creature {
     // the creature's unique number
     pub num: u64,
