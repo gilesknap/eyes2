@@ -1,29 +1,93 @@
 use crate::creature::Creature;
 use crate::types::Position;
+use rand;
 use std::collections::HashMap;
 
-// A world is a 2D grid but instead of storing the grid as a 2D array we store
-// the creatures and grass blocks it contains in hashmaps with the position
-// as the key. All positions that are not in a hashmap are empty.
+// represent the contents of a single cell in the world
+#[derive(Debug, Copy, Clone)]
+enum Cell {
+    // the cell is empty
+    Empty,
+    // the cell is occupied by a Creature
+    Creature(u64),
+    // the cell is occupied by a block of grass (food for Herbivorous Creatures)
+    Grass,
+}
+
+// a world is a 2D grid of Cell
 pub struct World {
     // the size of the world (width and height are the same)
     size: u16,
-    // the set of creatures in the world
-    creatures: HashMap<Position, Creature>,
-    // the set of grass blocks in the world
-    grass: HashMap<Position, Creature>,
+    // the grid of cells - inner Vec is a row, outer Vec is a column
+    cells: Vec<Vec<Cell>>,
+    // the list of creatures in the world
+    creatures: HashMap<u64, Creature>,
 }
 
 impl World {
     pub fn new(size: u16) -> World {
-        World {
+        // create a square 2d vector of empty cells
+        let cells = vec![vec![Cell::Empty; size as usize]; size as usize];
+        let world = World {
             size,
+            cells,
             creatures: HashMap::new(),
-            grass: HashMap::new(),
+        };
+
+        print!("Created a new world of size {} square\n", world.size);
+        world
+    }
+
+    fn get_cell(&self, position: Position) -> &Cell {
+        return &self.cells[position.x as usize][position.y as usize];
+    }
+
+    fn set_cell(&mut self, position: Position, cell: Cell) {
+        self.cells[position.x as usize][position.y as usize] = cell;
+    }
+
+    pub fn add_creature(&mut self, creature: Creature) -> bool {
+        match self.get_cell(creature.position) {
+            Cell::Empty => {
+                self.set_cell(creature.position, Cell::Creature(creature.num));
+                self.creatures.insert(creature.num, creature);
+                true
+            }
+            _ => false,
         }
     }
 
-    pub fn add_creature(&mut self, creature: Creature) {
-        self.creatures.insert(creature.position, creature);
+    pub fn add_grass(&mut self, position: Position) -> bool {
+        match self.get_cell(position) {
+            Cell::Empty => {
+                self.set_cell(position, Cell::Grass);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    pub fn populate(&mut self, grass_count: u16, creature_count: u16, energy: u32) {
+        // add grass
+        for _ in 0..grass_count {
+            let x = rand::random::<u16>() % self.size;
+            let y = rand::random::<u16>() % self.size;
+            let position = Position { x, y };
+            self.add_grass(position);
+        }
+
+        // add creatures
+        for _ in 0..creature_count {
+            let x = rand::random::<u16>() % self.size;
+            let y = rand::random::<u16>() % self.size;
+            let position = Position { x, y };
+            let creature = Creature::new(position, energy);
+            self.add_creature(creature);
+        }
+
+        print!(
+            "Added {} grass and {} creatures to the world",
+            grass_count, creature_count
+        );
     }
 }

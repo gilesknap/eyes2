@@ -1,6 +1,17 @@
 // represent a coordinate in the world
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Position {
-    x: u16,
-    y: u16,
+    pub x: u16,
+    pub y: u16,
+}
+
+pub enum Direction {
+    North,
+    NorthEast,
+    East,
+    SouthEast,
+    South,
+    SouthWest,
+    West,
+    NorthWest,
 }
