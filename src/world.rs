@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 // represent the contents of a single cell in the world
 #[derive(Debug, Copy, Clone)]
-enum Cell {
+pub enum Cell {
     // the cell is empty
     Empty,
     // the cell is occupied by a Creature
@@ -21,7 +21,8 @@ pub struct World {
     // the grid of cells - inner Vec is a row, outer Vec is a column
     cells: Vec<Vec<Cell>>,
     // the list of creatures in the world
-    creatures: HashMap<u64, Creature>,
+    // TODO: make this private and complete the accessor methods
+    pub creatures: HashMap<u64, Creature>,
 }
 
 impl World {
@@ -38,11 +39,11 @@ impl World {
         world
     }
 
-    fn get_cell(&self, position: Position) -> &Cell {
-        return &self.cells[position.x as usize][position.y as usize];
+    pub fn get_cell(&self, position: Position) -> Cell {
+        return self.cells[position.x as usize][position.y as usize];
     }
 
-    fn set_cell(&mut self, position: Position, cell: Cell) {
+    pub fn set_cell(&mut self, position: Position, cell: Cell) {
         self.cells[position.x as usize][position.y as usize] = cell;
     }
 
