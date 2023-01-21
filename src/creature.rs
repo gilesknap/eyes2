@@ -21,4 +21,8 @@ impl Creature {
             energy,
         }
     }
+
+    pub fn move_to(&mut self, position: Position) {
+        self.position = position;
+    }
 }

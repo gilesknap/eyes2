@@ -35,8 +35,12 @@ impl World {
             creatures: HashMap::new(),
         };
 
-        print!("Created a new world of size {} square\n", world.size);
+        println!("Created a new world of size {} square", world.size);
         world
+    }
+
+    pub fn get_size(&self) -> u16 {
+        self.size
     }
 
     pub fn get_cell(&self, position: Position) -> Cell {
@@ -86,7 +90,7 @@ impl World {
             self.add_creature(creature);
         }
 
-        print!(
+        println!(
             "Added {} grass and {} creatures to the world",
             grass_count, creature_count
         );
