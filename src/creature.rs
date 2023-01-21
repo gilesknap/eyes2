@@ -1,6 +1,10 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::types::Position;
+pub enum Status {
+    Alive,
+    Dead,
+}
 
 #[derive(Debug, Copy, Clone)] // TODO I'd like to avoid making this copyable
 pub struct Creature {
@@ -25,5 +29,14 @@ impl Creature {
 
     pub fn move_to(&mut self, position: Position) {
         self.position = position;
+    }
+
+    pub fn tick(&mut self) -> Status {
+        self.energy -= 1;
+        // TODO: execute the next instruction in the creature's program
+        match self.energy {
+            0 => Status::Dead,
+            _ => Status::Alive,
+        }
     }
 }

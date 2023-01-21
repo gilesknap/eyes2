@@ -1,4 +1,4 @@
-use crate::creature::Creature;
+use crate::creature::{Creature, Status};
 use crate::types::Position;
 use rand;
 use std::collections::HashMap;
@@ -94,5 +94,20 @@ impl World {
             "Added {} grass and {} creatures to the world",
             grass_count, creature_count
         );
+    }
+
+    pub fn run(&mut self) {
+        loop {
+            for (_, creature) in &self.creatures {
+                match creature.tick() {
+                    Status::Alive => {}
+                    Status::Dead => {
+                        self.set_cell(creature.position, Cell::Empty);
+
+                        self.creatures.remove(&creature.num);
+                    }
+                }
+            }
+        }
     }
 }

@@ -20,14 +20,6 @@ fn check_add_creature() {
     assert_eq!(world.add_creature(creature), false);
     assert!(world.creatures.len() == 1);
 
-    // TODO I'd quite like this to fail as I want to pass ownership of the
-    // creature into the world with add_creature
-    // (but need to verify that I'm thinking about this correctly - what
-    // would this mean to creatures.get() below?)
-    // UPDATE: I think we need to only store the creature number in the
-    // world's cells and keep a separate list of creatures that could
-    // in future be shared across threads (or even processes) - This
-    // decouples WORLD and CREATURE
     let _x = creature.num;
 
     // verify lookup cells via position in the world
