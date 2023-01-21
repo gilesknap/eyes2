@@ -1,5 +1,5 @@
 // represent a coordinate in the world
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Position {
     pub x: u16,
     pub y: u16,

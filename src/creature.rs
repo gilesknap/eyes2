@@ -2,6 +2,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::types::Position;
 
+#[derive(Debug, Copy, Clone)] // TODO I'd like to avoid making this copyable
 pub struct Creature {
     // the creature's unique number
     pub num: u64,
