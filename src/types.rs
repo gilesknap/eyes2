@@ -5,6 +5,8 @@ pub struct Position {
     pub y: u16,
 }
 
+// represent a direction in the 2d world
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Direction {
     North,
     NorthEast,
