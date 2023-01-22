@@ -69,11 +69,15 @@ impl World {
 
     pub fn populate(&mut self, grass_count: u16, creature_count: u16, energy: u32) {
         // add grass
-        while self.grass.len() < grass_count as usize {
-            let x = rand::random::<u16>() % self.size;
-            let y = rand::random::<u16>() % self.size;
-            let position = Position { x, y };
-            self.add_grass(position);
+        for _ in 0..grass_count {
+            loop {
+                let x = rand::random::<u16>() % self.size;
+                let y = rand::random::<u16>() % self.size;
+                // use of concise flow control (see Chapter 6)
+                if let Ok(()) = self.add_grass(Position { x, y }) {
+                    break;
+                }
+            }
         }
 
         // add creatures
@@ -82,9 +86,8 @@ impl World {
                 let x = rand::random::<u16>() % self.size;
                 let y = rand::random::<u16>() % self.size;
                 let creature = Creature::new(Position { x, y }, energy);
-                match self.add_creature(creature) {
-                    Ok(()) => break,
-                    _ => continue,
+                if let Ok(()) = self.add_creature(creature) {
+                    break;
                 }
             }
         }
@@ -108,7 +111,8 @@ impl World {
         }
     }
 
-    // // TODO this is the crux of the ownership problem
+    // // TODO TODO TODO TODO
+    // // This is the crux of the ownership problem
     // // resolve this and all will be good right? :)
     // pub fn run(&mut self) {
     //     loop {

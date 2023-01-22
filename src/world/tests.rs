@@ -1,5 +1,5 @@
 // use all items from the parent module
-use super::*;
+use super::{Cell, Creature, Position, World};
 
 #[test]
 fn check_add_creature() {
@@ -46,7 +46,7 @@ fn check_populate() {
     let creature = Creature::new(Position { x: 1, y: 1 }, 1000);
 
     // won't remove creature because it's not in the world
-    assert_eq!(world.remove_creature(&creature), Ok(()));
+    assert_eq!(world.remove_creature(&creature), Err(()));
     assert_eq!(world.creature_count(), 10);
 
     // TODO this is where things fall down - I can't do the following
