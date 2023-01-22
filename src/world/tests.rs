@@ -28,10 +28,34 @@ fn check_add_creature() {
 
     // verify lookup creature via its number
     let creature_pos = world
-        .creatures
-        .get(&creature_num)
+        .creature(creature_num)
         .expect("can't find creature {}")
         .position;
 
     assert_eq!(creature_pos, position);
+}
+
+#[test]
+fn check_populate() {
+    let mut world = World::new(10);
+    world.populate(10, 10, 1000);
+
+    assert_eq!(world.grass_count(), 10);
+    assert_eq!(world.creature_count(), 10);
+
+    let creature = Creature::new(Position { x: 1, y: 1 }, 1000);
+
+    // won't remove creature because it's not in the world
+    world.remove_creature(&creature);
+    assert_eq!(world.creature_count(), 10);
+
+    // TODO this is where things fall down - I can't do the following
+    // because:
+    // world.creatures borrows the world immutable
+    // then world.remove_creature borrows the world mutable
+    // borrower does not allow this.
+    // while world.creature_count() > 0 {
+    //     let creature = world.creatures.values().next().unwrap().clone();
+    //     world.remove_creature(&creature);
+    // }
 }
