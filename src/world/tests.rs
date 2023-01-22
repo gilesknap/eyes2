@@ -8,11 +8,11 @@ fn check_add_creature() {
     let creature = Creature::new(position, 1000);
 
     let creature_num = creature.num;
-    world.add_creature(creature);
+    assert_eq!(world.add_creature(creature), Ok(()));
 
     // previous creature was moved into the world so we can't use it again
     let creature = Creature::new(position, 1000);
-    assert_eq!(world.add_creature(creature), false);
+    assert_eq!(world.add_creature(creature), Err(()));
     assert!(world.creatures.len() == 1);
 
     // verify lookup cells via position in the world
@@ -46,14 +46,15 @@ fn check_populate() {
     let creature = Creature::new(Position { x: 1, y: 1 }, 1000);
 
     // won't remove creature because it's not in the world
-    world.remove_creature(&creature);
+    assert_eq!(world.remove_creature(&creature), Ok(()));
     assert_eq!(world.creature_count(), 10);
 
     // TODO this is where things fall down - I can't do the following
     // because:
-    // world.creatures borrows the world immutable
-    // then world.remove_creature borrows the world mutable
+    //   world.creatures borrows the world immutable
+    //   then world.remove_creature borrows the world mutable
     // borrower does not allow this.
+    //
     // while world.creature_count() > 0 {
     //     let creature = world.creatures.values().next().unwrap().clone();
     //     world.remove_creature(&creature);

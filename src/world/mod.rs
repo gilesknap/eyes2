@@ -1,3 +1,4 @@
+mod thing;
 use crate::creature::{Creature, Status};
 use crate::types::Position;
 use rand;
@@ -76,12 +77,16 @@ impl World {
         }
 
         // add creatures
-        while self.creatures.len() < creature_count as usize {
-            let x = rand::random::<u16>() % self.size;
-            let y = rand::random::<u16>() % self.size;
-            let position = Position { x, y };
-            let creature = Creature::new(position, energy);
-            self.add_creature(creature);
+        for _ in 0..creature_count {
+            loop {
+                let x = rand::random::<u16>() % self.size;
+                let y = rand::random::<u16>() % self.size;
+                let creature = Creature::new(Position { x, y }, energy);
+                match self.add_creature(creature) {
+                    Ok(()) => break,
+                    _ => continue,
+                }
+            }
         }
 
         println!(
@@ -133,51 +138,51 @@ impl World {
         self.cells[position.x as usize][position.y as usize] = cell;
     }
 
-    fn add_creature(&mut self, creature: Creature) -> bool {
+    fn add_creature(&mut self, creature: Creature) -> Result<(), ()> {
         match self.get_cell(creature.position) {
             Cell::Empty => {
                 self.set_cell(creature.position, Cell::Creature(creature.num));
                 self.creatures.insert(creature.num, creature);
-                true
+                Ok(())
             }
-            _ => false,
+            _ => Err(()),
         }
     }
 
-    fn remove_creature(&mut self, creature: &Creature) -> bool {
+    fn remove_creature(&mut self, creature: &Creature) -> Result<(), ()> {
         match self.get_cell(creature.position) {
             Cell::Creature(num) => {
                 if num == creature.num {
                     self.set_cell(creature.position, Cell::Empty);
                     self.creatures.remove(&creature.num);
-                    true
+                    Ok(())
                 } else {
-                    false
+                    Err(())
                 }
             }
-            _ => false,
+            _ => Err(()),
         }
     }
 
-    fn add_grass(&mut self, position: Position) -> bool {
+    fn add_grass(&mut self, position: Position) -> Result<(), ()> {
         match self.get_cell(position) {
             Cell::Empty => {
                 self.set_cell(position, Cell::Grass);
                 self.grass.insert(position);
-                true
+                Ok(())
             }
-            _ => false,
+            _ => Err(()),
         }
     }
 
-    fn remove_grass(&mut self, position: Position) -> bool {
+    fn remove_grass(&mut self, position: Position) -> Result<(), ()> {
         match self.get_cell(position) {
             Cell::Grass => {
                 self.set_cell(position, Cell::Empty);
                 self.grass.remove(&position);
-                true
+                Ok(())
             }
-            _ => false,
+            _ => Err(()),
         }
     }
 }
