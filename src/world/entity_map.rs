@@ -9,22 +9,28 @@
 // entity. This approach means there is only one reference to the entity
 // and that can be borrowed from the hashmap as needed.
 //
-// TODO storing a the entity id in the world grid means that we need a HashMap
-// lookup to find the entity. Consider storing a reference to the entity in the
-// world grid instead. But this would require a reference counted pointer to the
-// entity or some other mechanism.
-// TODO worth remembering that I want to make this multi-process one day
-// and the grid and entity map will need to be shared between processes.
-// so above TODO gets more complicated.
+// We are storing the entity id instead of an Entity reference because I want
+// to eventually make this multi process, The world grid will be shared between
+// processes with transactional changes allowed, but the entities will be
+// owned by the process that created them.
 
-use crate::entity::Entity;
-use crate::types::WorldGrid;
+use rand::Rng;
+
+use crate::entity::{Cell, Entity};
+use crate::types::{Position, WorldGrid};
 use std::collections::HashMap;
+
+pub struct EntityItem<T> {
+    pub id: u64,
+    pub position: Position,
+    pub entity: T,
+}
 
 pub struct EntityMap<T> {
     entities: HashMap<u64, T>,
     next_id: u64,
     grid: WorldGrid,
+    grid_size: u16,
 }
 
 impl<T> EntityMap<T>
@@ -32,10 +38,12 @@ where
     T: Entity,
 {
     pub fn new(grid: WorldGrid) -> EntityMap<T> {
+        let grid_size = (grid.len() as f64).sqrt() as u16;
         EntityMap {
             entities: HashMap::new(),
             next_id: 0,
             grid,
+            grid_size,
         }
     }
 
@@ -43,9 +51,12 @@ where
         for _ in 0..count {
             loop {
                 let entity = T::new();
-                if let Ok(()) = self.add_entity(entity) {
+                // find a random empty cell to place the entity
+                let x = rand::thread_rng().gen_range(0..self.grid_size);
+                let y = rand::thread_rng().gen_range(0..self.grid_size);
+                if let Ok(()) = self.add_entity(entity, Position { x, y }) {
                     break;
-                }
+                };
             }
         }
     }
@@ -58,12 +69,20 @@ where
         self.entities.len()
     }
 
-    pub fn add_entity(&mut self, entity: T) -> Result<(), ()> {
-        // TODO check if the grid is empty at the entity's position
-        let id = self.next_id;
-        self.next_id += 1;
-        self.entities.insert(id, entity);
-        Ok(())
+    pub fn add_entity(&mut self, entity: T, position: Position) -> Result<(), ()> {
+        match self.grid[position.x as usize][position.y as usize] {
+            Cell::Empty => {
+                let id = self.next_id;
+                self.next_id += 1;
+                // TODO this fails as Rc is not mutable
+                // Looks like I need to use RefCell but it would be nice to design
+                // a pattern that does not require that.
+                self.grid[position.x as usize][position.y as usize] = T::cell_type(id);
+                self.entities.insert(id, entity);
+                Ok(())
+            }
+            _ => Err(()),
+        }
     }
 
     pub fn remove_entity(&mut self, id: u64) -> Result<(), ()> {

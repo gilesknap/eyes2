@@ -1,7 +1,8 @@
-use crate::types::Cell;
+use crate::entity::Cell;
 use crate::types::Position;
 use crate::world::World;
 
+// TODO rudimentary rendering of the world as a placeholder
 pub fn render(world: &World) {
     println!();
     println!("Rendering World of size: {}", world.get_size());

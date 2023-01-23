@@ -1,7 +1,8 @@
 pub mod entity_map;
 use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;
-use crate::types::{Cell, Position, WorldGrid};
+use crate::entity::Cell;
+use crate::types::{Position, WorldGrid};
 use crate::world::entity_map::EntityMap;
 use std::rc::Rc;
 
@@ -11,7 +12,7 @@ pub struct World {
     size: u16,
     // the grid of cells - inner Vec is a row, outer Vec is a column
     // it is wrapped in a reference counted pointer so that it can be shared
-    cells: WorldGrid,
+    grid: WorldGrid,
     // the list of creatures in the world
     creatures: EntityMap<Creature>,
     // the list of all the grass blocks in the world
@@ -25,10 +26,12 @@ impl World {
         let grid = Rc::new(vec![vec![Cell::Empty; size as usize]; size as usize]);
         let world = World {
             size,
-            cells: grid.clone(),
+            grid: grid.clone(),
             creatures: EntityMap::<Creature>::new(grid.clone()),
             grass: EntityMap::<Grass>::new(grid.clone()),
         };
+
+        grid[0][0] = Cell::Creature(0);
 
         println!("Created a new world of size {} square", world.size);
         world
@@ -82,7 +85,7 @@ impl World {
     // TODO maybe make this private - instead expose HashMap iterator for
     // creatures and grass
     pub fn get_cell(&self, position: Position) -> Cell {
-        return self.cells[position.x as usize][position.y as usize];
+        return self.grid[position.x as usize][position.y as usize];
     }
 }
 

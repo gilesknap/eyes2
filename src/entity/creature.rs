@@ -1,4 +1,4 @@
-use super::Entity;
+use super::{Cell, Entity};
 
 pub enum Status {
     Alive,
@@ -14,6 +14,9 @@ pub struct Creature {
 impl Entity for Creature {
     fn new() -> Creature {
         Creature { energy: 1000 }
+    }
+    fn cell_type(id: u64) -> Cell {
+        Cell::Creature(id)
     }
 }
 
