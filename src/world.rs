@@ -4,6 +4,7 @@ use crate::entity::grass::Grass;
 use crate::entity::Cell;
 use crate::types::{Position, WorldGrid};
 use crate::world::entity_map::EntityMap;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 // a world is a 2D grid of Cell
@@ -23,15 +24,18 @@ pub struct World {
 impl World {
     pub fn new(size: u16) -> World {
         // create a square 2d vector of empty cells
-        let grid = Rc::new(vec![vec![Cell::Empty; size as usize]; size as usize]);
+        let grid = Rc::new(RefCell::new(vec![
+            vec![Cell::Empty; size as usize];
+            size as usize
+        ]));
+        // The refCell is held in multiple places so we clone it.
+        // TODO the assumption is that the heap grid will be shared between clones??
         let world = World {
             size,
             grid: grid.clone(),
             creatures: EntityMap::<Creature>::new(grid.clone()),
             grass: EntityMap::<Grass>::new(grid.clone()),
         };
-
-        grid[0][0] = Cell::Creature(0);
 
         println!("Created a new world of size {} square", world.size);
         world
@@ -85,7 +89,7 @@ impl World {
     // TODO maybe make this private - instead expose HashMap iterator for
     // creatures and grass
     pub fn get_cell(&self, position: Position) -> Cell {
-        return self.grid[position.x as usize][position.y as usize];
+        return self.grid.borrow()[position.x as usize][position.y as usize];
     }
 }
 

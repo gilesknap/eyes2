@@ -33,12 +33,12 @@ pub struct EntityMap<T> {
     grid_size: u16,
 }
 
-impl<T> EntityMap<T>
+impl<'a, T> EntityMap<T>
 where
     T: Entity,
 {
     pub fn new(grid: WorldGrid) -> EntityMap<T> {
-        let grid_size = (grid.len() as f64).sqrt() as u16;
+        let grid_size = grid.borrow().len() as u16;
         EntityMap {
             entities: HashMap::new(),
             next_id: 0,
@@ -56,7 +56,7 @@ where
                 let y = rand::thread_rng().gen_range(0..self.grid_size);
                 if let Ok(()) = self.add_entity(entity, Position { x, y }) {
                     break;
-                };
+                }
             }
         }
     }
@@ -70,15 +70,15 @@ where
     }
 
     pub fn add_entity(&mut self, entity: T, position: Position) -> Result<(), ()> {
-        match self.grid[position.x as usize][position.y as usize] {
+        let mut grid = self.grid.borrow_mut();
+        match grid[position.x as usize][position.y as usize] {
             Cell::Empty => {
                 let id = self.next_id;
                 self.next_id += 1;
-                // TODO this fails as Rc is not mutable
-                // Looks like I need to use RefCell but it would be nice to design
-                // a pattern that does not require that.
-                self.grid[position.x as usize][position.y as usize] = T::cell_type(id);
+
+                grid[position.x as usize][position.y as usize] = T::cell_type(id);
                 self.entities.insert(id, entity);
+
                 Ok(())
             }
             _ => Err(()),
