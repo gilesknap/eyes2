@@ -1,6 +1,6 @@
 pub mod entity_map;
-use crate::creature::Creature;
-use crate::grass::Grass;
+use crate::entity::creature::Creature;
+use crate::entity::grass::Grass;
 use crate::types::Position;
 use crate::world::entity_map::EntityMap;
 

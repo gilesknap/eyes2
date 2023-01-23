@@ -17,7 +17,7 @@
 // and the grid and entity map will need to be shared between processes.
 // so above TODO gets more complicated.
 
-use crate::types::Entity;
+use crate::entity::Entity;
 use std::collections::HashMap;
 
 pub struct EntityMap<T> {

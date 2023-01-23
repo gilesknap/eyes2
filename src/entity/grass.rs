@@ -1,4 +1,4 @@
-use crate::types::Entity;
+use super::Entity;
 
 pub struct Grass {}
 
