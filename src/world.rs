@@ -69,7 +69,7 @@ impl World {
         );
     }
 
-    // get reference to mutable creature by its number
+    // get reference to mutable creature by its id
     pub fn creature(&mut self, id: u64) -> Rc<&mut Creature> {
         let creature = self.creatures.get_entity(&id).unwrap();
         Rc::new(creature)

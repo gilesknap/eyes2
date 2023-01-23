@@ -12,9 +12,11 @@ fn main() {
 
     gui::render(&world);
 
-    world.tick();
+    for _ in 0..999 {
+        world.tick();
+    }
 
-    let e = world.creature(0).energy;
-
-    println!("creature 0 energy {}", e);
+    println!();
+    println!("creature's in world = {}", world.creature_count());
+    println!("creature 0 energy {}", world.creature(0).energy);
 }
