@@ -10,7 +10,7 @@ pub fn render(world: &World) {
         for x in 0..world.get_size() {
             match world.get_cell(Position { x, y }) {
                 Cell::Empty => print!(" "),
-                Cell::Grass => print!("*"),
+                Cell::Grass(_) => print!("*"),
                 Cell::Creature(_) => print!("o"),
             };
         }

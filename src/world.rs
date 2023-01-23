@@ -1,8 +1,8 @@
-mod thing;
-use crate::creature::{Creature, Status};
+pub mod entity_map;
+use crate::creature::Creature;
+use crate::grass::Grass;
 use crate::types::Position;
-use rand;
-use std::collections::{HashMap, HashSet};
+use crate::world::entity_map::EntityMap;
 
 // represent the contents of a single cell in the world
 #[derive(Debug, Copy, Clone)]
@@ -23,19 +23,19 @@ pub enum Cell {
     Creature(u64),
 
     // the cell is occupied by a block of grass (food for Herbivorous Creatures)
-    Grass,
+    Grass(u64),
 }
 
 // a world is a 2D grid of Cell
 pub struct World {
-    // the size of the world (width and height are the same)
+    // the size of the 2D world (width and height are the same)
     size: u16,
     // the grid of cells - inner Vec is a row, outer Vec is a column
     cells: Vec<Vec<Cell>>,
     // the list of creatures in the world
-    creatures: HashMap<u64, Creature>,
+    creatures: EntityMap<Creature>,
     // the list of all the grass blocks in the world
-    grass: HashSet<Position>,
+    grass: EntityMap<Grass>,
 }
 
 // public methods
@@ -43,12 +43,11 @@ impl World {
     pub fn new(size: u16) -> World {
         // create a square 2d vector of empty cells
         let cells = vec![vec![Cell::Empty; size as usize]; size as usize];
-        let grass = HashSet::new();
         let world = World {
             size,
             cells,
-            creatures: HashMap::new(),
-            grass,
+            creatures: EntityMap::<Creature>::new(),
+            grass: EntityMap::<Grass>::new(),
         };
 
         println!("Created a new world of size {} square", world.size);
@@ -60,37 +59,16 @@ impl World {
     }
 
     pub fn grass_count(&self) -> usize {
-        self.grass.len()
+        self.grass.count()
     }
 
     pub fn creature_count(&self) -> usize {
-        self.creatures.len()
+        self.creatures.count()
     }
 
-    pub fn populate(&mut self, grass_count: u16, creature_count: u16, energy: u32) {
-        // add grass
-        for _ in 0..grass_count {
-            loop {
-                let x = rand::random::<u16>() % self.size;
-                let y = rand::random::<u16>() % self.size;
-                // use of concise flow control (see Chapter 6)
-                if let Ok(()) = self.add_grass(Position { x, y }) {
-                    break;
-                }
-            }
-        }
-
-        // add creatures
-        for _ in 0..creature_count {
-            loop {
-                let x = rand::random::<u16>() % self.size;
-                let y = rand::random::<u16>() % self.size;
-                let creature = Creature::new(Position { x, y }, energy);
-                if let Ok(()) = self.add_creature(creature) {
-                    break;
-                }
-            }
-        }
+    pub fn populate(&mut self, grass_count: u16, creature_count: u16) {
+        self.grass.populate(grass_count);
+        self.creatures.populate(creature_count);
 
         println!(
             "Added {} grass and {} creatures to the world",
@@ -100,15 +78,7 @@ impl World {
 
     // get creature by its number
     pub fn creature(&self, num: u64) -> Option<&Creature> {
-        self.creatures.get(&num)
-    }
-
-    // get creature by its position
-    pub fn creature2(&self, x: u16, y: u16) -> Option<&Creature> {
-        match self.get_cell(Position { x, y }) {
-            Cell::Creature(num) => self.creatures.get(&num),
-            _ => None,
-        }
+        self.creatures.get_entity(num)
     }
 
     // // TODO TODO TODO TODO
@@ -136,59 +106,5 @@ impl World {
     }
 }
 
-// private methods
-impl World {
-    fn set_cell(&mut self, position: Position, cell: Cell) {
-        self.cells[position.x as usize][position.y as usize] = cell;
-    }
-
-    fn add_creature(&mut self, creature: Creature) -> Result<(), ()> {
-        match self.get_cell(creature.position) {
-            Cell::Empty => {
-                self.set_cell(creature.position, Cell::Creature(creature.num));
-                self.creatures.insert(creature.num, creature);
-                Ok(())
-            }
-            _ => Err(()),
-        }
-    }
-
-    fn remove_creature(&mut self, creature: &Creature) -> Result<(), ()> {
-        match self.get_cell(creature.position) {
-            Cell::Creature(num) => {
-                if num == creature.num {
-                    self.set_cell(creature.position, Cell::Empty);
-                    self.creatures.remove(&creature.num);
-                    Ok(())
-                } else {
-                    Err(())
-                }
-            }
-            _ => Err(()),
-        }
-    }
-
-    fn add_grass(&mut self, position: Position) -> Result<(), ()> {
-        match self.get_cell(position) {
-            Cell::Empty => {
-                self.set_cell(position, Cell::Grass);
-                self.grass.insert(position);
-                Ok(())
-            }
-            _ => Err(()),
-        }
-    }
-
-    fn remove_grass(&mut self, position: Position) -> Result<(), ()> {
-        match self.get_cell(position) {
-            Cell::Grass => {
-                self.set_cell(position, Cell::Empty);
-                self.grass.remove(&position);
-                Ok(())
-            }
-            _ => Err(()),
-        }
-    }
-}
 #[cfg(test)]
 mod tests;
