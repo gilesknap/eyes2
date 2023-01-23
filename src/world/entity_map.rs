@@ -33,7 +33,7 @@ pub struct EntityMap<T> {
     grid_size: u16,
 }
 
-impl<'a, T> EntityMap<T>
+impl<T> EntityMap<T>
 where
     T: Entity,
 {
@@ -49,9 +49,9 @@ where
 
     pub fn populate(&mut self, count: u16) {
         for _ in 0..count {
+            // keep trying until we find a random empty cell to place the entity
             loop {
                 let entity = T::new();
-                // find a random empty cell to place the entity
                 let x = rand::thread_rng().gen_range(0..self.grid_size);
                 let y = rand::thread_rng().gen_range(0..self.grid_size);
                 if let Ok(()) = self.add_entity(entity, Position { x, y }) {
@@ -61,8 +61,13 @@ where
         }
     }
 
-    pub fn get_entity(&self, id: u64) -> Option<&T> {
-        self.entities.get(&id)
+    pub fn keys(&self) -> Vec<u64> {
+        self.entities.keys().cloned().collect()
+    }
+
+    // use a mutable reference to self so we can mutate an entity
+    pub fn get_entity(&mut self, id: &u64) -> Option<&mut T> {
+        self.entities.get_mut(id)
     }
 
     pub fn count(&self) -> usize {
@@ -85,9 +90,9 @@ where
         }
     }
 
-    pub fn remove_entity(&mut self, id: u64) -> Result<(), ()> {
+    pub fn remove_entity(&mut self, id: &u64) -> Result<(), ()> {
         // propagate an error if entity not found
-        match self.entities.remove(&id) {
+        match self.entities.remove(id) {
             Some(_) => Ok(()),
             None => Err(()),
         }

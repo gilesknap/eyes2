@@ -11,4 +11,10 @@ fn main() {
     world.populate(grass_count, creature_count);
 
     gui::render(&world);
+
+    world.tick();
+
+    let e = world.creature(0).energy;
+
+    println!("creature 0 energy {}", e);
 }

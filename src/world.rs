@@ -1,5 +1,5 @@
 pub mod entity_map;
-use crate::entity::creature::Creature;
+use crate::entity::creature::{Creature, Status};
 use crate::entity::grass::Grass;
 use crate::entity::Cell;
 use crate::types::{Position, WorldGrid};
@@ -28,8 +28,14 @@ impl World {
             vec![Cell::Empty; size as usize];
             size as usize
         ]));
-        // The refCell is held in multiple places so we clone it.
-        // TODO the assumption is that the heap grid will be shared between clones??
+
+        // the grid is wrapped in a RefCell so that we can mutate it
+        // this in turn is wrapped in an Rc so that we can share it
+        // between multiple owners:
+        // - the world
+        // - the creatures EntityMap
+        // - the grass EntityMap
+
         let world = World {
             size,
             grid: grid.clone(),
@@ -63,31 +69,32 @@ impl World {
         );
     }
 
-    // get creature by its number
-    pub fn creature(&self, num: u64) -> Option<&Creature> {
-        self.creatures.get_entity(num)
+    // get reference to mutable creature by its number
+    pub fn creature(&mut self, id: u64) -> Rc<&mut Creature> {
+        let creature = self.creatures.get_entity(&id).unwrap();
+        Rc::new(creature)
     }
 
-    // // TODO TODO TODO TODO
-    // // This is the crux of the ownership problem
-    // // resolve this and all will be good right? :)
-    // pub fn run(&mut self) {
-    //     loop {
-    //         for (_, creature) in &self.creatures {
-    //             match creature.tick() {
-    //                 Status::Alive => {}
-    //                 Status::Dead => {
-    //                     self.set_cell(creature.position, Cell::Empty);
+    // give each creature one clock cycle of processing
+    pub fn tick(&mut self) {
+        let mut remove_me = Vec::new();
+        let ids: Vec<u64> = self.creatures.keys();
 
-    //                     self.creatures.remove(&creature.num);
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+        for id in ids {
+            // use unwrap here because we know the id is valid
+            match self.creatures.get_entity(&id).unwrap().tick() {
+                Status::Alive => {}
+                Status::Dead => remove_me.push(id),
+            }
+        }
+
+        for id in remove_me {
+            self.creatures.remove_entity(&id).unwrap();
+        }
+    }
 
     // TODO maybe make this private - instead expose HashMap iterator for
-    // creatures and grass
+    // creatures and grass EntityMaps
     pub fn get_cell(&self, position: Position) -> Cell {
         return self.grid.borrow()[position.x as usize][position.y as usize];
     }
