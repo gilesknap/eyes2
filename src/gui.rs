@@ -1,5 +1,5 @@
+use crate::types::Cell;
 use crate::types::Position;
-use crate::world::Cell;
 use crate::world::World;
 
 pub fn render(world: &World) {

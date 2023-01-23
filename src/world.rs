@@ -1,37 +1,17 @@
 pub mod entity_map;
 use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;
-use crate::types::Position;
+use crate::types::{Cell, Position, WorldGrid};
 use crate::world::entity_map::EntityMap;
-
-// represent the contents of a single cell in the world
-#[derive(Debug, Copy, Clone)]
-pub enum Cell {
-    // the cell is empty
-    Empty,
-
-    // TODO -  this should be a reference to a Creature structure
-    // but I assume the borrow checker would not let me make changes to the creature
-    // if it is referenced both here and in the world.creatures list.
-    //
-    // Possible solutions:
-    //   https://doc.rust-lang.org/std/cell/index.html
-    //   https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html
-    //   https://doc.rust-lang.org/std/rc/struct.Rc.html
-
-    // the cell is occupied by a Creature (with a unique number)
-    Creature(u64),
-
-    // the cell is occupied by a block of grass (food for Herbivorous Creatures)
-    Grass(u64),
-}
+use std::rc::Rc;
 
 // a world is a 2D grid of Cell
 pub struct World {
     // the size of the 2D world (width and height are the same)
     size: u16,
     // the grid of cells - inner Vec is a row, outer Vec is a column
-    cells: Vec<Vec<Cell>>,
+    // it is wrapped in a reference counted pointer so that it can be shared
+    cells: WorldGrid,
     // the list of creatures in the world
     creatures: EntityMap<Creature>,
     // the list of all the grass blocks in the world
@@ -42,12 +22,12 @@ pub struct World {
 impl World {
     pub fn new(size: u16) -> World {
         // create a square 2d vector of empty cells
-        let cells = vec![vec![Cell::Empty; size as usize]; size as usize];
+        let grid = Rc::new(vec![vec![Cell::Empty; size as usize]; size as usize]);
         let world = World {
             size,
-            cells,
-            creatures: EntityMap::<Creature>::new(),
-            grass: EntityMap::<Grass>::new(),
+            cells: grid.clone(),
+            creatures: EntityMap::<Creature>::new(grid.clone()),
+            grass: EntityMap::<Grass>::new(grid.clone()),
         };
 
         println!("Created a new world of size {} square", world.size);

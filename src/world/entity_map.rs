@@ -1,9 +1,9 @@
-// Define a structure to hold the entities in the world. One of these
+// Define a generic structure to hold the entities in the world. One of these
 // would be created for each type of entity (creatures, grass, possibly others).
 // The entity is held in a hash map, with unique id as key,
 // this is for fast lookup and iteration, the hash map owns the entity.
 //
-// An entity reference is also held in the world grid, so that the
+// An entity id is also held in the world grid, so that the
 // inspecting a cell in the world can quickly find and entity. This
 // is held using a Cell enum, which contains the unique id of the
 // entity. This approach means there is only one reference to the entity
@@ -18,21 +18,24 @@
 // so above TODO gets more complicated.
 
 use crate::entity::Entity;
+use crate::types::WorldGrid;
 use std::collections::HashMap;
 
 pub struct EntityMap<T> {
     entities: HashMap<u64, T>,
     next_id: u64,
+    grid: WorldGrid,
 }
 
 impl<T> EntityMap<T>
 where
     T: Entity,
 {
-    pub fn new() -> EntityMap<T> {
+    pub fn new(grid: WorldGrid) -> EntityMap<T> {
         EntityMap {
             entities: HashMap::new(),
             next_id: 0,
+            grid,
         }
     }
 
