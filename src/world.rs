@@ -18,6 +18,8 @@ pub struct World {
     creatures: EntityMap<Creature>,
     // the list of all the grass blocks in the world
     grass: EntityMap<Grass>,
+    // record of the number of ticks that have passed in the world
+    ticks: u64,
 }
 
 // public methods
@@ -41,6 +43,7 @@ impl World {
             grid: grid.clone(),
             creatures: EntityMap::<Creature>::new(grid.clone()),
             grass: EntityMap::<Grass>::new(grid.clone()),
+            ticks: 0,
         };
 
         println!("Created a new world of size {} square", world.size);
@@ -49,6 +52,10 @@ impl World {
 
     pub fn get_size(&self) -> u16 {
         self.size
+    }
+
+    pub fn get_ticks(&self) -> u64 {
+        self.ticks
     }
 
     pub fn grass_count(&self) -> usize {
@@ -71,7 +78,7 @@ impl World {
 
     // get reference to mutable creature by its id
     pub fn creature(&mut self, id: u64) -> Rc<&mut Creature> {
-        let creature = self.creatures.get_entity(&id).unwrap();
+        let creature = self.creatures.get_entity(&id);
         Rc::new(creature)
     }
 
@@ -82,15 +89,16 @@ impl World {
 
         for id in ids {
             // use unwrap here because we know the id is valid
-            match self.creatures.get_entity(&id).unwrap().tick() {
+            match self.creatures.get_entity(&id).tick() {
                 Status::Alive => {}
                 Status::Dead => remove_me.push(id),
             }
         }
 
         for id in remove_me {
-            self.creatures.remove_entity(&id).unwrap();
+            self.creatures.remove_entity(&id);
         }
+        self.ticks += 1;
     }
 
     // TODO maybe make this private - instead expose HashMap iterator for

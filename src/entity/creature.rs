@@ -1,5 +1,5 @@
 use super::{Cell, Entity};
-
+use rand::Rng;
 pub enum Status {
     Alive,
     Dead,
@@ -13,7 +13,9 @@ pub struct Creature {
 
 impl Entity for Creature {
     fn new() -> Creature {
-        Creature { energy: 1000 }
+        Creature {
+            energy: rand::thread_rng().gen_range(500..1000),
+        }
     }
     fn cell_type(id: u64) -> Cell {
         Cell::Creature(id)

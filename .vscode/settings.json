@@ -1,6 +1,8 @@
 {
     "rust-analyzer.inlayHints.typeHints.enable": false,
     "cSpell.words": [
+        "attroff",
+        "attron",
         "endwin",
         "getch",
         "initscr",

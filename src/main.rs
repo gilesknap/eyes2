@@ -1,6 +1,7 @@
 extern crate eyes2;
 
 use eyes2::{gui, world};
+use std::{thread, time};
 
 fn main() {
     let size = 25;
@@ -10,13 +11,11 @@ fn main() {
     let mut world = world::World::new(size);
     world.populate(grass_count, creature_count);
 
-    gui::render(&world);
+    let mut gui = gui::EyesGui::new();
 
-    for _ in 0..999 {
+    for _ in 0..1000 {
+        gui.render(&world);
         world.tick();
+        thread::sleep(time::Duration::from_millis(10));
     }
-
-    println!();
-    println!("creature's in world = {}", world.creature_count());
-    println!("creature 0 energy {}", world.creature(0).energy);
 }
