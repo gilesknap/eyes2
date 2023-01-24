@@ -1,5 +1,5 @@
 use super::{Cell, Entity};
-use crate::types::Update;
+use crate::types::{Position, Update};
 use crate::world::UpdateQueue;
 use queues::*;
 use rand::Rng;
@@ -7,15 +7,17 @@ use rand::Rng;
 #[derive(Debug)] // TODO I'd like to avoid making this copyable
 pub struct Creature {
     id: u64,
+    position: Position,
     // the creature's current energy level
     pub energy: u32,
 }
 
 impl Entity for Creature {
-    fn new(id: u64) -> Creature {
+    fn new(id: u64, position: Position) -> Creature {
         Creature {
-            energy: rand::thread_rng().gen_range(2..500),
             id,
+            position,
+            energy: rand::thread_rng().gen_range(2..500),
         }
     }
 
@@ -25,6 +27,10 @@ impl Entity for Creature {
 
     fn id(&self) -> u64 {
         self.id
+    }
+
+    fn position(&self) -> Position {
+        self.position
     }
 
     fn tick(&mut self, queue: &mut UpdateQueue) {

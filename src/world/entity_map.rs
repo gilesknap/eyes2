@@ -21,14 +21,8 @@ use crate::types::Position;
 use crate::world::WorldGrid;
 use std::collections::HashMap;
 
-pub struct EntityItem<T> {
-    pub id: u64,
-    pub position: Position,
-    pub entity: T,
-}
-
 pub struct EntityMap<T> {
-    entities: HashMap<u64, EntityItem<T>>,
+    pub entities: HashMap<u64, T>,
     next_id: u64,
     grid: WorldGrid,
     grid_size: u16,
@@ -66,8 +60,9 @@ where
     }
 
     // use a mutable reference to self so we can mutate an entity
-    pub fn get_entity(&mut self, id: &u64) -> &mut T {
-        &mut self.entities.get_mut(id).expect("bad id").entity
+    pub fn get_entity(&mut self, id: &u64) -> &T {
+        let thing: &mut T = self.entities.get_mut(id).unwrap();
+        thing
     }
 
     pub fn count(&self) -> usize {
@@ -79,17 +74,12 @@ where
 
         let id = self.next_id;
         self.next_id += 1;
-        let entity = T::new(id);
+        let entity = T::new(id, position);
 
         match grid[position.x as usize][position.y as usize] {
             Cell::Empty | Cell::Creature(_) => {
-                let entity_item = EntityItem {
-                    id,
-                    position,
-                    entity,
-                };
                 grid[position.x as usize][position.y as usize] = T::cell_type(id);
-                self.entities.insert(id, entity_item);
+                self.entities.insert(id, entity);
 
                 Ok(())
             }
@@ -100,7 +90,7 @@ where
 
     pub fn remove_entity(&mut self, id: &u64) {
         let mut grid = self.grid.borrow_mut();
-        let position = self.entities.get(id).unwrap().position;
+        let position = self.entities.get(id).unwrap().position();
 
         self.entities.remove(id);
         grid[position.x as usize][position.y as usize] = Cell::Empty;

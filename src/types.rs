@@ -1,4 +1,4 @@
-// Basic shared structures. These will all implement Copy and Clone
+// Simple shared structures. All will all implement Copy and Clone
 
 // represent a coordinate in the world
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]

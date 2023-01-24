@@ -92,7 +92,11 @@ impl World {
         let ids: Vec<u64> = self.creatures.keys();
 
         for id in ids {
-            self.creatures.get_entity(&id).tick(&mut self.updates);
+            self.creatures
+                .entities
+                .get_mut(&id)
+                .unwrap()
+                .tick(&mut self.updates);
         }
 
         self.apply_updates();

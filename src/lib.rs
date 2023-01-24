@@ -1,3 +1,5 @@
+// Just declare the submodules
+
 // implement the assembler disassembler and executor for the RISC `processor`
 mod code;
 // represent individual entities in the world
@@ -8,3 +10,5 @@ pub mod gui;
 pub mod types;
 // represent the state of the world as a grid of cells
 pub mod world;
+// standalone utility functions
+pub mod utils;
