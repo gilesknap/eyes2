@@ -1,7 +1,7 @@
 pub mod entity_map;
 use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;
-use crate::entity::{Cell, Entity};
+use crate::entity::Cell;
 use crate::types::{Position, Update};
 use crate::world::entity_map::EntityMap;
 use queues::*;
@@ -85,12 +85,6 @@ impl World {
             "Added {} grass and {} creatures to the world",
             grass_count, creature_count
         );
-    }
-
-    // get reference to mutable creature by its id
-    pub fn creature(&mut self, id: u64) -> Rc<&mut Creature> {
-        let creature = self.creatures.get_entity(&id);
-        Rc::new(creature)
     }
 
     // give each creature one clock cycle of processing
