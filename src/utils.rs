@@ -6,7 +6,7 @@ use rand::Rng;
 // Pick a random direction (we could shorten this a little using
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 // but copilot wrote this more me and it reads nicely)
-pub fn random_direction() {
+pub fn random_direction() -> Direction {
     let mut rng = rand::thread_rng();
     let direction = rng.gen_range(0..8);
     match direction {
@@ -19,7 +19,7 @@ pub fn random_direction() {
         6 => Direction::West,
         7 => Direction::NorthWest,
         _ => panic!("bad direction"),
-    };
+    }
 }
 
 // copilot wrote this one too

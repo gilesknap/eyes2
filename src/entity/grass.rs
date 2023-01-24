@@ -1,7 +1,8 @@
 use super::{Cell, Entity};
-use crate::types::Position;
+use crate::types::{Direction, Position, Update};
 use crate::utils::{move_pos, random_direction};
 use crate::world::UpdateQueue;
+use queues::*;
 use rand::Rng;
 
 pub struct Grass {
@@ -33,11 +34,11 @@ impl Entity for Grass {
 
 impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        // if rand::thread_rng().gen_range(0..500) == 0 {
-        //     // grow a new grass block
-        //     let new_dir = random_direction();
-        //     let new_pos = move_pos(self.position, new_dir);
-        //     queue.add(Update::AddGrass(new_pos))
-        // }
+        if rand::thread_rng().gen_range(0..500) == 0 {
+            // grow a new grass block
+            let new_dir: Direction = random_direction();
+            let new_pos = move_pos(self.position, new_dir);
+            queue.add(Update::AddGrass(new_pos)).ok();
+        }
     }
 }
