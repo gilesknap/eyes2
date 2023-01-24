@@ -17,7 +17,7 @@ impl Entity for Creature {
         Creature {
             id,
             position,
-            energy: rand::thread_rng().gen_range(2..500),
+            energy: rand::thread_rng().gen_range(10000..20000),
         }
     }
 

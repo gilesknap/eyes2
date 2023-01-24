@@ -22,16 +22,19 @@ pub fn random_direction() -> Direction {
     }
 }
 
-// copilot wrote this one too
+// the underflow checking is rather verbose, can this be simplified?
+// TODO also add max for x and y
+// TODO come up with a neater way to do this (can't I make the enum Variants
+// hold values for the x and y offsets?)
 pub fn move_pos(position: Position, direction: Direction) -> Position {
     match direction {
         Direction::North => Position {
             x: position.x,
-            y: position.y - 1,
+            y: if position.y > 0 { position.y - 1 } else { 0 },
         },
         Direction::NorthEast => Position {
             x: position.x + 1,
-            y: position.y - 1,
+            y: if position.y > 0 { position.y - 1 } else { 0 },
         },
         Direction::East => Position {
             x: position.x + 1,
@@ -46,16 +49,16 @@ pub fn move_pos(position: Position, direction: Direction) -> Position {
             y: position.y + 1,
         },
         Direction::SouthWest => Position {
-            x: position.x - 1,
+            x: if position.x > 0 { position.x - 1 } else { 0 },
             y: position.y + 1,
         },
         Direction::West => Position {
-            x: position.x - 1,
+            x: if position.x > 0 { position.x - 1 } else { 0 },
             y: position.y,
         },
         Direction::NorthWest => Position {
-            x: position.x - 1,
-            y: position.y - 1,
+            x: if position.x > 0 { position.x - 1 } else { 0 },
+            y: if position.y > 0 { position.y - 1 } else { 0 },
         },
     }
 }

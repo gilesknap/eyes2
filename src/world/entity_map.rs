@@ -84,7 +84,7 @@ where
         let entity = T::new(id, position);
 
         match grid[position.x as usize][position.y as usize] {
-            Cell::Empty | Cell::Creature(_) => {
+            Cell::Empty => {
                 grid[position.x as usize][position.y as usize] = T::cell_type(id);
                 self.entities.insert(id, entity);
 
