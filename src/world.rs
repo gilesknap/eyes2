@@ -1,3 +1,6 @@
+//! The world is a 2D grid of cells. Each cell can contain a creature or grass.
+//! The world is responsible for updating the state of the world each tick.
+//!
 pub mod entity_map;
 use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;

@@ -1,19 +1,19 @@
-// Define a generic structure to hold the entities in the world. One of these
-// would be created for each type of entity (creatures, grass, possibly others).
-// The entity is held in a hash map, with unique id as key,
-// this is for fast lookup and iteration, the hash map owns the entity.
-//
-// An entity id is also held in the world grid, so that the
-// inspecting a cell in the world can quickly find and entity. This
-// is held using a Cell enum, which contains the unique id of the
-// entity. This approach means there is only one reference to the entity
-// and that can be borrowed from the hashmap as needed.
-//
-// We are storing the entity id instead of an Entity reference because I want
-// to eventually make this multi process, The world grid will be shared between
-// processes with transactional changes allowed, but the entities will be
-// owned by the process that created them.
-
+//! Define a generic structure to hold the entities in the world. One of these
+//! would be created for each type of entity (creatures, grass, possibly others).
+//! The entity is held in a hash map, with unique id as key,
+//! this is for fast lookup and iteration, the hash map owns the entity.
+//!
+//! An entity id is also held in the world grid, so that the
+//! inspecting a cell in the world can quickly find and entity. This
+//! is held using a Cell enum, which contains the unique id of the
+//! entity. This approach means there is only one reference to the entity
+//! and that can be borrowed from the hashmap as needed.
+//!
+//! We are storing the entity id instead of an Entity reference because I want
+//! to eventually make this multi process, The world grid will be shared between
+//! processes with transactional changes allowed, but the entities will be
+//! owned by the process that created them.
+//!
 use rand::Rng;
 
 use crate::entity::{Cell, Entity};
@@ -71,6 +71,7 @@ where
     pub fn count(&self) -> usize {
         self.entities.len()
     }
+
     pub fn add_entity(&mut self, position: Position) -> Result<(), ()> {
         let mut grid = self.grid.borrow_mut();
 

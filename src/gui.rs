@@ -1,3 +1,6 @@
+//! The GUI for the evolution simulation. Renders the current state of the world
+//! and handles user input.
+//!
 use crate::entity::Cell;
 use crate::types::Position;
 use crate::world::World;

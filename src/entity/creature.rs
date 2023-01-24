@@ -1,3 +1,5 @@
+//! represents a creature in the world that can eat grass and reproduce
+//!
 use super::{Cell, Entity};
 use crate::types::{Position, Update};
 use crate::world::UpdateQueue;

@@ -1,3 +1,6 @@
+//! Define the Entity trait, which is implemented by all types of entities
+//! that can be stored in the EntityMap
+//!
 use crate::types::Position;
 use crate::world::UpdateQueue;
 // a trait to declare that a type is an entity that can be stored in EntityMap

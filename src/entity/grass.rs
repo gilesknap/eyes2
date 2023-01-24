@@ -1,3 +1,6 @@
+//! represents a grass block in the world that can grow new grass blocks
+//! nearby at random depending on light levels
+//!
 use super::{Cell, Entity};
 use crate::types::{Direction, Position, Update};
 use crate::utils::{move_pos, random_direction};

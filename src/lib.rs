@@ -1,3 +1,6 @@
+extern crate pancurses;
+extern crate queues;
+extern crate rand;
 // Just declare the submodules
 
 // implement the assembler disassembler and executor for the RISC `processor`
