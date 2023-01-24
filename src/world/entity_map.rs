@@ -17,7 +17,8 @@
 use rand::Rng;
 
 use crate::entity::{Cell, Entity};
-use crate::types::{Position, WorldGrid};
+use crate::types::Position;
+use crate::world::WorldGrid;
 use std::collections::HashMap;
 
 pub struct EntityItem<T> {
@@ -51,10 +52,9 @@ where
         for _ in 0..count {
             // keep trying until we find a random empty cell to place the entity
             loop {
-                let entity = T::new();
                 let x = rand::thread_rng().gen_range(0..self.grid_size);
                 let y = rand::thread_rng().gen_range(0..self.grid_size);
-                if let Ok(()) = self.add_entity(entity, Position { x, y }) {
+                if let Ok(()) = self.add_entity(Position { x, y }) {
                     break;
                 }
             }
@@ -74,13 +74,15 @@ where
         self.entities.len()
     }
 
-    pub fn add_entity(&mut self, entity: T, position: Position) -> Result<(), ()> {
+    pub fn add_entity(&mut self, position: Position) -> Result<(), ()> {
         let mut grid = self.grid.borrow_mut();
-        match grid[position.x as usize][position.y as usize] {
-            Cell::Empty => {
-                let id = self.next_id;
-                self.next_id += 1;
 
+        let id = self.next_id;
+        self.next_id += 1;
+        let entity = T::new(id);
+
+        match grid[position.x as usize][position.y as usize] {
+            Cell::Empty | Cell::Creature(_) => {
                 let entity_item = EntityItem {
                     id,
                     position,

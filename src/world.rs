@@ -1,11 +1,23 @@
 pub mod entity_map;
-use crate::entity::creature::{Creature, Status};
+use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;
-use crate::entity::Cell;
-use crate::types::{Position, WorldGrid};
+use crate::entity::{Cell, Entity};
+use crate::types::{Position, Update};
 use crate::world::entity_map::EntityMap;
+use queues::*;
 use std::cell::RefCell;
 use std::rc::Rc;
+
+// a reference counted pointer to Reference Cell of a 2d vector of cells
+// TODO replace RefCell with Arc when we have multiple threads
+//
+// The outer Rc allows us to share the RefCell between multiple owners.
+// The RefCell allows us to mutate the contents of the Vec from any of
+// these owners. At present this is safe as we are single threaded.
+pub type WorldGrid = Rc<RefCell<Vec<Vec<Cell>>>>;
+
+// a queue of updates to the world to be applied at the end of the tick
+pub type UpdateQueue = Queue<Update>;
 
 // a world is a 2D grid of Cell
 pub struct World {
@@ -18,6 +30,8 @@ pub struct World {
     creatures: EntityMap<Creature>,
     // the list of all the grass blocks in the world
     grass: EntityMap<Grass>,
+    // queue of updates to the world to be applied at the end of the tick
+    updates: Queue<Update>,
     // record of the number of ticks that have passed in the world
     ticks: u64,
 }
@@ -33,16 +47,13 @@ impl World {
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
-        // between multiple owners:
-        // - the world
-        // - the creatures EntityMap
-        // - the grass EntityMap
-
+        // between multiple owners
         let world = World {
             size,
             grid: grid.clone(),
             creatures: EntityMap::<Creature>::new(grid.clone()),
             grass: EntityMap::<Grass>::new(grid.clone()),
+            updates: UpdateQueue::new(),
             ticks: 0,
         };
 
@@ -84,21 +95,37 @@ impl World {
 
     // give each creature one clock cycle of processing
     pub fn tick(&mut self) {
-        let mut remove_me = Vec::new();
         let ids: Vec<u64> = self.creatures.keys();
 
         for id in ids {
-            // use unwrap here because we know the id is valid
-            match self.creatures.get_entity(&id).tick() {
-                Status::Alive => {}
-                Status::Dead => remove_me.push(id),
-            }
+            self.creatures.get_entity(&id).tick(&mut self.updates);
         }
 
-        for id in remove_me {
-            self.creatures.remove_entity(&id);
-        }
+        self.apply_updates();
         self.ticks += 1;
+    }
+
+    fn apply_updates(&mut self) {
+        while self.updates.size() > 0 {
+            let update = self.updates.remove().unwrap();
+            match update {
+                Update::AddCreature(position) => {
+                    self.creatures.add_entity(position).ok();
+                }
+                Update::MoveCreature(_id, _position) => {
+                    // self.creatures.get_entity(&id).move_to(position);
+                }
+                Update::AddGrass(position) => {
+                    self.grass.add_entity(position).ok();
+                }
+                Update::RemoveCreature(id) => {
+                    self.creatures.remove_entity(&id);
+                }
+                Update::RemoveGrass(id) => {
+                    self.grass.remove_entity(&id);
+                }
+            }
+        }
     }
 
     // TODO maybe make this private - instead expose HashMap iterator for

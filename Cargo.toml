@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 pancurses = "0.17.0"
 rand = "0.8.5"
+queues = "1.1.0"
