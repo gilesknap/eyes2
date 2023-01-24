@@ -1,3 +1,10 @@
 {
-    "rust-analyzer.inlayHints.typeHints.enable": false
+    "rust-analyzer.inlayHints.typeHints.enable": false,
+    "cSpell.words": [
+        "endwin",
+        "getch",
+        "initscr",
+        "pancurses",
+        "printw"
+    ]
 }
