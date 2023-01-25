@@ -4,7 +4,7 @@
 pub mod entity_map;
 use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;
-use crate::entity::Cell;
+use crate::entity::{Cell, Entity};
 use crate::types::{Position, Update};
 use crate::world::entity_map::EntityMap;
 use queues::*;
@@ -114,8 +114,18 @@ impl World {
                 Update::AddCreature(position) => {
                     self.creatures.add_entity(position).ok();
                 }
-                Update::MoveCreature(_id, _position) => {
-                    // self.creatures.get_entity(&id).move_to(position);
+                Update::MoveCreature(id, position) => {
+                    let cell = self.grid.borrow()[position.x as usize][position.y as usize];
+                    match cell {
+                        Cell::Empty => {}
+                        Cell::Grass(grass_id) => {
+                            self.grass.remove_entity(&grass_id);
+                            self.creatures.get_entity(&id).eat(200);
+                        }
+                        // skip move if there is already a creature in the cell
+                        Cell::Creature(_) => continue,
+                    }
+                    self.creatures.move_entity(&id, position);
                 }
                 Update::AddGrass(position) => {
                     self.grass.add_entity(position).ok();

@@ -92,4 +92,15 @@ where
         self.entities.remove(id);
         grid[position.x as usize][position.y as usize] = Cell::Empty;
     }
+
+    pub fn move_entity(&mut self, id: &u64, new_pos: Position) {
+        let entity = self.entities.get_mut(id).unwrap();
+        let mut grid = self.grid.borrow_mut();
+        let old_pos = entity.position();
+        let cell = T::cell_type(*id);
+
+        grid[old_pos.x as usize][old_pos.y as usize] = Cell::Empty;
+        grid[new_pos.x as usize][new_pos.y as usize] = cell;
+        entity.move_to(new_pos);
+    }
 }

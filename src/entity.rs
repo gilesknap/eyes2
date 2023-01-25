@@ -16,6 +16,9 @@ pub trait Entity {
     fn id(&self) -> u64;
     fn position(&self) -> Position;
 
+    // property setters
+    fn move_to(&mut self, position: Position);
+
     // instance methods
     fn tick(&mut self, queue: &mut UpdateQueue);
 }

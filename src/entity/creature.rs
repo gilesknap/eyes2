@@ -2,6 +2,7 @@
 //!
 use super::{Cell, Entity};
 use crate::types::{Position, Update};
+use crate::utils::{move_pos, random_direction};
 use crate::world::UpdateQueue;
 use queues::*;
 use rand::Rng;
@@ -35,6 +36,10 @@ impl Entity for Creature {
         self.position
     }
 
+    fn move_to(&mut self, pos: Position) {
+        self.position = pos;
+    }
+
     fn tick(&mut self, queue: &mut UpdateQueue) {
         self.tick(queue)
     }
@@ -47,6 +52,14 @@ impl Creature {
 
         if self.energy == 0 {
             queue.add(Update::RemoveCreature(self.id)).ok();
+        } else if rand::thread_rng().gen_range(0..500) == 0 {
+            // random creature movement for now
+            let new_pos = move_pos(self.position, random_direction());
+            queue.add(Update::MoveCreature(self.id, new_pos)).ok();
         }
+    }
+
+    pub fn eat(&mut self, amount: u32) {
+        self.energy += amount;
     }
 }

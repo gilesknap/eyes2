@@ -30,6 +30,10 @@ impl Entity for Grass {
         self.position
     }
 
+    fn move_to(&mut self, pos: Position) {
+        self.position = pos;
+    }
+
     fn tick(&mut self, queue: &mut UpdateQueue) {
         self.tick(queue);
     }
