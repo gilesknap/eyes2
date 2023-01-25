@@ -106,9 +106,12 @@ impl World {
             self.creatures.get_entity(&id).tick(&mut self.updates);
         }
 
-        let ids = self.grass.keys();
-        for id in ids {
-            self.grass.get_entity(&id).tick(&mut self.updates);
+        // limit grass growth to every 100 ticks
+        if self.ticks % 1000 == 0 {
+            let ids = self.grass.keys();
+            for id in ids {
+                self.grass.get_entity(&id).tick(&mut self.updates);
+            }
         }
 
         self.apply_updates();
@@ -137,7 +140,7 @@ impl World {
                         Cell::Empty => {}
                         Cell::Grass(grass_id) => {
                             self.grass.remove_entity(&grass_id);
-                            self.creatures.get_entity(&id).eat(200);
+                            self.creatures.get_entity(&id).eat(500);
                         }
                         // skip move if there is already a creature in the cell
                         Cell::Creature(_) => continue,

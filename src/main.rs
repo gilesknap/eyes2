@@ -10,7 +10,7 @@ fn main() {
 
     let mut gui = gui::EyesGui::new();
 
-    for i in 0..1000000 {
+    for i in 0..100000 {
         if i % 100 == 0 {
             gui.render(&world);
         }

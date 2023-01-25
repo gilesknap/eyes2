@@ -41,10 +41,7 @@ impl Entity for Grass {
 
 impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        if rand::thread_rng().gen_range(0..500) == 0 {
-            // grow a new grass block
-            let new_pos = move_pos(self.position, random_direction());
-            queue.add(Update::AddGrass(new_pos)).ok();
-        }
+        let new_pos = move_pos(self.position, random_direction());
+        queue.add(Update::AddGrass(new_pos)).ok();
     }
 }
