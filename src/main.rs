@@ -10,8 +10,8 @@ fn main() {
 
     let mut gui = gui::EyesGui::new();
 
-    for i in 0..30000 {
-        if i % 10 == 0 {
+    for i in 0..1000000 {
+        if i % 100 == 0 {
             gui.render(&world);
         }
         world.tick();

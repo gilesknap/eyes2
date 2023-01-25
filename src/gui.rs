@@ -66,8 +66,6 @@ impl EyesGui {
 
 impl Drop for EyesGui {
     fn drop(&mut self) {
-        self.window.printw("\nPress enter to exit\n");
-        self.window.getch();
         endwin();
     }
 }

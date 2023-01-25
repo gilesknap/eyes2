@@ -8,11 +8,11 @@ pub mod creature;
 pub mod grass;
 
 pub trait Entity {
-    // struct methods
+    // static methods
     fn new(id: u64, position: Position) -> Self;
     fn cell_type(id: u64) -> Cell;
 
-    // instance properties
+    // property getters
     fn id(&self) -> u64;
     fn position(&self) -> Position;
 

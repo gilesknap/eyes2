@@ -1,18 +1,18 @@
 //! represents a creature in the world that can eat grass and reproduce
 //!
+mod code;
 use super::{Cell, Entity};
 use crate::types::{Position, Update};
 use crate::utils::{move_pos, random_direction};
 use crate::world::UpdateQueue;
+use code::Processor;
 use queues::*;
 use rand::Rng;
 
-#[derive(Debug)] // TODO I'd like to avoid making this copyable
 pub struct Creature {
     id: u64,
     position: Position,
-    // the creature's current energy level
-    pub energy: u32,
+    code: Processor,
 }
 
 impl Entity for Creature {
@@ -20,7 +20,7 @@ impl Entity for Creature {
         Creature {
             id,
             position,
-            energy: rand::thread_rng().gen_range(10000..20000),
+            code: Processor::new(),
         }
     }
 
@@ -47,10 +47,11 @@ impl Entity for Creature {
 
 impl Creature {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        self.energy -= 1;
-        // TODO: execute the next instruction in the creature's program
+        self.code.energy -= 1;
 
-        if self.energy == 0 {
+        self.code.tick();
+
+        if self.code.energy == 0 {
             queue.add(Update::RemoveCreature(self.id)).ok();
         } else if rand::thread_rng().gen_range(0..500) == 0 {
             // random creature movement for now
@@ -60,6 +61,12 @@ impl Creature {
     }
 
     pub fn eat(&mut self, amount: u32) {
-        self.energy += amount;
+        self.code.energy += amount;
+    }
+
+    pub fn _reproduce(&mut self, _queue: &mut UpdateQueue) {
+        let _child = Creature::new(self.id + 1, self.position);
+        // TODO this is no good as we need to get next id from the world
+        // how to do that and need a thread safe way to do it for the future
     }
 }

@@ -1,8 +1,6 @@
 // Just declare the submodules
 
 pub mod settings;
-// implement the assembler disassembler and executor for the RISC `processor`
-mod code;
 // represent individual entities in the world
 mod entity;
 // inspect the world and render it (using curses?) also handle user input
