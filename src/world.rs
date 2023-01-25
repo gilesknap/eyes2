@@ -94,25 +94,13 @@ impl World {
     pub fn tick(&mut self) {
         let ids: Vec<u64> = self.creatures.keys();
 
-        // TODO to make this work I had to make creatures.entities public
-        // Something like DerefMut on Creature should allow us to instead
-        // use the a function like self.creatures.get_entity(&id)
         for id in ids {
-            self.creatures
-                .entities
-                .get_mut(&id)
-                .unwrap()
-                .tick(&mut self.updates);
-            // self.creatures.get_entity(&id).tick(&mut self.updates);
+            self.creatures.get_entity(&id).tick(&mut self.updates);
         }
 
         let ids = self.grass.keys();
         for id in ids {
-            self.grass
-                .entities
-                .get_mut(&id)
-                .unwrap()
-                .tick(&mut self.updates);
+            self.grass.get_entity(&id).tick(&mut self.updates);
         }
 
         self.apply_updates();

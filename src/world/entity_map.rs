@@ -19,11 +19,10 @@ use rand::Rng;
 use crate::entity::{Cell, Entity};
 use crate::types::Position;
 use crate::world::WorldGrid;
-use std::cell::RefCell;
 use std::collections::HashMap;
 
 pub struct EntityMap<T> {
-    pub entities: HashMap<u64, T>,
+    entities: HashMap<u64, T>,
     next_id: u64,
     grid: WorldGrid,
     grid_size: u16,
@@ -61,11 +60,8 @@ where
     }
 
     // use a mutable reference to self so we can mutate an entity
-    // TODO not yet working as wanted - need to be able to borrow the entity
-    // in mutable way
-    pub fn get_entity(&mut self, id: &u64) -> RefCell<&T> {
-        let thing: &mut T = self.entities.get_mut(id).unwrap();
-        RefCell::new(thing)
+    pub fn get_entity(&mut self, id: &u64) -> &mut T {
+        self.entities.get_mut(id).unwrap()
     }
 
     pub fn count(&self) -> usize {
