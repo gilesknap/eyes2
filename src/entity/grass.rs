@@ -2,7 +2,7 @@
 //! nearby at random depending on light levels
 //!
 use super::{Cell, Entity};
-use crate::types::{Direction, Position, Update};
+use crate::types::{Position, Update};
 use crate::utils::{move_pos, random_direction};
 use crate::world::UpdateQueue;
 use queues::*;
@@ -39,8 +39,7 @@ impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
         if rand::thread_rng().gen_range(0..500) == 0 {
             // grow a new grass block
-            let new_dir: Direction = random_direction();
-            let new_pos = move_pos(self.position, new_dir);
+            let new_pos = move_pos(self.position, random_direction());
             queue.add(Update::AddGrass(new_pos)).ok();
         }
     }

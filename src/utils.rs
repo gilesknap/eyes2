@@ -1,6 +1,9 @@
 //! simple standalone utility functions
 
-use crate::types::{Direction, Position};
+use crate::{
+    settings::SETTINGS,
+    types::{Direction, Position},
+};
 use rand::Rng;
 
 /// Pick a random direction (we could shorten this a little using
@@ -26,39 +29,40 @@ pub fn random_direction() -> Direction {
 /// TODO also add max for x and y
 /// TODO come up with a neater way to do this (can't I make the enum Variants
 /// hold values for the x and y offsets?)
-pub fn move_pos(position: Position, direction: Direction) -> Position {
+pub fn move_pos(pos: Position, direction: Direction) -> Position {
+    let max = SETTINGS.world_size - 1;
     match direction {
         Direction::North => Position {
-            x: position.x,
-            y: if position.y > 0 { position.y - 1 } else { 0 },
+            x: pos.x,
+            y: if pos.y > 0 { pos.y - 1 } else { 0 },
         },
         Direction::NorthEast => Position {
-            x: position.x + 1,
-            y: if position.y > 0 { position.y - 1 } else { 0 },
+            x: if pos.x < max { pos.x + 1 } else { max },
+            y: if pos.y > 0 { pos.y - 1 } else { 0 },
         },
         Direction::East => Position {
-            x: position.x + 1,
-            y: position.y,
+            x: if pos.x < max { pos.x + 1 } else { max },
+            y: pos.y,
         },
         Direction::SouthEast => Position {
-            x: position.x + 1,
-            y: position.y + 1,
+            x: if pos.x < max { pos.x + 1 } else { max },
+            y: if pos.y < max { pos.y + 1 } else { max },
         },
         Direction::South => Position {
-            x: position.x,
-            y: position.y + 1,
+            x: pos.x,
+            y: if pos.y < max { pos.y + 1 } else { max },
         },
         Direction::SouthWest => Position {
-            x: if position.x > 0 { position.x - 1 } else { 0 },
-            y: position.y + 1,
+            x: if pos.x > 0 { pos.x - 1 } else { 0 },
+            y: if pos.y < max { pos.y + 1 } else { max },
         },
         Direction::West => Position {
-            x: if position.x > 0 { position.x - 1 } else { 0 },
-            y: position.y,
+            x: if pos.x > 0 { pos.x - 1 } else { 0 },
+            y: pos.y,
         },
         Direction::NorthWest => Position {
-            x: if position.x > 0 { position.x - 1 } else { 0 },
-            y: if position.y > 0 { position.y - 1 } else { 0 },
+            x: if pos.x > 0 { pos.x - 1 } else { 0 },
+            y: if pos.y > 0 { pos.y - 1 } else { 0 },
         },
     }
 }

@@ -1,15 +1,12 @@
 extern crate eyes2;
 
+use eyes2::settings::SETTINGS;
 use eyes2::{gui, world};
 use std::{thread, time};
 
 fn main() {
-    let size = 40;
-    let grass_count = 10;
-    let creature_count = 30;
-
-    let mut world = world::World::new(size);
-    world.populate(grass_count, creature_count);
+    let mut world = world::World::new(SETTINGS.world_size);
+    world.populate(SETTINGS.grass_count, SETTINGS.creature_count);
 
     let mut gui = gui::EyesGui::new();
 

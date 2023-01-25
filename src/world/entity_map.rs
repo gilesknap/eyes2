@@ -59,7 +59,6 @@ where
         self.entities.keys().cloned().collect()
     }
 
-    // use a mutable reference to self so we can mutate an entity
     pub fn get_entity(&mut self, id: &u64) -> &mut T {
         self.entities.get_mut(id).unwrap()
     }
@@ -70,12 +69,6 @@ where
 
     pub fn add_entity(&mut self, position: Position) -> Result<(), ()> {
         let mut grid = self.grid.borrow_mut();
-
-        // TODO TODO move this error checking elsewhere!
-        if position.x >= self.grid_size || position.y >= self.grid_size {
-            return Ok(());
-        }
-
         let id = self.next_id;
         self.next_id += 1;
         let entity = T::new(id, position);
