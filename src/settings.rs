@@ -5,7 +5,7 @@ pub struct Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = Settings {
-    world_size: 25,
+    world_size: 40,
     grass_count: 10,
     creature_count: 25,
 };
