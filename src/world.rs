@@ -4,9 +4,9 @@
 pub mod entity_map;
 use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;
-use crate::entity::{Cell, Entity};
+use crate::entity::Cell;
 use crate::types::{Position, Update};
-use crate::world::entity_map::EntityMap;
+use entity_map::EntityMap;
 use queues::*;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -39,7 +39,7 @@ pub struct World {
     ticks: u64,
 }
 
-// public methods
+// public static methods
 impl World {
     pub fn new(size: u16) -> World {
         // create a square 2d vector of empty cells
@@ -63,23 +63,31 @@ impl World {
         println!("Created a new world of size {} square", world.size);
         world
     }
+}
 
+// public instance methods
+impl World {
+    /// return the size of the world
     pub fn get_size(&self) -> u16 {
         self.size
     }
 
+    /// return the number of ticks that have passed in the world
     pub fn get_ticks(&self) -> u64 {
         self.ticks
     }
 
+    /// return the number of grass blocks in the world
     pub fn grass_count(&self) -> usize {
         self.grass.count()
     }
 
+    /// return the number of creatures in the world
     pub fn creature_count(&self) -> usize {
         self.creatures.count()
     }
 
+    /// populate the world with the given grass and creatures at random positions
     pub fn populate(&mut self, grass_count: u16, creature_count: u16) {
         self.grass.populate(grass_count);
         self.creatures.populate(creature_count);
@@ -90,7 +98,7 @@ impl World {
         );
     }
 
-    // give each creature one clock cycle of processing
+    /// give each creature one clock cycle of processing
     pub fn tick(&mut self) {
         let ids: Vec<u64> = self.creatures.keys();
 
@@ -107,6 +115,15 @@ impl World {
         self.ticks += 1;
     }
 
+    /// read a cell from the grid - used for rendering the world
+    pub fn get_cell(&self, position: Position) -> Cell {
+        return self.grid.borrow()[position.x as usize][position.y as usize];
+    }
+}
+
+// private methods
+impl World {
+    /// process the updates to the world that have been queued in the previous tick
     fn apply_updates(&mut self) {
         while self.updates.size() > 0 {
             let update = self.updates.remove().unwrap();
@@ -138,12 +155,6 @@ impl World {
                 }
             }
         }
-    }
-
-    // TODO maybe make this private - instead expose HashMap iterator for
-    // creatures and grass EntityMaps
-    pub fn get_cell(&self, position: Position) -> Cell {
-        return self.grid.borrow()[position.x as usize][position.y as usize];
     }
 }
 
