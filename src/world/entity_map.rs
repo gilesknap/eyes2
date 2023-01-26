@@ -17,6 +17,7 @@
 use rand::Rng;
 
 use crate::entity::{Cell, Entity};
+use crate::settings::Settings;
 use crate::types::Position;
 use crate::world::WorldGrid;
 use std::collections::HashMap;
@@ -26,19 +27,21 @@ pub struct EntityMap<T> {
     next_id: u64,
     grid: WorldGrid,
     grid_size: u16,
+    config: Settings,
 }
 
 impl<T> EntityMap<T>
 where
     T: Entity,
 {
-    pub fn new(grid: WorldGrid) -> EntityMap<T> {
+    pub fn new(grid: WorldGrid, config: Settings) -> EntityMap<T> {
         let grid_size = grid.borrow().len() as u16;
         EntityMap {
             entities: HashMap::new(),
             next_id: 0,
             grid,
             grid_size,
+            config,
         }
     }
 
@@ -71,7 +74,7 @@ where
         let mut grid = self.grid.borrow_mut();
         let id = self.next_id;
         self.next_id += 1;
-        let entity = T::new(id, position);
+        let entity = T::new(id, position, self.config);
 
         match grid[position.x as usize][position.y as usize] {
             Cell::Empty => {

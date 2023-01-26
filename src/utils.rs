@@ -1,14 +1,11 @@
 //! simple standalone utility functions
 
 use crate::types::{Direction, Position};
-use rand::Rng;
 
 /// Pick a random direction (we could shorten this a little using
 /// [int to enum](https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html)
 /// but copilot wrote this more me and it reads nicely)
-pub fn random_direction() -> Direction {
-    let mut rng = rand::thread_rng();
-    let direction = rng.gen_range(0..8);
+pub fn int_to_direction(direction: u16) -> Direction {
     match direction {
         0 => Direction::North,
         1 => Direction::NorthEast,

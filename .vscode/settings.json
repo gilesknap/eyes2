@@ -8,6 +8,7 @@
         "getch",
         "initscr",
         "pancurses",
-        "printw"
+        "printw",
+        "rngs"
     ]
 }

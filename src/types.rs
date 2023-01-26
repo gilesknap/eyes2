@@ -13,8 +13,8 @@ pub struct Position {
 #[derive(Debug, Copy, Clone)]
 pub enum Update {
     AddCreature(Position),
-    MoveCreature(u64, Position, Direction),
-    AddGrass(Position, Direction),
+    MoveCreature(u64, Position),
+    AddGrass(Position),
     RemoveCreature(u64),
     RemoveGrass(u64),
 }

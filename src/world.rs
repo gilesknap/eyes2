@@ -7,7 +7,6 @@ use crate::entity::grass::Grass;
 use crate::entity::Cell;
 use crate::settings::Settings;
 use crate::types::{Position, Update};
-use crate::utils::move_pos;
 use entity_map::EntityMap;
 use queues::*;
 use std::cell::RefCell;
@@ -26,7 +25,6 @@ pub type UpdateQueue = Queue<Update>;
 
 // a world is a 2D grid of Cell
 pub struct World {
-    settings: Settings,
     // the grid of cells
     grid: WorldGrid,
     // the list of creatures in the world
@@ -37,68 +35,64 @@ pub struct World {
     updates: Queue<Update>,
     // record of the number of ticks that have passed in the world
     ticks: u64,
+    // the settings for the world
+    config: Settings,
 }
 
 // public static methods
 impl World {
-    pub fn new(settings: Settings) -> World {
+    pub fn new(config: Settings) -> World {
         // create a square 2d vector of empty cells
         let grid = Rc::new(RefCell::new(vec![
-            vec![Cell::Empty; settings.size as usize];
-            settings.size as usize
+            vec![Cell::Empty; config.size as usize];
+            config.size as usize
         ]));
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
         // between multiple owners
         let world = World {
-            settings,
             grid: grid.clone(),
-            creatures: EntityMap::<Creature>::new(grid.clone()),
-            grass: EntityMap::<Grass>::new(grid.clone()),
+            creatures: EntityMap::<Creature>::new(grid.clone(), config),
+            grass: EntityMap::<Grass>::new(grid.clone(), config),
             updates: UpdateQueue::new(),
             ticks: 0,
+            config,
         };
 
-        println!("Created a new world of size {} square", world.settings.size);
+        println!("Created a new world of size {} square", world.config.size);
         world
     }
 }
 
 // public instance methods
 impl World {
-    /// return the size of the world
     pub fn get_size(&self) -> u16 {
-        self.settings.size
+        self.config.size
     }
 
-    /// return the number of ticks that have passed in the world
     pub fn get_ticks(&self) -> u64 {
         self.ticks
     }
 
-    /// return the number of grass blocks in the world
     pub fn grass_count(&self) -> usize {
         self.grass.count()
     }
 
-    /// return the number of creatures in the world
     pub fn creature_count(&self) -> usize {
         self.creatures.count()
     }
 
-    /// populate the world with the given grass and creatures at random positions
     pub fn populate(&mut self) {
-        self.grass.populate(self.settings.grass_count);
-        self.creatures.populate(self.settings.creature_count);
+        self.grass.populate(self.config.grass_count);
+        self.creatures.populate(self.config.creature_count);
 
         println!(
             "Added {} grass and {} creatures to the world",
-            self.settings.grass_count, self.settings.creature_count
+            self.config.grass_count, self.config.creature_count
         );
     }
 
-    /// give each creature one clock cycle of processing
     pub fn tick(&mut self) {
         let ids: Vec<u64> = self.creatures.keys();
 
@@ -106,8 +100,8 @@ impl World {
             self.creatures.get_entity(&id).tick(&mut self.updates);
         }
 
-        // limit grass growth to every grass_rate ticks
-        if self.ticks % 5000 == 0 {
+        // limit grass growth to every grass_interval ticks
+        if self.ticks % self.config.grass_interval as u64 == 0 {
             let ids = self.grass.keys();
             for id in ids {
                 self.grass.get_entity(&id).tick(&mut self.updates);
@@ -134,32 +128,27 @@ impl World {
                 Update::AddCreature(position) => {
                     self.creatures.add_entity(position).ok();
                 }
-                Update::MoveCreature(id, old_position, direction) => {
-                    let position = move_pos(old_position, direction, self.settings.size);
-                    let cell = self.grid.borrow()[position.x as usize][position.y as usize];
-                    match cell {
-                        Cell::Empty => {}
-                        Cell::Grass(grass_id) => {
-                            self.grass.remove_entity(&grass_id);
-                            self.creatures
-                                .get_entity(&id)
-                                .eat(self.settings.grass_energy);
-                        }
-                        // skip move if there is already a creature in the cell
-                        Cell::Creature(_) => continue,
-                    }
-                    self.creatures.move_entity(&id, position);
-                }
-                Update::AddGrass(position, direction) => {
-                    self.grass
-                        .add_entity(move_pos(position, direction, self.settings.size))
-                        .ok();
+                Update::AddGrass(position) => {
+                    self.grass.add_entity(position).ok();
                 }
                 Update::RemoveCreature(id) => {
                     self.creatures.remove_entity(&id);
                 }
                 Update::RemoveGrass(id) => {
                     self.grass.remove_entity(&id);
+                }
+                Update::MoveCreature(id, position) => {
+                    let cell = self.grid.borrow()[position.x as usize][position.y as usize];
+                    match cell {
+                        Cell::Empty => {}
+                        Cell::Grass(grass_id) => {
+                            self.grass.remove_entity(&grass_id);
+                            self.creatures.get_entity(&id).eat(self.config.grass_energy);
+                        }
+                        // skip move if there is already a creature in the cell
+                        Cell::Creature(_) => continue,
+                    }
+                    self.creatures.move_entity(&id, position);
                 }
             }
         }

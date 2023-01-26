@@ -1,9 +1,11 @@
 //! represents a creature in the world that can eat grass and reproduce
 //!
 mod code;
+
 use super::{Cell, Entity};
+use crate::settings::Settings;
 use crate::types::{Position, Update};
-use crate::utils::random_direction;
+use crate::utils::{int_to_direction, move_pos};
 use crate::world::UpdateQueue;
 use code::Processor;
 use queues::*;
@@ -13,14 +15,18 @@ pub struct Creature {
     id: u64,
     position: Position,
     code: Processor,
+    config: Settings,
+    rng: rand::rngs::ThreadRng,
 }
 
 impl Entity for Creature {
-    fn new(id: u64, position: Position) -> Creature {
+    fn new(id: u64, position: Position, config: Settings) -> Creature {
         Creature {
             id,
             position,
             code: Processor::new(),
+            config,
+            rng: rand::thread_rng(),
         }
     }
 
@@ -53,15 +59,11 @@ impl Creature {
 
         if self.code.energy == 0 {
             queue.add(Update::RemoveCreature(self.id)).ok();
-        } else if rand::thread_rng().gen_range(0..1000) == 0 {
+        } else if self.rng.gen_range(0.0..1.0) <= self.config.creature_move_rate {
             // random creature movement for now
-            queue
-                .add(Update::MoveCreature(
-                    self.id,
-                    self.position,
-                    random_direction(),
-                ))
-                .ok();
+            let dir = self.rng.gen_range(0..8);
+            let new_pos = move_pos(self.position, int_to_direction(dir), self.config.size);
+            queue.add(Update::MoveCreature(self.id, new_pos)).ok();
         }
     }
 
@@ -70,7 +72,7 @@ impl Creature {
     }
 
     pub fn _reproduce(&mut self, _queue: &mut UpdateQueue) {
-        let _child = Creature::new(self.id + 1, self.position);
+        let _child = Creature::new(self.id + 1, self.position, self.config);
         // TODO this is no good as we need to get next id from the world
         // how to do that and need a thread safe way to do it for the future
     }

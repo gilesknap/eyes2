@@ -2,19 +2,28 @@
 //! nearby at random depending on light levels
 //!
 use super::{Cell, Entity};
+use crate::settings::Settings;
 use crate::types::{Position, Update};
-use crate::utils::random_direction;
+use crate::utils::{int_to_direction, move_pos};
 use crate::world::UpdateQueue;
 use queues::*;
+use rand::Rng;
 
 pub struct Grass {
     id: u64,
     position: Position,
+    config: Settings,
+    rng: rand::rngs::ThreadRng,
 }
 
 impl Entity for Grass {
-    fn new(id: u64, position: Position) -> Grass {
-        Grass { id, position }
+    fn new(id: u64, position: Position, config: Settings) -> Grass {
+        Grass {
+            id,
+            position,
+            config,
+            rng: rand::thread_rng(),
+        }
     }
 
     fn cell_type(id: u64) -> Cell {
@@ -40,8 +49,8 @@ impl Entity for Grass {
 
 impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        queue
-            .add(Update::AddGrass(self.position, random_direction()))
-            .ok();
+        let dir = self.rng.gen_range(0..8);
+        let new_pos = move_pos(self.position, int_to_direction(dir), self.config.size);
+        queue.add(Update::AddGrass(new_pos)).ok();
     }
 }

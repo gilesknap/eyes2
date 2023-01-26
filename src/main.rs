@@ -15,11 +15,11 @@ fn main() {
         let mut gui = gui::EyesGui::new();
 
         for i in 0..100000000 {
-            if i % 1000 == 0 {
+            if i % 100 == 0 {
                 gui.render(&world);
             }
             world.tick();
-            thread::sleep(time::Duration::from_micros(1));
+            thread::sleep(time::Duration::from_micros(5));
             if world.creature_count() == 0 {
                 break;
             }
