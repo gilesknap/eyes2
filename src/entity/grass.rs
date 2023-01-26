@@ -3,10 +3,9 @@
 //!
 use super::{Cell, Entity};
 use crate::types::{Position, Update};
-use crate::utils::{move_pos, random_direction};
+use crate::utils::random_direction;
 use crate::world::UpdateQueue;
 use queues::*;
-use rand::Rng;
 
 pub struct Grass {
     id: u64,
@@ -41,7 +40,8 @@ impl Entity for Grass {
 
 impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        let new_pos = move_pos(self.position, random_direction());
-        queue.add(Update::AddGrass(new_pos)).ok();
+        queue
+            .add(Update::AddGrass(self.position, random_direction()))
+            .ok();
     }
 }

@@ -3,7 +3,7 @@
 mod code;
 use super::{Cell, Entity};
 use crate::types::{Position, Update};
-use crate::utils::{move_pos, random_direction};
+use crate::utils::random_direction;
 use crate::world::UpdateQueue;
 use code::Processor;
 use queues::*;
@@ -53,10 +53,15 @@ impl Creature {
 
         if self.code.energy == 0 {
             queue.add(Update::RemoveCreature(self.id)).ok();
-        } else if rand::thread_rng().gen_range(0..500) == 0 {
+        } else if rand::thread_rng().gen_range(0..1000) == 0 {
             // random creature movement for now
-            let new_pos = move_pos(self.position, random_direction());
-            queue.add(Update::MoveCreature(self.id, new_pos)).ok();
+            queue
+                .add(Update::MoveCreature(
+                    self.id,
+                    self.position,
+                    random_direction(),
+                ))
+                .ok();
         }
     }
 

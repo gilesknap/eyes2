@@ -1,9 +1,6 @@
 //! simple standalone utility functions
 
-use crate::{
-    settings::SETTINGS,
-    types::{Direction, Position},
-};
+use crate::types::{Direction, Position};
 use rand::Rng;
 
 /// Pick a random direction (we could shorten this a little using
@@ -29,8 +26,8 @@ pub fn random_direction() -> Direction {
 /// TODO also add max for x and y
 /// TODO come up with a neater way to do this (can't I make the enum Variants
 /// hold values for the x and y offsets?)
-pub fn move_pos(pos: Position, direction: Direction) -> Position {
-    let max = SETTINGS.world_size - 1;
+pub fn move_pos(pos: Position, direction: Direction, size: u16) -> Position {
+    let max = size - 1;
     match direction {
         Direction::North => Position {
             x: pos.x,
