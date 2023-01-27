@@ -2,10 +2,10 @@
 //! and handles user input.
 //!
 use crate::entity::Cell;
-use crate::types::Position;
 use crate::world::World;
 extern crate pancurses;
 
+use direction::Coord;
 use pancurses::{
     endwin, init_pair, initscr, start_color, ColorPair, COLOR_BLACK, COLOR_GREEN, COLOR_RED,
 };
@@ -41,7 +41,7 @@ impl EyesGui {
 
         for y in 0..world.get_size() {
             for x in 0..world.get_size() {
-                match world.get_cell(Position { x, y }) {
+                match world.get_cell(Coord { x, y }) {
                     Cell::Empty => {
                         self.window.printw("  ");
                     }

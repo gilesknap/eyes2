@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct Settings {
     // world size in cells (square)
-    pub size: u16,
+    pub size: i32,
     // number of grass blocks to add to the world
     pub grass_count: u16,
     // number of creatures to add to the world

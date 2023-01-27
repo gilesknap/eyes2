@@ -12,3 +12,7 @@ queues = "1.1.0"
 confy = "0.5.1"
 serde = { version = "1.0.152", features = ["derive"]}
 clap = { version = "4.1.4", features = ["derive"] }
+tui = "0.19"
+crossterm = "0.25"
+direction = { version = "0.18.1", features = ["rand"] }
+

@@ -6,7 +6,8 @@ use crate::entity::creature::Creature;
 use crate::entity::grass::Grass;
 use crate::entity::Cell;
 use crate::settings::Settings;
-use crate::types::{Position, Update};
+use crate::types::Update;
+use direction::Coord;
 use entity_map::EntityMap;
 use queues::*;
 use std::cell::RefCell;
@@ -67,7 +68,7 @@ impl World {
 
 // public instance methods
 impl World {
-    pub fn get_size(&self) -> u16 {
+    pub fn get_size(&self) -> i32 {
         self.config.size
     }
 
@@ -113,7 +114,7 @@ impl World {
     }
 
     /// read a cell from the grid - used for rendering the world
-    pub fn get_cell(&self, position: Position) -> Cell {
+    pub fn get_cell(&self, position: Coord) -> Cell {
         return self.grid.borrow()[position.x as usize][position.y as usize];
     }
 }

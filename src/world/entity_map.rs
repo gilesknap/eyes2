@@ -14,11 +14,11 @@
 //! processes with transactional changes allowed, but the entities will be
 //! owned by the process that created them.
 //!
+use direction::Coord;
 use rand::Rng;
 
 use crate::entity::{Cell, Entity};
 use crate::settings::Settings;
-use crate::types::Position;
 use crate::world::WorldGrid;
 use std::collections::HashMap;
 
@@ -49,9 +49,9 @@ where
         for _ in 0..count {
             // keep trying until we find a random empty cell to place the entity
             loop {
-                let x = rand::thread_rng().gen_range(0..self.grid_size);
-                let y = rand::thread_rng().gen_range(0..self.grid_size);
-                if let Ok(()) = self.add_entity(Position { x, y }) {
+                let x = rand::thread_rng().gen_range(0..self.grid_size) as i32;
+                let y = rand::thread_rng().gen_range(0..self.grid_size) as i32;
+                if let Ok(()) = self.add_entity(Coord { x, y }) {
                     break;
                 }
             }
@@ -70,15 +70,15 @@ where
         self.entities.len()
     }
 
-    pub fn add_entity(&mut self, position: Position) -> Result<(), ()> {
+    pub fn add_entity(&mut self, coord: Coord) -> Result<(), ()> {
         let mut grid = self.grid.borrow_mut();
         let id = self.next_id;
         self.next_id += 1;
-        let entity = T::new(id, position, self.config);
+        let entity = T::new(id, coord, self.config);
 
-        match grid[position.x as usize][position.y as usize] {
+        match grid[coord.x as usize][coord.y as usize] {
             Cell::Empty => {
-                grid[position.x as usize][position.y as usize] = T::cell_type(id);
+                grid[coord.x as usize][coord.y as usize] = T::cell_type(id);
                 self.entities.insert(id, entity);
 
                 Ok(())
@@ -90,16 +90,16 @@ where
 
     pub fn remove_entity(&mut self, id: &u64) {
         let mut grid = self.grid.borrow_mut();
-        let position = self.entities.get(id).unwrap().position();
+        let coord = self.entities.get(id).unwrap().coord();
 
         self.entities.remove(id);
-        grid[position.x as usize][position.y as usize] = Cell::Empty;
+        grid[coord.x as usize][coord.y as usize] = Cell::Empty;
     }
 
-    pub fn move_entity(&mut self, id: &u64, new_pos: Position) {
+    pub fn move_entity(&mut self, id: &u64, new_pos: Coord) {
         let entity = self.entities.get_mut(id).unwrap();
         let mut grid = self.grid.borrow_mut();
-        let old_pos = entity.position();
+        let old_pos = entity.coord();
         let cell = T::cell_type(*id);
 
         grid[old_pos.x as usize][old_pos.y as usize] = Cell::Empty;

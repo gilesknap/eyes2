@@ -4,6 +4,7 @@
         "attroff",
         "attron",
         "confy",
+        "Crossterm",
         "endwin",
         "getch",
         "initscr",

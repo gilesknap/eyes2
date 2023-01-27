@@ -1,8 +1,9 @@
 //! Define the Entity trait, which is implemented by all types of entities
 //! that can be stored in the EntityMap
 //!
+use direction::Coord;
+
 use crate::settings::Settings;
-use crate::types::Position;
 use crate::world::UpdateQueue;
 // a trait to declare that a type is an entity that can be stored in EntityMap
 pub mod creature;
@@ -10,15 +11,15 @@ pub mod grass;
 
 pub trait Entity {
     // static methods
-    fn new(id: u64, position: Position, config: Settings) -> Self;
+    fn new(id: u64, coord: Coord, config: Settings) -> Self;
     fn cell_type(id: u64) -> Cell;
 
     // property getters
     fn id(&self) -> u64;
-    fn position(&self) -> Position;
+    fn coord(&self) -> Coord;
 
     // property setters
-    fn move_to(&mut self, position: Position);
+    fn move_to(&mut self, coord: Coord);
 
     // instance methods
     fn tick(&mut self, queue: &mut UpdateQueue);

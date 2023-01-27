@@ -33,6 +33,7 @@ fn world_loop(settings: Settings) {
 
         world.populate();
 
+        // let mut tui = tui::Tui::new();
         let mut gui = gui::EyesGui::new();
 
         let mut tick: u64 = 0;
