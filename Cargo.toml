@@ -11,3 +11,4 @@ rand = "0.8.5"
 queues = "1.1.0"
 confy = "0.5.1"
 serde = { version = "1.0.152", features = ["derive"]}
+clap = { version = "4.1.4", features = ["derive"] }

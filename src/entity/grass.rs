@@ -4,16 +4,14 @@
 use super::{Cell, Entity};
 use crate::settings::Settings;
 use crate::types::{Position, Update};
-use crate::utils::{int_to_direction, move_pos};
+use crate::utils::{move_pos, random_direction};
 use crate::world::UpdateQueue;
 use queues::*;
-use rand::Rng;
 
 pub struct Grass {
     id: u64,
     position: Position,
     config: Settings,
-    rng: rand::rngs::ThreadRng,
 }
 
 impl Entity for Grass {
@@ -22,7 +20,6 @@ impl Entity for Grass {
             id,
             position,
             config,
-            rng: rand::thread_rng(),
         }
     }
 
@@ -49,8 +46,7 @@ impl Entity for Grass {
 
 impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        let dir = self.rng.gen_range(0..8);
-        let new_pos = move_pos(self.position, int_to_direction(dir), self.config.size);
+        let new_pos = move_pos(self.position, random_direction(), self.config.size);
         queue.add(Update::AddGrass(new_pos)).ok();
     }
 }

@@ -5,7 +5,7 @@ mod code;
 use super::{Cell, Entity};
 use crate::settings::Settings;
 use crate::types::{Position, Update};
-use crate::utils::{int_to_direction, move_pos};
+use crate::utils::{move_pos, random_direction};
 use crate::world::UpdateQueue;
 use code::Processor;
 use queues::*;
@@ -25,8 +25,8 @@ impl Entity for Creature {
             id,
             position,
             code: Processor::new(),
-            config,
             rng: rand::thread_rng(),
+            config,
         }
     }
 
@@ -61,8 +61,8 @@ impl Creature {
             queue.add(Update::RemoveCreature(self.id)).ok();
         } else if self.rng.gen_range(0.0..1.0) <= self.config.creature_move_rate {
             // random creature movement for now
-            let dir = self.rng.gen_range(0..8);
-            let new_pos = move_pos(self.position, int_to_direction(dir), self.config.size);
+
+            let new_pos = move_pos(self.position, random_direction(), self.config.size);
             queue.add(Update::MoveCreature(self.id, new_pos)).ok();
         }
     }
