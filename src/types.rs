@@ -19,15 +19,13 @@ pub enum Update {
     RemoveGrass(u64),
 }
 
-/// represent a direction in the 2d world
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum Direction {
-    North,
-    NorthEast,
-    East,
-    SouthEast,
-    South,
-    SouthWest,
-    West,
-    NorthWest,
-}
+static DIRECTIONS: [(&str, i8, i8); 8] = [
+    ("North", 0, -1),
+    ("NorthEast", 1, -1),
+    ("East", 1, 0),
+    ("SouthEast", 1, 1),
+    ("South", 0, 1),
+    ("SouthWest", -1, 1),
+    ("West", -1, 0),
+    ("NorthWest", -1, -1),
+];

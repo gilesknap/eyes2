@@ -1,4 +1,3 @@
-extern crate eyes2;
 use std::time::Instant;
 
 use clap::Parser;
@@ -17,7 +16,8 @@ fn main() {
     let args = Args::parse();
 
     let settings = Settings::load();
-    println!("{:?}", settings);
+    println!("Launching eyes2 evolution simulator ...");
+    println!("{:#?}", settings);
 
     if args.test {
         performance_test(settings);
@@ -27,14 +27,14 @@ fn main() {
 }
 
 fn world_loop(settings: Settings) {
-    let mut world = world::World::new(settings);
-
-    world.populate();
-
-    let mut gui = gui::EyesGui::new();
-
     // outer loop continues until user cancels
     loop {
+        let mut world = world::World::new(settings);
+
+        world.populate();
+
+        let mut gui = gui::EyesGui::new();
+
         let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         loop {
@@ -53,6 +53,7 @@ fn world_loop(settings: Settings) {
 
 fn performance_test(settings: Settings) {
     // for performance testing, we want all creatures to survive indefinitely
+    // and move on every tick (this means the same load for all runs)
     let test_settings = Settings {
         creature_idle_energy: 0,
         creature_move_energy: 0,
@@ -64,7 +65,7 @@ fn performance_test(settings: Settings) {
 
     world.populate();
 
-    println!("Performing performance test with {} ticks... ", ticks);
+    println!("Performance test with {} ticks ...", ticks);
     let now = Instant::now();
 
     for _ in 0..ticks {
