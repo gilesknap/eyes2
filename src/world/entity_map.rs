@@ -3,16 +3,16 @@
 //! The entity is held in a hash map, with unique id as key,
 //! this is for fast lookup and iteration, the hash map owns the entity.
 //!
-//! An entity id is also held in the world grid, so that the
-//! inspecting a cell in the world can quickly find and entity. This
+//! An entity id is also held in the world grid, so that
+//! inspecting a cell in the world can quickly find the entity. This
 //! is held using a Cell enum, which contains the unique id of the
 //! entity. This approach means there is only one reference to the entity
 //! and that can be borrowed from the hashmap as needed.
 //!
 //! We are storing the entity id instead of an Entity reference because I want
-//! to eventually make this multi process, The world grid will be shared between
+//! to eventually make this multi threaded, The world grid will be shared between
 //! processes with transactional changes allowed, but the entities will be
-//! owned by the process that created them.
+//! owned by the thread that created them.
 //!
 use direction::Coord;
 use rand::Rng;
@@ -51,7 +51,7 @@ where
             loop {
                 let x = rand::thread_rng().gen_range(0..self.grid_size) as i32;
                 let y = rand::thread_rng().gen_range(0..self.grid_size) as i32;
-                if let Ok(()) = self.add_entity(Coord { x, y }) {
+                if let Ok(()) = self.add_new_entity(Coord { x, y }) {
                     break;
                 }
             }
@@ -70,7 +70,7 @@ where
         self.entities.len()
     }
 
-    pub fn add_entity(&mut self, coord: Coord) -> Result<(), ()> {
+    pub fn add_new_entity(&mut self, coord: Coord) -> Result<(), ()> {
         let mut grid = self.grid.borrow_mut();
         let id = self.next_id;
         self.next_id += 1;

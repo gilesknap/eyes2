@@ -51,4 +51,4 @@ Things that we have so far with **TODO**s for missing patterns:
 
 # Questions
 - I would prefer main and lib only at the root then sub folders is that achievable / desirable ?
-
+- read through TODOs

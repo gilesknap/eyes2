@@ -7,7 +7,10 @@ use super::World;
 fn check_add_creature() {
     let mut world = World::new(10);
 
-    world.creatures.add_entity(Position { x: 0, y: 0 }).unwrap();
+    world
+        .creatures
+        .add_new_entity(Position { x: 0, y: 0 })
+        .unwrap();
     assert_eq!(world.creature_count(), 1);
 }
 

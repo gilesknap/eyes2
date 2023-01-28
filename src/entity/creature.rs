@@ -19,7 +19,7 @@ pub struct Creature {
     coord: Coord,
     code: Processor,
     config: Settings,
-    rng: rand::rngs::ThreadRng,
+    rng: rand::rngs::StdRng,
 }
 
 impl Entity for Creature {
@@ -28,7 +28,7 @@ impl Entity for Creature {
             id,
             coord,
             code: Processor::new(),
-            rng: rand::thread_rng(),
+            rng: StdRng::from_entropy(),
             config,
         }
     }
@@ -63,9 +63,7 @@ impl Creature {
         if self.code.energy == 0 {
             queue.add(Update::RemoveCreature(self.id)).ok();
         } else if self.rng.gen_range(0.0..1.0) <= self.config.creature_move_rate {
-            // random creature movement for now
-
-            let direction: Direction = StdRng::from_entropy().sample(Standard);
+            let direction: Direction = self.rng.sample(Standard);
             let new_pos = move_pos(self.coord, direction, self.config.size);
             queue.add(Update::MoveCreature(self.id, new_pos)).ok();
         }

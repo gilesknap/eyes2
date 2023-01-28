@@ -101,12 +101,9 @@ impl World {
             self.creatures.get_entity(&id).tick(&mut self.updates);
         }
 
-        // limit grass growth to every grass_interval ticks
-        if self.ticks % self.config.grass_interval as u64 == 0 {
-            let ids = self.grass.keys();
-            for id in ids {
-                self.grass.get_entity(&id).tick(&mut self.updates);
-            }
+        let ids = self.grass.keys();
+        for id in ids {
+            self.grass.get_entity(&id).tick(&mut self.updates);
         }
 
         self.apply_updates();
@@ -127,10 +124,10 @@ impl World {
             let update = self.updates.remove().unwrap();
             match update {
                 Update::AddCreature(position) => {
-                    self.creatures.add_entity(position).ok();
+                    self.creatures.add_new_entity(position).ok();
                 }
                 Update::AddGrass(position) => {
-                    self.grass.add_entity(position).ok();
+                    self.grass.add_new_entity(position).ok();
                 }
                 Update::RemoveCreature(id) => {
                     self.creatures.remove_entity(&id);
