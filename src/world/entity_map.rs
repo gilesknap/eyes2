@@ -77,16 +77,8 @@ where
         let coord = entity.coord();
         entity.set_id(id);
 
-        match grid[coord.x as usize][coord.y as usize] {
-            Cell::Empty => {
-                grid[coord.x as usize][coord.y as usize] = T::cell_type(id);
-                self.entities.insert(id, entity);
-
-                Ok(())
-            }
-            // Don't allow adding an entity to a cell that already has one
-            _ => Err(()),
-        }
+        grid[coord.x as usize][coord.y as usize] = T::cell_type(id);
+        self.entities.insert(id, entity);
     }
 
     pub fn add_new_entity(&mut self, coord: Coord) -> Result<(), ()> {

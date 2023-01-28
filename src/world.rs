@@ -3,6 +3,7 @@
 //!
 pub mod entity_map;
 pub mod world_api;
+use crate::entity::Entity;
 use crate::entity::{creature::Creature, grass::Grass, Cell};
 use crate::settings::Settings;
 use direction::Coord;
@@ -56,15 +57,31 @@ pub enum Update {
 
 impl World {
     /// process the updates to the world that have been queued in the previous tick
+    fn eat_grass(&mut self, grass_id: u64, id: u64) {
+        self.grass.remove_entity(&grass_id);
+        self.creatures.get_entity(&id).eat(self.config.grass_energy);
+    }
+
     fn apply_updates(&mut self) {
         while self.updates.size() > 0 {
             let update = self.updates.remove().unwrap();
             match update {
+                // TODO these could be combined into a single match Add(<T>)
                 Update::AddCreature(creature) => {
-                    self.creatures.add_entity(creature).ok();
+                    let coord = creature.coord();
+                    let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
+                    match cell {
+                        Cell::Empty => self.creatures.add_entity(creature).ok(),
+                        _ => continue,
+                    };
                 }
                 Update::AddGrass(grass) => {
-                    self.grass.add_entity(grass).ok();
+                    let coord = grass.coord();
+                    let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
+                    match cell {
+                        Cell::Empty => self.grass.add_entity(grass).ok(),
+                        _ => continue,
+                    };
                 }
                 Update::RemoveCreature(id) => {
                     self.creatures.remove_entity(&id);
@@ -76,10 +93,7 @@ impl World {
                     let cell = self.grid.borrow()[position.x as usize][position.y as usize];
                     match cell {
                         Cell::Empty => {}
-                        Cell::Grass(grass_id) => {
-                            self.grass.remove_entity(&grass_id);
-                            self.creatures.get_entity(&id).eat(self.config.grass_energy);
-                        }
+                        Cell::Grass(grass_id) => self.eat_grass(grass_id, id),
                         // skip move if there is already a creature in the cell
                         Cell::Creature(_) => continue,
                     }
