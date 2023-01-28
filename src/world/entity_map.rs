@@ -18,13 +18,11 @@ use direction::Coord;
 
 use crate::entity::Entity;
 use crate::settings::Settings;
-use crate::world::WorldGrid;
 use std::collections::HashMap;
 
 pub struct EntityMap<T> {
     entities: HashMap<u64, T>,
     next_id: u64,
-    grid: WorldGrid,
     config: Settings,
 }
 
@@ -32,11 +30,10 @@ impl<T> EntityMap<T>
 where
     T: Entity,
 {
-    pub fn new(grid: WorldGrid, config: Settings) -> EntityMap<T> {
+    pub fn new(config: Settings) -> EntityMap<T> {
         EntityMap {
             entities: HashMap::new(),
             next_id: 0,
-            grid,
             config,
         }
     }
@@ -54,13 +51,10 @@ where
     }
 
     pub fn add_entity(&mut self, mut entity: T) {
-        let mut grid = self.grid.borrow_mut();
         let id = self.next_id;
         self.next_id += 1;
-        let coord = entity.coord();
         entity.set_id(id);
 
-        grid[coord.x as usize][coord.y as usize] = T::cell_type(id);
         self.entities.insert(id, entity);
     }
 

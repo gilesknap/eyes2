@@ -7,27 +7,22 @@ use direction::Coord;
 use queues::*;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
-use std::cell::RefCell;
 use std::cmp;
 use std::f64::MAX_EXP;
-use std::rc::Rc;
 
 // public static methods
 impl World {
     pub fn new(config: Settings) -> World {
         // create a square 2d vector of empty cells
-        let grid = Rc::new(RefCell::new(vec![
-            vec![Cell::Empty; config.size as usize];
-            config.size as usize
-        ]));
+        let grid = vec![vec![Cell::Empty; config.size as usize]; config.size as usize];
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
         // between multiple owners
         let world = World {
-            grid: grid.clone(),
-            creatures: EntityMap::<Creature>::new(grid.clone(), config),
-            grass: EntityMap::<Grass>::new(grid.clone(), config),
+            grid,
+            creatures: EntityMap::<Creature>::new(config),
+            grass: EntityMap::<Grass>::new(config),
             updates: UpdateQueue::new(),
             ticks: 0,
             config,
@@ -116,6 +111,6 @@ impl World {
 
     /// read a cell from the grid - used for rendering the world
     pub fn get_cell(&self, position: Coord) -> Cell {
-        return self.grid.borrow()[position.x as usize][position.y as usize];
+        return self.grid[position.x as usize][position.y as usize];
     }
 }

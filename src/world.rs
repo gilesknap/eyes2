@@ -9,8 +9,6 @@ use crate::settings::Settings;
 use direction::Coord;
 use entity_map::EntityMap;
 use queues::*;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 // a reference counted pointer to Reference Cell of a 2d vector of cells
 // TODO replace RefCell with RwLock when we go multi-threaded (I think
@@ -21,7 +19,7 @@ use std::rc::Rc;
 // The outer Rc allows us to share the RefCell between multiple owners.
 // The RefCell allows us to mutate the contents of the Vec from any of
 // these owners. At present this is safe as we are single threaded.
-pub type WorldGrid = Rc<RefCell<Vec<Vec<Cell>>>>;
+pub type WorldGrid = Vec<Vec<Cell>>;
 
 // a queue of updates to the world to be applied at the end of the tick
 pub type UpdateQueue = Queue<Update>;
@@ -69,38 +67,38 @@ impl World {
                 Update::AddCreature(creature) => {
                     let coord = creature.coord();
                     let id = creature.id();
-                    let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
+                    let cell = self.grid[coord.x as usize][coord.y as usize];
                     match cell {
                         Cell::Empty => {}
                         Cell::Grass(grass_id) => self.eat_grass(grass_id, creature.id()),
                         _ => continue, // skip add if there is already a creature in the cell
                     };
                     self.creatures.add_entity(creature);
-                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Creature(id);
+                    self.grid[coord.x as usize][coord.y as usize] = Cell::Creature(id);
                 }
                 Update::AddGrass(grass) => {
                     let coord = grass.coord();
                     let id = grass.id();
-                    let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
+                    let cell = self.grid[coord.x as usize][coord.y as usize];
                     match cell {
                         Cell::Empty => self.grass.add_entity(grass),
                         _ => continue,
                     };
-                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Grass(id);
+                    self.grid[coord.x as usize][coord.y as usize] = Cell::Grass(id);
                 }
                 Update::RemoveCreature(creature) => {
                     let coord = creature.coord();
                     self.creatures.remove_entity(&creature.id());
-                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Empty;
+                    self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
                 Update::RemoveGrass(grass) => {
                     let coord = grass.coord();
                     self.grass.remove_entity(&grass.id());
-                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Empty;
+                    self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
                 Update::MoveCreature(creature, new_coord) => {
                     let old_coord = creature.coord();
-                    let cell = self.grid.borrow()[new_coord.x as usize][new_coord.y as usize];
+                    let cell = self.grid[new_coord.x as usize][new_coord.y as usize];
                     match cell {
                         Cell::Empty => {}
                         Cell::Grass(grass_id) => self.eat_grass(grass_id, creature.id()),
@@ -109,7 +107,7 @@ impl World {
                     }
                     self.creatures.move_entity(&creature.id(), new_coord);
 
-                    let grid = &mut self.grid.borrow_mut();
+                    let grid = &mut self.grid;
                     grid[old_coord.x as usize][old_coord.y as usize] = Cell::Empty;
                     grid[new_coord.x as usize][new_coord.y as usize] =
                         Cell::Creature(creature.id());
