@@ -3,13 +3,15 @@ use std::time::Instant;
 use clap::Parser;
 use eyes2::settings::Settings;
 use eyes2::{gui, world};
+use num_format::{Locale, ToFormattedString};
 use std::{thread, time};
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// run a performance test
     #[arg(short, long)]
-    test: bool,
+    performance: bool,
 }
 
 fn main() {
@@ -19,7 +21,7 @@ fn main() {
     println!("Launching eyes2 evolution simulator ...");
     println!("{:#?}", settings);
 
-    if args.test {
+    if args.performance {
         performance_test(settings);
     } else {
         world_loop(settings);
@@ -66,7 +68,10 @@ fn performance_test(settings: Settings) {
 
     world.populate();
 
-    println!("Performance test with {} ticks ...", ticks);
+    println!(
+        "Performance test with {} ticks ...",
+        ticks.to_formatted_string(&Locale::en)
+    );
     let now = Instant::now();
 
     for _ in 0..ticks {
@@ -75,7 +80,7 @@ fn performance_test(settings: Settings) {
 
     println!(
         "Performed {} ticks in {} milliseconds.",
-        ticks,
+        ticks.to_formatted_string(&Locale::en),
         now.elapsed().as_millis()
     );
 }

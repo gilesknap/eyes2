@@ -149,11 +149,11 @@ impl World {
         while self.updates.size() > 0 {
             let update = self.updates.remove().unwrap();
             match update {
-                Update::AddCreature(position) => {
-                    self.creatures.add_new_entity(position).ok();
+                Update::AddCreature(creature) => {
+                    self.creatures.add_entity(creature).ok();
                 }
-                Update::AddGrass(position) => {
-                    self.grass.add_new_entity(position).ok();
+                Update::AddGrass(grass) => {
+                    self.grass.add_entity(grass).ok();
                 }
                 Update::RemoveCreature(id) => {
                     self.creatures.remove_entity(&id);

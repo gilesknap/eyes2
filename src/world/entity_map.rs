@@ -70,11 +70,12 @@ where
         self.entities.len()
     }
 
-    pub fn add_new_entity(&mut self, coord: Coord) -> Result<(), ()> {
+    pub fn add_entity(&mut self, mut entity: T) -> Result<(), ()> {
         let mut grid = self.grid.borrow_mut();
         let id = self.next_id;
         self.next_id += 1;
-        let entity = T::new(id, coord, self.config);
+        let coord = entity.coord();
+        entity.set_id(id);
 
         match grid[coord.x as usize][coord.y as usize] {
             Cell::Empty => {
@@ -86,6 +87,11 @@ where
             // Don't allow adding an entity to a cell that already has one
             _ => Err(()),
         }
+    }
+
+    pub fn add_new_entity(&mut self, coord: Coord) -> Result<(), ()> {
+        let entity = T::new(0, coord, self.config);
+        self.add_entity(entity)
     }
 
     pub fn remove_entity(&mut self, id: &u64) {

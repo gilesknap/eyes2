@@ -9,6 +9,7 @@ use crate::world::UpdateQueue;
 use direction::{Coord, Direction};
 use queues::*;
 
+#[derive(Clone)]
 pub struct Grass {
     id: u64,
     coord: Coord,
@@ -42,6 +43,13 @@ impl Entity for Grass {
         self.coord = pos;
     }
 
+    fn set_id(&mut self, id: u64) {
+        // id is immutable once set
+        if self.id == 0 {
+            self.id = id;
+        }
+    }
+
     fn tick(&mut self, queue: &mut UpdateQueue) {
         self.tick(queue);
     }
@@ -54,8 +62,8 @@ impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
         let new_coord = move_pos(self.coord, self.next_grow_dir, self.config.size);
 
-        let _new_grass = self.grow(new_coord);
-        queue.add(Update::AddGrass(new_coord)).ok();
+        let new_grass = self.grow(new_coord);
+        queue.add(Update::AddGrass(new_grass)).ok();
 
         self.next_grow_dir = rotate_direction(self.next_grow_dir);
     }
@@ -65,7 +73,7 @@ impl Grass {
             id: 0,
             coord,
             config: self.config,
-            next_grow_dir: self.next_grow_dir.clone(),
+            next_grow_dir: self.next_grow_dir,
         }
     }
 }

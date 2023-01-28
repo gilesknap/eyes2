@@ -8,6 +8,14 @@ use rand::Rng;
 
 const GENOME: usize = 1000;
 
+// TODO not happy that I need Clone on this struct as its quite big
+// When a creature reproduces it will make a new creature that holds
+// A processor and that includes one of these (which includes the mutated genome).
+// The new Creature is passed it up to the world via a Queue and added to the
+// EntityList Hashmap - because its being passed around it needs to be cloneable
+// which means the Processor needs to be cloneable which means the genome needs
+// to be cloneable. Maybe we need a MutRef again here?
+#[derive(Clone)]
 pub struct Processor {
     pub energy: u32,       // energy level
     ip: u16,               // instruction pointer

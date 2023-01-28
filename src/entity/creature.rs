@@ -14,6 +14,7 @@ use rand::distributions::Standard;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
 
+#[derive(Clone)]
 pub struct Creature {
     id: u64,
     coord: Coord,
@@ -49,6 +50,13 @@ impl Entity for Creature {
         self.coord = pos;
     }
 
+    fn set_id(&mut self, id: u64) {
+        // id is immutable once set
+        if self.id == 0 {
+            self.id = id;
+        }
+    }
+
     fn tick(&mut self, queue: &mut UpdateQueue) {
         self.tick(queue)
     }
@@ -73,9 +81,11 @@ impl Creature {
         self.code.energy += amount;
     }
 
-    pub fn _reproduce(&mut self, _queue: &mut UpdateQueue) {
-        let _child = Creature::new(self.id + 1, self.coord, self.config);
-        // TODO this is no good as we need to get next id from the world
-        // how to do that and need a thread safe way to do it for the future
+    // TODO: looks like we have a reproduction capability - we need a way to call
+    // this from the genome code ...
+    // (this passing of a Entity via the Queue has already been proven for Grass)
+    pub fn _reproduce(&mut self, queue: &mut UpdateQueue) {
+        let child = Creature::new(0, self.coord, self.config);
+        queue.add(Update::AddCreature(child)).ok();
     }
 }

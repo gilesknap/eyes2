@@ -20,6 +20,7 @@ pub trait Entity {
 
     // property setters
     fn move_to(&mut self, coord: Coord);
+    fn set_id(&mut self, id: u64);
 
     // instance methods
     fn tick(&mut self, queue: &mut UpdateQueue);

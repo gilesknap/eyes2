@@ -4,12 +4,14 @@
 
 use direction::Coord;
 
+use crate::entity::{creature::Creature, grass::Grass};
+
 /// represent a change to the world
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone)]
 pub enum Update {
-    AddCreature(Coord),
+    AddCreature(Creature),
     MoveCreature(u64, Coord),
-    AddGrass(Coord),
+    AddGrass(Grass),
     RemoveCreature(u64),
     RemoveGrass(u64),
 }
