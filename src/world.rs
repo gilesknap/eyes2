@@ -68,6 +68,7 @@ impl World {
             match update {
                 Update::AddCreature(creature) => {
                     let coord = creature.coord();
+                    let id = creature.id();
                     let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
                     match cell {
                         Cell::Empty => {}
@@ -75,14 +76,17 @@ impl World {
                         _ => continue, // skip add if there is already a creature in the cell
                     };
                     self.creatures.add_entity(creature);
+                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Creature(id);
                 }
                 Update::AddGrass(grass) => {
                     let coord = grass.coord();
+                    let id = grass.id();
                     let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
                     match cell {
                         Cell::Empty => self.grass.add_entity(grass),
                         _ => continue,
                     };
+                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Grass(id);
                 }
                 Update::RemoveCreature(creature) => {
                     let coord = creature.coord();

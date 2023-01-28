@@ -1,9 +1,10 @@
 use super::entity_map::EntityMap;
-use super::UpdateQueue;
 use super::World;
-use crate::entity::{creature::Creature, grass::Grass, Cell};
+use super::{Update, UpdateQueue};
+use crate::entity::{creature::Creature, grass::Grass, Cell, Entity};
 use crate::settings::Settings;
 use direction::Coord;
+use queues::*;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
 use std::cell::RefCell;
@@ -58,8 +59,21 @@ impl World {
     }
 
     pub fn populate(&mut self) {
-        self.grass.populate(self.config.grass_count);
-        self.creatures.populate(self.config.creature_count);
+        for _ in 0..self.config.grass_count as usize {
+            let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
+            let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
+
+            let grass = Grass::new(0, Coord { x, y }, self.config.clone());
+            self.updates.add(Update::AddGrass(grass)).ok();
+        }
+        for _ in 0..self.config.creature_count as usize {
+            let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
+            let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
+
+            let creature = Creature::new(0, Coord { x, y }, self.config.clone());
+            self.updates.add(Update::AddCreature(creature)).ok();
+        }
+        self.apply_updates();
 
         println!(
             "Added {} grass and {} creatures to the world",

@@ -15,9 +15,8 @@
 //! owned by the thread that created them.
 //!
 use direction::Coord;
-use rand::Rng;
 
-use crate::entity::{Cell, Entity};
+use crate::entity::Entity;
 use crate::settings::Settings;
 use crate::world::WorldGrid;
 use std::collections::HashMap;
@@ -26,7 +25,6 @@ pub struct EntityMap<T> {
     entities: HashMap<u64, T>,
     next_id: u64,
     grid: WorldGrid,
-    grid_size: u16,
     config: Settings,
 }
 
@@ -35,29 +33,11 @@ where
     T: Entity,
 {
     pub fn new(grid: WorldGrid, config: Settings) -> EntityMap<T> {
-        let grid_size = grid.borrow().len() as u16;
         EntityMap {
             entities: HashMap::new(),
             next_id: 0,
             grid,
-            grid_size,
             config,
-        }
-    }
-
-    pub fn populate(&mut self, count: u16) {
-        for _ in 0..count {
-            // keep trying until we find a random empty cell to place the entity
-            loop {
-                let x = rand::thread_rng().gen_range(0..self.grid_size) as i32;
-                let y = rand::thread_rng().gen_range(0..self.grid_size) as i32;
-                match self.grid.borrow()[x as usize][y as usize] {
-                    Cell::Empty => {}
-                    _ => continue, // try again
-                }
-                self.add_new_entity(Coord { x, y });
-                break;
-            }
         }
     }
 
@@ -86,7 +66,7 @@ where
 
     pub fn add_new_entity(&mut self, coord: Coord) {
         let entity = T::new(0, coord, self.config);
-        self.add_entity(entity)
+        self.add_entity(entity);
     }
 
     pub fn remove_entity(&mut self, id: &u64) {
