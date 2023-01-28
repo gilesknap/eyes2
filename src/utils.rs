@@ -12,3 +12,16 @@ pub fn move_pos(pos: Coord, dir: Direction, size: i32) -> Coord {
 
     new_pos
 }
+
+pub fn rotate_direction(dir: Direction) -> Direction {
+    match dir {
+        Direction::North => Direction::NorthEast,
+        Direction::NorthEast => Direction::East,
+        Direction::East => Direction::SouthEast,
+        Direction::SouthEast => Direction::South,
+        Direction::South => Direction::SouthWest,
+        Direction::SouthWest => Direction::West,
+        Direction::West => Direction::NorthWest,
+        Direction::NorthWest => Direction::North,
+    }
+}

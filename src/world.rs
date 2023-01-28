@@ -10,7 +10,10 @@ use crate::types::Update;
 use direction::Coord;
 use entity_map::EntityMap;
 use queues::*;
+use rand::prelude::*;
 use std::cell::RefCell;
+use std::cmp;
+use std::f64::MAX_EXP;
 use std::rc::Rc;
 
 // a reference counted pointer to Reference Cell of a 2d vector of cells
@@ -38,6 +41,10 @@ pub struct World {
     ticks: u64,
     // the settings for the world
     config: Settings,
+    // track when we will next call grass tick
+    next_grass_tick: u64,
+    // a random number generator
+    rng: rand::rngs::StdRng,
 }
 
 // public static methods
@@ -59,6 +66,8 @@ impl World {
             updates: UpdateQueue::new(),
             ticks: 0,
             config,
+            next_grass_tick: 0,
+            rng: rand::rngs::StdRng::from_entropy(),
         };
 
         println!("Created a new world of size {} square", world.config.size);
@@ -101,9 +110,26 @@ impl World {
             self.creatures.get_entity(&id).tick(&mut self.updates);
         }
 
-        let ids = self.grass.keys();
-        for id in ids {
-            self.grass.get_entity(&id).tick(&mut self.updates);
+        // limit calls to grass tick relative to grass_interval
+        if self.ticks >= self.next_grass_tick {
+            let ids = self.grass.keys();
+
+            // pick a random grass block to grow
+            let which = self.rng.gen_range(0..ids.len());
+            // let which = ids.len() - 1;
+            self.grass.get_entity(&ids[which]).tick(&mut self.updates);
+
+            self.next_grass_tick = match self.grass.count() {
+                0 => MAX_EXP as u64,
+                _ => {
+                    self.ticks
+                        + self.config.grass_interval
+                            / cmp::min(
+                                self.grass.count(),
+                                self.config.max_grass_per_interval as usize,
+                            ) as u64
+                }
+            }
         }
 
         self.apply_updates();

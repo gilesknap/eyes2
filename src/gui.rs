@@ -26,7 +26,7 @@ impl EyesGui {
         let window = initscr();
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
-        init_pair(GREEN as i16, COLOR_BLACK, COLOR_GREEN);
+        init_pair(GREEN as i16, COLOR_GREEN, COLOR_BLACK);
         EyesGui { window }
     }
 
@@ -43,16 +43,16 @@ impl EyesGui {
             for x in 0..world.get_size() {
                 match world.get_cell(Coord { x, y }) {
                     Cell::Empty => {
-                        self.window.printw("  ");
+                        self.window.printw(" ");
                     }
                     Cell::Grass(_) => {
                         self.window.attron(ColorPair(GREEN));
-                        self.window.printw("  ");
+                        self.window.printw("*");
                         self.window.attroff(ColorPair(GREEN));
                     }
                     Cell::Creature(_) => {
                         self.window.attron(ColorPair(RED));
-                        self.window.printw("><");
+                        self.window.printw("X");
                         self.window.attroff(ColorPair(RED));
                     }
                 };

@@ -9,7 +9,9 @@ pub struct Settings {
     // number of creatures to add to the world
     pub creature_count: u16,
     // number of ticks between grass growth
-    pub grass_interval: u16,
+    pub grass_interval: u64,
+    // max growth of grass per interval - caps the max load grass can put on the system
+    pub max_grass_per_interval: u64,
     // energy gained from eating grass
     pub grass_energy: u32,
     // energy lost from moving
@@ -26,6 +28,7 @@ const DEFAULT_SETTINGS: Settings = Settings {
     grass_count: 10,
     creature_count: 25,
     grass_interval: 5000,
+    max_grass_per_interval: 500,
     grass_energy: 1000,
     creature_move_energy: 100,
     creature_idle_energy: 1,
