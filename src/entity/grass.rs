@@ -3,8 +3,8 @@
 //!
 use super::{Cell, Entity};
 use crate::settings::Settings;
-use crate::types::Update;
 use crate::utils::{move_pos, rotate_direction};
+use crate::world::Update;
 use crate::world::UpdateQueue;
 use direction::{Coord, Direction};
 use queues::*;

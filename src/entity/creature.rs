@@ -4,9 +4,8 @@ mod code;
 
 use super::{Cell, Entity};
 use crate::settings::Settings;
-use crate::types::Update;
 use crate::utils::move_pos;
-use crate::world::UpdateQueue;
+use crate::world::{Update, UpdateQueue};
 use code::Processor;
 use direction::{Coord, Direction};
 use queues::*;
