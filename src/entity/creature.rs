@@ -68,11 +68,13 @@ impl Creature {
         self.code.tick();
 
         if self.code.energy == 0 {
-            queue.add(Update::RemoveCreature(self.id)).ok();
+            // TODO not happy about this clone here just to get a callback to remove
+            queue.add(Update::RemoveCreature(self.clone())).ok();
         } else if self.rng.gen_range(0.0..1.0) <= self.config.creature_move_rate {
             let direction: Direction = self.rng.sample(Standard);
             let new_pos = move_pos(self.coord, direction, self.config.size);
-            queue.add(Update::MoveCreature(self.id, new_pos)).ok();
+            // TODO this also has clone
+            queue.add(Update::MoveCreature(self.clone(), new_pos)).ok();
         }
     }
 

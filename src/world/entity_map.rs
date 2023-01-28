@@ -90,21 +90,11 @@ where
     }
 
     pub fn remove_entity(&mut self, id: &u64) {
-        let mut grid = self.grid.borrow_mut();
-        let coord = self.entities.get(id).unwrap().coord();
-
         self.entities.remove(id);
-        grid[coord.x as usize][coord.y as usize] = Cell::Empty;
     }
 
     pub fn move_entity(&mut self, id: &u64, new_pos: Coord) {
         let entity = self.entities.get_mut(id).unwrap();
-        let mut grid = self.grid.borrow_mut();
-        let old_pos = entity.coord();
-        let cell = T::cell_type(*id);
-
-        grid[old_pos.x as usize][old_pos.y as usize] = Cell::Empty;
-        grid[new_pos.x as usize][new_pos.y as usize] = cell;
         entity.move_to(new_pos);
     }
 }

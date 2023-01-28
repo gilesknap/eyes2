@@ -49,10 +49,10 @@ pub struct World {
 #[derive(Clone)]
 pub enum Update {
     AddCreature(Creature),
-    MoveCreature(u64, Coord),
+    MoveCreature(Creature, Coord),
     AddGrass(Grass),
-    RemoveCreature(u64),
-    RemoveGrass(u64),
+    RemoveCreature(Creature),
+    RemoveGrass(Grass),
 }
 
 impl World {
@@ -66,14 +66,15 @@ impl World {
         while self.updates.size() > 0 {
             let update = self.updates.remove().unwrap();
             match update {
-                // TODO these could be combined into a single match Add(<T>)
                 Update::AddCreature(creature) => {
                     let coord = creature.coord();
                     let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
                     match cell {
-                        Cell::Empty => self.creatures.add_entity(creature),
-                        _ => continue,
+                        Cell::Empty => {}
+                        Cell::Grass(grass_id) => self.eat_grass(grass_id, creature.id()),
+                        _ => continue, // skip add if there is already a creature in the cell
                     };
+                    self.creatures.add_entity(creature);
                 }
                 Update::AddGrass(grass) => {
                     let coord = grass.coord();
@@ -83,21 +84,31 @@ impl World {
                         _ => continue,
                     };
                 }
-                Update::RemoveCreature(id) => {
-                    self.creatures.remove_entity(&id);
+                Update::RemoveCreature(creature) => {
+                    let coord = creature.coord();
+                    self.creatures.remove_entity(&creature.id());
+                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
-                Update::RemoveGrass(id) => {
-                    self.grass.remove_entity(&id);
+                Update::RemoveGrass(grass) => {
+                    let coord = grass.coord();
+                    self.grass.remove_entity(&grass.id());
+                    self.grid.borrow_mut()[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
-                Update::MoveCreature(id, position) => {
-                    let cell = self.grid.borrow()[position.x as usize][position.y as usize];
+                Update::MoveCreature(creature, new_coord) => {
+                    let old_coord = creature.coord();
+                    let cell = self.grid.borrow()[new_coord.x as usize][new_coord.y as usize];
                     match cell {
                         Cell::Empty => {}
-                        Cell::Grass(grass_id) => self.eat_grass(grass_id, id),
+                        Cell::Grass(grass_id) => self.eat_grass(grass_id, creature.id()),
                         // skip move if there is already a creature in the cell
                         Cell::Creature(_) => continue,
                     }
-                    self.creatures.move_entity(&id, position);
+                    self.creatures.move_entity(&creature.id(), new_coord);
+
+                    let grid = &mut self.grid.borrow_mut();
+                    grid[old_coord.x as usize][old_coord.y as usize] = Cell::Empty;
+                    grid[new_coord.x as usize][new_coord.y as usize] =
+                        Cell::Creature(creature.id());
                 }
             }
         }
