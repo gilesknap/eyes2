@@ -51,9 +51,12 @@ where
             loop {
                 let x = rand::thread_rng().gen_range(0..self.grid_size) as i32;
                 let y = rand::thread_rng().gen_range(0..self.grid_size) as i32;
-                if let Ok(()) = self.add_new_entity(Coord { x, y }) {
-                    break;
+                match self.grid.borrow()[x as usize][y as usize] {
+                    Cell::Empty => {}
+                    _ => continue, // try again
                 }
+                self.add_new_entity(Coord { x, y });
+                break;
             }
         }
     }
@@ -70,7 +73,7 @@ where
         self.entities.len()
     }
 
-    pub fn add_entity(&mut self, mut entity: T) -> Result<(), ()> {
+    pub fn add_entity(&mut self, mut entity: T) {
         let mut grid = self.grid.borrow_mut();
         let id = self.next_id;
         self.next_id += 1;
@@ -81,7 +84,7 @@ where
         self.entities.insert(id, entity);
     }
 
-    pub fn add_new_entity(&mut self, coord: Coord) -> Result<(), ()> {
+    pub fn add_new_entity(&mut self, coord: Coord) {
         let entity = T::new(0, coord, self.config);
         self.add_entity(entity)
     }

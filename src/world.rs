@@ -71,7 +71,7 @@ impl World {
                     let coord = creature.coord();
                     let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
                     match cell {
-                        Cell::Empty => self.creatures.add_entity(creature).ok(),
+                        Cell::Empty => self.creatures.add_entity(creature),
                         _ => continue,
                     };
                 }
@@ -79,7 +79,7 @@ impl World {
                     let coord = grass.coord();
                     let cell = self.grid.borrow()[coord.x as usize][coord.y as usize];
                     match cell {
-                        Cell::Empty => self.grass.add_entity(grass).ok(),
+                        Cell::Empty => self.grass.add_entity(grass),
                         _ => continue,
                     };
                 }
