@@ -1,4 +1,3 @@
-use super::entity_map::EntityMap;
 use super::World;
 use super::{Update, UpdateQueue};
 use crate::entity::{creature::Creature, grass::Grass, Cell, Entity};
@@ -8,6 +7,7 @@ use queues::*;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
 use std::cmp;
+use std::collections::HashMap;
 use std::f64::MAX_EXP;
 
 // public static methods
@@ -21,13 +21,14 @@ impl World {
         // between multiple owners
         let world = World {
             grid,
-            creatures: EntityMap::<Creature>::new(config),
-            grass: EntityMap::<Grass>::new(config),
+            creatures: HashMap::<u64, Creature>::new(),
+            grass: HashMap::<u64, Grass>::new(),
             updates: UpdateQueue::new(),
             ticks: 0,
             config,
             next_grass_tick: 0,
             rng: StdRng::from_entropy(),
+            next_id: 0,
         };
 
         println!("Created a new world of size {} square", world.config.size);
@@ -46,11 +47,11 @@ impl World {
     }
 
     pub fn grass_count(&self) -> usize {
-        self.grass.count()
+        self.grass.len()
     }
 
     pub fn creature_count(&self) -> usize {
-        self.creatures.count()
+        self.creatures.len()
     }
 
     pub fn populate(&mut self) {
@@ -58,13 +59,15 @@ impl World {
             let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
             let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
 
-            self.updates.add(Update::AddGrass(0, Coord { x, y })).ok();
+            let id = self.get_next_id();
+            self.updates.add(Update::AddGrass(id, Coord { x, y })).ok();
         }
         for _ in 0..self.config.creature_count as usize {
             let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
             let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
 
-            let creature = Creature::new(0, Coord { x, y }, self.config.clone());
+            let id = self.get_next_id();
+            let creature = Creature::new(id, Coord { x, y }, self.config.clone());
             self.updates.add(Update::AddCreature(creature)).ok();
         }
         self.apply_updates();
@@ -76,28 +79,31 @@ impl World {
     }
 
     pub fn tick(&mut self) {
-        let ids: Vec<u64> = self.creatures.keys();
-
-        for id in ids {
-            self.creatures.get_entity(&id).tick(&mut self.updates);
+        for creature in self.creatures.values_mut() {
+            creature.tick(&mut self.updates);
         }
 
         // limit calls to grass tick relative to grass_interval
-        if self.ticks >= self.next_grass_tick {
-            let ids = self.grass.keys();
-
+        if self.ticks >= self.next_grass_tick && !self.grass.is_empty() {
             // pick a random grass block to grow
-            let which = self.rng.gen_range(0..ids.len());
-            // let which = ids.len() - 1;
-            self.grass.get_entity(&ids[which]).tick(&mut self.updates);
+            // TODO - need to work out how to do this without cloning the keys
+            // TODO - and without traversing the entire map to get this one item
+            let keys: Vec<u64> = self.grass.keys().cloned().collect();
+            let which = self.rng.gen_range(0..self.grass.len());
 
-            self.next_grass_tick = match self.grass.count() {
+            let grass = self.grass.get_mut(&keys[which]).unwrap();
+            grass.tick(&mut self.updates);
+
+            // Calculate the next tick for grass. It is grass interval
+            // divided by the number of grass blocks, but capped at
+            // max_grass_per_interval
+            self.next_grass_tick = match self.grass.len() {
                 0 => MAX_EXP as u64,
                 _ => {
                     self.ticks
                         + self.config.grass_interval
                             / cmp::min(
-                                self.grass.count(),
+                                self.grass.len(),
                                 self.config.max_grass_per_interval as usize,
                             ) as u64
                 }

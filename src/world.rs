@@ -1,13 +1,13 @@
 //! The world is a 2D grid of cells. Each cell can contain a creature or grass.
 //! The world is responsible for updating the state of the world each tick.
 //!
-pub mod entity_map;
 pub mod world_api;
+use std::collections::HashMap;
+
 use crate::entity::Entity;
 use crate::entity::{creature::Creature, grass::Grass, Cell};
 use crate::settings::Settings;
 use direction::Coord;
-use entity_map::EntityMap;
 use queues::*;
 
 // a reference counted pointer to Reference Cell of a 2d vector of cells
@@ -24,14 +24,14 @@ pub type WorldGrid = Vec<Vec<Cell>>;
 // a queue of updates to the world to be applied at the end of the tick
 pub type UpdateQueue = Queue<Update>;
 
-// a world is a 2D grid of Cell
+// a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
 pub struct World {
     // the grid of cells
     grid: WorldGrid,
     // the list of creatures in the world
-    creatures: EntityMap<Creature>,
+    creatures: HashMap<u64, Creature>,
     // the list of all the grass blocks in the world
-    grass: EntityMap<Grass>,
+    grass: HashMap<u64, Grass>,
     // queue of updates to the world to be applied at the end of the tick
     updates: Queue<Update>,
     // record of the number of ticks that have passed in the world
@@ -42,8 +42,12 @@ pub struct World {
     next_grass_tick: u64,
     // a random number generator
     rng: rand::rngs::StdRng,
+    // next unique id to assign to an Entity
+    next_id: u64,
 }
 
+/// Represent the possible world update service requests that
+/// Entities can place on the update queue.
 #[derive(Clone)]
 pub enum Update {
     AddCreature(Creature),
@@ -57,10 +61,17 @@ pub enum Update {
 /// the world.
 impl World {
     /// process the updates to the world that have been queued in the previous tick
-    fn eat_grass(&mut self, grass_id: u64, _id: u64) {
-        self.grass.remove_entity(&grass_id);
-        // TODO re-instate this once creatures don't have 0 id on creation
-        // self.creatures.get_entity(&id).eat(self.config.grass_energy);
+    fn eat_grass(&mut self, grass_id: u64, id: u64) {
+        self.grass.remove(&grass_id);
+        self.creatures
+            .get_mut(&id)
+            .unwrap()
+            .eat(self.config.grass_energy);
+    }
+
+    fn get_next_id(&mut self) -> u64 {
+        self.next_id += 1;
+        self.next_id
     }
 
     fn apply_updates(&mut self) {
@@ -72,11 +83,16 @@ impl World {
                     let id = creature.id();
                     let cell = self.grid[coord.x as usize][coord.y as usize];
                     match cell {
-                        Cell::Empty => {}
-                        Cell::Grass(grass_id) => self.eat_grass(grass_id, creature.id()),
+                        Cell::Empty => {
+                            self.creatures.insert(id, creature);
+                            () // TODO REALLY??
+                        }
+                        Cell::Grass(grass_id) => {
+                            self.creatures.insert(id, creature);
+                            self.eat_grass(grass_id, id);
+                        }
                         _ => continue, // skip add if there is already a creature in the cell
                     };
-                    self.creatures.add_entity(creature);
                     self.grid[coord.x as usize][coord.y as usize] = Cell::Creature(id);
                 }
                 Update::AddGrass(_id, coord) => {
@@ -84,7 +100,9 @@ impl World {
                     match cell {
                         Cell::Empty => {
                             // TODO should call grow here (using id to get grass to grow)
-                            let id = self.grass.add_new_entity(coord);
+                            let id = self.get_next_id();
+                            let grass = Grass::new(id, coord, self.config);
+                            self.grass.insert(id, grass);
                             self.grid[coord.x as usize][coord.y as usize] = Cell::Grass(id)
                         }
                         _ => continue,
@@ -92,7 +110,7 @@ impl World {
                 }
                 Update::RemoveCreature(creature) => {
                     let coord = creature.coord();
-                    self.creatures.remove_entity(&creature.id());
+                    self.creatures.remove(&creature.id());
                     self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
                 Update::RemoveGrass(id, coord) => {
@@ -100,7 +118,7 @@ impl World {
                     match cell {
                         Cell::Grass(grass_id) => {
                             if grass_id == id {
-                                self.grass.remove_entity(&id);
+                                self.grass.remove(&id);
                                 self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                             }
                         }
@@ -116,7 +134,10 @@ impl World {
                         // skip move if there is already a creature in the cell
                         Cell::Creature(_) => continue,
                     }
-                    self.creatures.move_entity(&creature.id(), new_coord);
+                    self.creatures
+                        .get_mut(&creature.id())
+                        .unwrap()
+                        .move_to(new_coord);
 
                     let grid = &mut self.grid;
                     grid[old_coord.x as usize][old_coord.y as usize] = Cell::Empty;
