@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS: Settings = Settings {
     size: 40,
     grass_count: 100,
     creature_count: 25,
-    grass_interval: 5000,
+    grass_interval: 2000,
     max_grass_per_interval: 200,
     grass_energy: 1000,
     creature_initial_energy: (10000, 20000),
@@ -47,7 +47,7 @@ impl Settings {
         confy::store("eyes2", None, settings).unwrap();
     }
 
-    pub fn default() -> Settings {
+    pub fn reset() -> Settings {
         confy::store("eyes2", None, DEFAULT_SETTINGS).unwrap();
         DEFAULT_SETTINGS
     }

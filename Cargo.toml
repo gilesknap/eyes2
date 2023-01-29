@@ -16,5 +16,4 @@ tui = "0.19"
 crossterm = "0.25"
 direction = { version = "0.18.1", features = ["rand"] }
 num-format = "0.4.4"
-indexmap = "1.9.2"
 

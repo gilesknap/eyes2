@@ -1,6 +1,8 @@
+mod gui2;
 use clap::Parser;
 use eyes2::settings::Settings;
-use eyes2::{gui, world};
+use eyes2::world;
+use gui2::EyesTui;
 use num_format::{Locale, ToFormattedString};
 use std::{thread::sleep, time};
 
@@ -19,7 +21,7 @@ fn main() {
     let args = Args::parse();
 
     let settings = if args.reset {
-        Settings::default()
+        Settings::reset()
     } else {
         Settings::load()
     };
@@ -41,18 +43,20 @@ fn world_loop(settings: Settings) {
 
         world.populate();
 
-        // let mut tui = tui::Tui::new();
-        let mut gui = gui::EyesGui::new();
+        let mut tui = EyesTui::new();
+        tui.draw().ok();
 
         let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         loop {
-            if tick % 1 == 0 {
-                gui.render(&world);
+            if tick % 100 == 0 {
+                // gui.render(&world);
             }
             tick += 1;
             world.tick();
-            sleep(time::Duration::from_micros(5));
+            // TODO make this delay configurable and for larger delays make
+            // the gui.render run every tick so you can see details of progress
+            sleep(time::Duration::from_micros(1));
             if world.creature_count() == 0 {
                 break;
             }
@@ -61,8 +65,7 @@ fn world_loop(settings: Settings) {
 }
 
 fn performance_test(settings: Settings) {
-    // for performance testing, we use 1 creature which survive indefinitely
-    // and move on every tick (this means the same load for all runs)
+    // for performance testing, we use 1 creature which survives indefinitely
     let test_settings = Settings {
         size: 40,
         grass_count: 1000,
@@ -70,11 +73,11 @@ fn performance_test(settings: Settings) {
         grass_interval: 5000,
         max_grass_per_interval: 200,
         grass_energy: 1000,
-        creature_move_energy: 100,
-        creature_idle_energy: 1,
+        creature_move_energy: 0,
+        creature_idle_energy: 0,
         creature_move_rate: 0.05,
-        // info: the below adds all the other settings from the original settings
-        // (which is none in this case as I've already listed them all)
+        // The below adds all the other settings from the original 'settings'
+        // meaning that if I add a new setting, I don't have to add it here too
         ..settings
     };
 

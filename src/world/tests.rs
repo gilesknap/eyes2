@@ -15,6 +15,7 @@ const CONFIG: Settings = Settings {
     creature_move_energy: 100,
     creature_idle_energy: 1,
     creature_move_rate: 0.01,
+    ..Default::default()
 };
 
 #[test]

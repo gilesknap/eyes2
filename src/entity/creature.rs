@@ -77,7 +77,6 @@ impl Creature {
         } else if self.rng.gen_range(0.0..1.0) <= self.config.creature_move_rate {
             let direction: Direction = self.rng.sample(Standard);
             let new_pos = move_pos(self.coord, direction, self.config.size);
-            // TODO make this a MutRef instead of a clone
             queue
                 .add(Update::MoveCreature(self.id(), self.coord(), new_pos))
                 .ok();
@@ -88,11 +87,10 @@ impl Creature {
         self.code.energy += amount;
     }
 
-    // TODO: looks like we have a reproduction capability - we need a way to call
-    // this from the genome code ...
+    // I'm pretty sure this gives us reproduction capability - now we need a
+    // way to call this from the genome code ...
     pub fn _reproduce(&mut self, queue: &mut UpdateQueue) {
         let child = Creature::new(0, self.coord, self.config);
-        let child_ref = Rc::new(child);
-        queue.add(Update::AddCreature(child_ref)).ok();
+        queue.add(Update::AddCreature(Rc::new(child))).ok();
     }
 }

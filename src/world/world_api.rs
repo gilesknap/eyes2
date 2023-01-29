@@ -90,6 +90,8 @@ impl World {
             // pick a random grass block to grow
             // TODO - need to work out how to do this without cloning the keys
             // TODO - and without traversing the entire map to get this one item
+            // I believe that IndexMap might be the answer
+            // https://users.rust-lang.org/t/random-entry-of-hashmap/26548/4
             let keys: Vec<u64> = self.grass.keys().cloned().collect();
             let which = self.rng.gen_range(0..self.grass.len());
 

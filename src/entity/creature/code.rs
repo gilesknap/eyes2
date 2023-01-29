@@ -38,7 +38,7 @@ impl Processor {
         genome
     }
 
-    // TODO totally dummy instruction set for now
+    // totally dummy instruction set for now
     pub fn tick(&mut self) {
         self.ip = (self.ip + 1) % (GENOME as u16);
         let instruction = self.genome[self.ip as usize];

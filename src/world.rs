@@ -46,7 +46,6 @@ pub enum Update {
     AddCreature(Rc<Creature>),
     MoveCreature(u64, Coord, Coord),
     AddGrass(u64, Coord),
-    // TODO - no need for separate remove grass and remove creature?
     RemoveCreature(u64, Coord),
     RemoveGrass(u64, Coord),
 }
@@ -96,6 +95,8 @@ impl World {
                     match cell {
                         Cell::Empty => {
                             // TODO should call grow here (using id to get grass to grow)
+                            // ANS: In fact we can do that in the grass tick and pass the new
+                            // grass object using the pattern tested in AddCreature
                             let id = self.get_next_id();
                             let grass = Grass::new(id, coord, self.config);
                             self.grass.insert(id, grass);
