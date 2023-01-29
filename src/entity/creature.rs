@@ -24,11 +24,14 @@ pub struct Creature {
 
 impl Entity for Creature {
     fn new(id: u64, coord: Coord, config: Settings) -> Creature {
+        let mut rng = StdRng::from_entropy();
+        let (b, e) = config.creature_initial_energy;
+        let energy = rng.gen_range(b..e);
         Creature {
             id,
             coord,
-            code: Processor::new(),
-            rng: StdRng::from_entropy(),
+            code: Processor::new(energy),
+            rng,
             config,
         }
     }
@@ -87,7 +90,6 @@ impl Creature {
 
     // TODO: looks like we have a reproduction capability - we need a way to call
     // this from the genome code ...
-    // (this passing of a Entity via the Queue has already been proven for Grass)
     pub fn _reproduce(&mut self, queue: &mut UpdateQueue) {
         let child = Creature::new(0, self.coord, self.config);
         let child_ref = Rc::new(child);

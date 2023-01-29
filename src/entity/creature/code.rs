@@ -4,18 +4,9 @@
 // TODO I've noticed that the creature does not have any RAM other than
 // its 5 registers - might be nice to add some?
 
-use rand::Rng;
-
 const GENOME: usize = 1000;
 
-// TODO not happy that I need Clone on this struct as its quite big
-// When a creature reproduces it will make a new creature that holds
-// A processor and that includes one of these (which includes the mutated genome).
-// The new Creature is passed it up to the world via a Queue and added to the
-// EntityList Hashmap - because its being passed around it needs to be cloneable
-// which means the Processor needs to be cloneable which means the genome needs
-// to be cloneable. Maybe we need a MutRef again here?
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Processor {
     pub energy: u32,       // energy level
     ip: u16,               // instruction pointer
@@ -27,9 +18,9 @@ pub struct Processor {
 }
 
 impl Processor {
-    pub fn new() -> Processor {
+    pub fn new(energy: u32) -> Processor {
         Processor {
-            energy: rand::thread_rng().gen_range(10000..20000),
+            energy: energy,
             ip: 0,
             a: 0,
             i: [0; 5],

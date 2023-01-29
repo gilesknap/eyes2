@@ -118,6 +118,8 @@ impl World {
 
     /// read a cell from the grid - used for rendering the world
     pub fn get_cell(&self, position: Coord) -> Cell {
+        // TODO Currently using Copy to return this - maybe should switch to
+        // using a Box? Then could remove the Copy trait from Cell
         return self.grid[position.x as usize][position.y as usize];
     }
 }

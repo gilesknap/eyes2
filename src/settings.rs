@@ -14,6 +14,8 @@ pub struct Settings {
     pub max_grass_per_interval: u64,
     // energy gained from eating grass
     pub grass_energy: u32,
+    // range of energy for new creatures
+    pub creature_initial_energy: (u32, u32),
     // energy lost from moving
     pub creature_move_energy: u32,
     // energy gained from idling
@@ -25,14 +27,15 @@ pub struct Settings {
 
 const DEFAULT_SETTINGS: Settings = Settings {
     size: 40,
-    grass_count: 10,
+    grass_count: 100,
     creature_count: 25,
     grass_interval: 5000,
     max_grass_per_interval: 200,
     grass_energy: 1000,
+    creature_initial_energy: (10000, 20000),
     creature_move_energy: 100,
     creature_idle_energy: 1,
-    creature_move_rate: 0.01,
+    creature_move_rate: 0.005,
 };
 
 impl Settings {
@@ -42,6 +45,11 @@ impl Settings {
 
     pub fn save(&self, settings: Settings) {
         confy::store("eyes2", None, settings).unwrap();
+    }
+
+    pub fn default() -> Settings {
+        confy::store("eyes2", None, DEFAULT_SETTINGS).unwrap();
+        DEFAULT_SETTINGS
     }
 }
 

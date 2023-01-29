@@ -10,12 +10,20 @@ struct Args {
     /// run a performance test
     #[arg(short, long)]
     performance: bool,
+    // reset settings to defaults
+    #[arg(short, long)]
+    reset: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let settings = Settings::load();
+    let settings = if args.reset {
+        Settings::default()
+    } else {
+        Settings::load()
+    };
+
     println!("Launching eyes2 evolution simulator ...");
     println!("{:#?}", settings);
 
