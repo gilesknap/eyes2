@@ -3,7 +3,8 @@
 //!
 use crate::entity::Cell;
 use crate::world::World;
-extern crate pancurses;
+
+use num_format::{Locale, ToFormattedString};
 
 use direction::Coord;
 use pancurses::{
@@ -16,10 +17,6 @@ const GREEN: u8 = 2;
 pub struct EyesGui {
     window: pancurses::Window,
 }
-
-// TODO I picked an ncurses library for this but I now see that much more
-// can be done in the terminal. e.g. https://github.com/fdehau/tui-rs
-// TODO switch to a richer terminal library
 
 impl EyesGui {
     pub fn new() -> EyesGui {
@@ -34,7 +31,7 @@ impl EyesGui {
         self.window.mv(0, 0);
         self.window.printw(format!(
             "ticks:{}  creatures:{}  grass:{}\n\n",
-            world.get_ticks(),
+            world.get_ticks().to_formatted_string(&Locale::en),
             world.creature_count(),
             world.grass_count()
         ));

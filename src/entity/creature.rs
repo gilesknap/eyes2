@@ -63,7 +63,7 @@ impl Entity for Creature {
 
 impl Creature {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        self.code.energy -= 1;
+        self.code.energy -= self.config.creature_idle_energy;
 
         self.code.tick();
 

@@ -46,7 +46,7 @@ fn world_loop(settings: Settings) {
                 gui.render(&world);
             }
             world.tick();
-            thread::sleep(time::Duration::from_micros(5));
+            // thread::sleep(time::Duration::from_micros(5));
             if world.creature_count() == 0 {
                 break;
             }
@@ -55,12 +55,20 @@ fn world_loop(settings: Settings) {
 }
 
 fn performance_test(settings: Settings) {
-    // for performance testing, we want all creatures to survive indefinitely
+    // for performance testing, we use 1 creature which survive indefinitely
     // and move on every tick (this means the same load for all runs)
     let test_settings = Settings {
-        // creature_idle_energy: 0,
-        // creature_move_energy: 0,
-        // creature_move_rate: 1.0,
+        size: 40,
+        grass_count: 1000,
+        creature_count: 1,
+        grass_interval: 5000,
+        max_grass_per_interval: 200,
+        grass_energy: 1000,
+        creature_move_energy: 100,
+        creature_idle_energy: 1,
+        creature_move_rate: 0.05,
+        // info: the below adds all the other settings from the original settings
+        // (which is none in this case as I've already listed them all)
         ..settings
     };
 
@@ -80,8 +88,11 @@ fn performance_test(settings: Settings) {
     }
 
     println!(
-        "Performed {} ticks in {} milliseconds.",
+        "Performance test ends with {} creatures and {} grass.\n\
+        Performed {} ticks in {} milliseconds.",
+        world.creature_count(),
+        world.grass_count(),
         ticks.to_formatted_string(&Locale::en),
-        now.elapsed().as_millis()
+        now.elapsed().as_millis(),
     );
 }
