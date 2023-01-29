@@ -1,7 +1,7 @@
 mod gui2;
 use clap::Parser;
-use eyes2::settings::Settings;
 use eyes2::world;
+use eyes2::{gui::EyesGui, settings::Settings};
 use gui2::EyesTui;
 use num_format::{Locale, ToFormattedString};
 use std::{thread::sleep, time};
@@ -15,6 +15,9 @@ struct Args {
     // reset settings to defaults
     #[arg(short, long)]
     reset: bool,
+    // test the tui gui
+    #[arg(short, long)]
+    gui: bool,
 }
 
 fn main() {
@@ -25,6 +28,12 @@ fn main() {
     } else {
         Settings::load()
     };
+
+    if args.gui {
+        let mut gui = EyesTui::new();
+        gui.draw().unwrap();
+        return;
+    }
 
     println!("Launching eyes2 evolution simulator ...");
     println!("{:#?}", settings);
@@ -43,14 +52,13 @@ fn world_loop(settings: Settings) {
 
         world.populate();
 
-        let mut tui = EyesTui::new();
-        tui.draw().ok();
+        let mut gui = EyesGui::new();
 
         let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         loop {
             if tick % 100 == 0 {
-                // gui.render(&world);
+                gui.render(&world);
             }
             tick += 1;
             world.tick();
