@@ -31,7 +31,7 @@ fn main() {
 
     if args.gui {
         let mut gui = EyesTui::new();
-        gui.draw().unwrap();
+        gui.render();
         return;
     }
 

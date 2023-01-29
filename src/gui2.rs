@@ -5,7 +5,7 @@ use crossterm::{
 };
 use std::{io, thread, time::Duration};
 use tui::{
-    backend::CrosstermBackend,
+    backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout},
     style::{Color, Style},
     text::{Span, Spans},
@@ -51,7 +51,7 @@ impl EyesTui {
         ])
     }
 
-    pub fn draw(&mut self) -> Result<(), io::Error> {
+    pub fn my_draw(&mut self) -> Result<(), io::Error> {
         // setup terminal
         enable_raw_mode()?;
         let mut stdout = io::stdout();
@@ -63,21 +63,26 @@ impl EyesTui {
                 .margin(1)
                 .constraints([Constraint::Percentage(80), Constraint::Percentage(20)].as_ref())
                 .split(f.size());
-            let left_chunks = Layout::default()
+            let right_chunks = Layout::default()
                 .direction(Direction::Vertical)
-                .margin(1)
+                .margin(0)
                 .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
-                .split(chunks[0]);
-            let upper_left_pane = Block::default().title("BlockUL").borders(Borders::ALL);
-            let lower_left_pane = Block::default().title("BlockLL").borders(Borders::ALL);
-            let right_pane = Block::default().title("BlockR").borders(Borders::ALL);
-            f.render_widget(upper_left_pane, left_chunks[0]);
-            f.render_widget(lower_left_pane, left_chunks[1]);
-            f.render_widget(right_pane, chunks[1]);
+                .split(chunks[1]);
+            let left_pane = Block::default().title("World").borders(Borders::ALL);
+            let upper_right_pane = Block::default().title("Status").borders(Borders::ALL);
+            let lower_right_pane = Block::default().title("Settings").borders(Borders::ALL);
+            f.render_widget(left_pane, chunks[0]);
+            f.render_widget(upper_right_pane, right_chunks[0]);
+            f.render_widget(lower_right_pane, right_chunks[1]);
         })?;
-
-        thread::sleep(Duration::from_millis(5000));
         Ok(())
+    }
+
+    pub fn render(&mut self) {
+        for _ in 0..15 {
+            self.my_draw();
+            thread::sleep(Duration::from_millis(1000));
+        }
     }
 }
 
