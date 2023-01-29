@@ -51,9 +51,10 @@ pub struct World {
 #[derive(Clone)]
 pub enum Update {
     AddCreature(Creature),
-    MoveCreature(Creature, Coord),
+    MoveCreature(u64, Coord, Coord),
     AddGrass(u64, Coord),
-    RemoveCreature(Creature),
+    // TODO - no need for separate remove grass and remove creature?
+    RemoveCreature(u64, Coord),
     RemoveGrass(u64, Coord),
 }
 
@@ -108,9 +109,8 @@ impl World {
                         _ => continue,
                     };
                 }
-                Update::RemoveCreature(creature) => {
-                    let coord = creature.coord();
-                    self.creatures.remove(&creature.id());
+                Update::RemoveCreature(id, coord) => {
+                    self.creatures.remove(&id);
                     self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
                 Update::RemoveGrass(id, coord) => {
@@ -125,24 +125,18 @@ impl World {
                         _ => continue,
                     };
                 }
-                Update::MoveCreature(creature, new_coord) => {
-                    let old_coord = creature.coord();
+                Update::MoveCreature(id, old_coord, new_coord) => {
                     let cell = self.grid[new_coord.x as usize][new_coord.y as usize];
                     match cell {
                         Cell::Empty => {}
-                        Cell::Grass(grass_id) => self.eat_grass(grass_id, creature.id()),
+                        Cell::Grass(grass_id) => self.eat_grass(grass_id, id),
                         // skip move if there is already a creature in the cell
                         Cell::Creature(_) => continue,
                     }
-                    self.creatures
-                        .get_mut(&creature.id())
-                        .unwrap()
-                        .move_to(new_coord);
-
+                    self.creatures.get_mut(&id).unwrap().move_to(new_coord);
                     let grid = &mut self.grid;
                     grid[old_coord.x as usize][old_coord.y as usize] = Cell::Empty;
-                    grid[new_coord.x as usize][new_coord.y as usize] =
-                        Cell::Creature(creature.id());
+                    grid[new_coord.x as usize][new_coord.y as usize] = Cell::Creature(id);
                 }
             }
         }

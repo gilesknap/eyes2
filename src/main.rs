@@ -1,10 +1,8 @@
-use std::time::Instant;
-
 use clap::Parser;
 use eyes2::settings::Settings;
 use eyes2::{gui, world};
 use num_format::{Locale, ToFormattedString};
-use std::{thread, time};
+use std::{thread::sleep, time};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -41,12 +39,12 @@ fn world_loop(settings: Settings) {
         let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         loop {
-            tick += 1;
-            if tick % 100 == 0 {
+            if tick % 1 == 0 {
                 gui.render(&world);
             }
+            tick += 1;
             world.tick();
-            // thread::sleep(time::Duration::from_micros(5));
+            sleep(time::Duration::from_micros(5));
             if world.creature_count() == 0 {
                 break;
             }
@@ -81,7 +79,7 @@ fn performance_test(settings: Settings) {
         "Performance test with {} ticks ...",
         ticks.to_formatted_string(&Locale::en)
     );
-    let now = Instant::now();
+    let now = time::Instant::now();
 
     for _ in 0..ticks {
         world.tick();
