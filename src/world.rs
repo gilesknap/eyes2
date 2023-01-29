@@ -48,16 +48,19 @@ pub struct World {
 pub enum Update {
     AddCreature(Creature),
     MoveCreature(Creature, Coord),
-    AddGrass(Grass),
+    AddGrass(u64, Coord),
     RemoveCreature(Creature),
-    RemoveGrass(Grass),
+    RemoveGrass(u64, Coord),
 }
 
+/// This is where world services requests from Entities to make changes to
+/// the world.
 impl World {
     /// process the updates to the world that have been queued in the previous tick
-    fn eat_grass(&mut self, grass_id: u64, id: u64) {
+    fn eat_grass(&mut self, grass_id: u64, _id: u64) {
         self.grass.remove_entity(&grass_id);
-        self.creatures.get_entity(&id).eat(self.config.grass_energy);
+        // TODO re-instate this once creatures don't have 0 id on creation
+        // self.creatures.get_entity(&id).eat(self.config.grass_energy);
     }
 
     fn apply_updates(&mut self) {
@@ -76,25 +79,33 @@ impl World {
                     self.creatures.add_entity(creature);
                     self.grid[coord.x as usize][coord.y as usize] = Cell::Creature(id);
                 }
-                Update::AddGrass(grass) => {
-                    let coord = grass.coord();
-                    let id = grass.id();
+                Update::AddGrass(_id, coord) => {
                     let cell = self.grid[coord.x as usize][coord.y as usize];
                     match cell {
-                        Cell::Empty => self.grass.add_entity(grass),
+                        Cell::Empty => {
+                            // TODO should call grow here (using id to get grass to grow)
+                            let id = self.grass.add_new_entity(coord);
+                            self.grid[coord.x as usize][coord.y as usize] = Cell::Grass(id)
+                        }
                         _ => continue,
                     };
-                    self.grid[coord.x as usize][coord.y as usize] = Cell::Grass(id);
                 }
                 Update::RemoveCreature(creature) => {
                     let coord = creature.coord();
                     self.creatures.remove_entity(&creature.id());
                     self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
-                Update::RemoveGrass(grass) => {
-                    let coord = grass.coord();
-                    self.grass.remove_entity(&grass.id());
-                    self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
+                Update::RemoveGrass(id, coord) => {
+                    let cell = self.grid[coord.x as usize][coord.y as usize];
+                    match cell {
+                        Cell::Grass(grass_id) => {
+                            if grass_id == id {
+                                self.grass.remove_entity(&id);
+                                self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
+                            }
+                        }
+                        _ => continue,
+                    };
                 }
                 Update::MoveCreature(creature, new_coord) => {
                     let old_coord = creature.coord();

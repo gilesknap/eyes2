@@ -58,8 +58,9 @@ fn performance_test(settings: Settings) {
     // for performance testing, we want all creatures to survive indefinitely
     // and move on every tick (this means the same load for all runs)
     let test_settings = Settings {
-        creature_idle_energy: 0,
-        creature_move_energy: 0,
+        // creature_idle_energy: 0,
+        // creature_move_energy: 0,
+        // creature_move_rate: 1.0,
         ..settings
     };
 

@@ -58,8 +58,7 @@ impl World {
             let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
             let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
 
-            let grass = Grass::new(0, Coord { x, y }, self.config.clone());
-            self.updates.add(Update::AddGrass(grass)).ok();
+            self.updates.add(Update::AddGrass(0, Coord { x, y })).ok();
         }
         for _ in 0..self.config.creature_count as usize {
             let x = rand::thread_rng().gen_range(0..self.config.size) as i32;

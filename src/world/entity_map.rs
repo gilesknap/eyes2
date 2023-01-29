@@ -50,17 +50,20 @@ where
         self.entities.len()
     }
 
-    pub fn add_entity(&mut self, mut entity: T) {
+    pub fn add_entity(&mut self, mut entity: T) -> u64 {
         let id = self.next_id;
         self.next_id += 1;
         entity.set_id(id);
 
-        self.entities.insert(id, entity);
+        if self.entities.insert(id, entity).is_some() {
+            panic!("Entity id already exists");
+        }
+        id
     }
 
-    pub fn add_new_entity(&mut self, coord: Coord) {
+    pub fn add_new_entity(&mut self, coord: Coord) -> u64 {
         let entity = T::new(0, coord, self.config);
-        self.add_entity(entity);
+        self.add_entity(entity)
     }
 
     pub fn remove_entity(&mut self, id: &u64) {
