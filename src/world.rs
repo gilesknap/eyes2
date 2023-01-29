@@ -3,6 +3,7 @@
 //!
 pub mod world_api;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use crate::entity::Entity;
 use crate::entity::{creature::Creature, grass::Grass, Cell};
@@ -10,15 +11,7 @@ use crate::settings::Settings;
 use direction::Coord;
 use queues::*;
 
-// a reference counted pointer to Reference Cell of a 2d vector of cells
-// TODO replace RefCell with RwLock when we go multi-threaded (I think
-// its a RwLock because only World should make changes. TODO TODO
-// but wait - maybe only World accesses it at all? and every interaction
-// goes via the update queue?)
-//
-// The outer Rc allows us to share the RefCell between multiple owners.
-// The RefCell allows us to mutate the contents of the Vec from any of
-// these owners. At present this is safe as we are single threaded.
+// The world is a 2D grid of cells
 pub type WorldGrid = Vec<Vec<Cell>>;
 
 // a queue of updates to the world to be applied at the end of the tick
@@ -50,7 +43,7 @@ pub struct World {
 /// Entities can place on the update queue.
 #[derive(Clone)]
 pub enum Update {
-    AddCreature(Creature),
+    AddCreature(Rc<Creature>),
     MoveCreature(u64, Coord, Coord),
     AddGrass(u64, Coord),
     // TODO - no need for separate remove grass and remove creature?
@@ -76,17 +69,19 @@ impl World {
     }
 
     fn apply_updates(&mut self) {
+        // TODO is this the best way to iterate over all items in a queue?
         while self.updates.size() > 0 {
             let update = self.updates.remove().unwrap();
             match update {
-                Update::AddCreature(creature) => {
+                Update::AddCreature(creature_ref) => {
+                    // TODO review this try_unwrap
+                    let creature = Rc::try_unwrap(creature_ref).unwrap();
                     let coord = creature.coord();
                     let id = creature.id();
                     let cell = self.grid[coord.x as usize][coord.y as usize];
                     match cell {
                         Cell::Empty => {
                             self.creatures.insert(id, creature);
-                            () // TODO REALLY??
                         }
                         Cell::Grass(grass_id) => {
                             self.creatures.insert(id, creature);

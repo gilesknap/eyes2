@@ -9,6 +9,7 @@ use rand::{rngs::StdRng, Rng};
 use std::cmp;
 use std::collections::HashMap;
 use std::f64::MAX_EXP;
+use std::rc::Rc;
 
 // public static methods
 impl World {
@@ -68,7 +69,8 @@ impl World {
 
             let id = self.get_next_id();
             let creature = Creature::new(id, Coord { x, y }, self.config.clone());
-            self.updates.add(Update::AddCreature(creature)).ok();
+            let child_ref = Rc::new(creature);
+            self.updates.add(Update::AddCreature(child_ref)).ok();
         }
         self.apply_updates();
 

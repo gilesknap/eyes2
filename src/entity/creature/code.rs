@@ -15,7 +15,7 @@ const GENOME: usize = 1000;
 // EntityList Hashmap - because its being passed around it needs to be cloneable
 // which means the Processor needs to be cloneable which means the genome needs
 // to be cloneable. Maybe we need a MutRef again here?
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Processor {
     pub energy: u32,       // energy level
     ip: u16,               // instruction pointer

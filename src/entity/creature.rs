@@ -1,7 +1,6 @@
 //! represents a creature in the world that can eat grass and reproduce
 //!
 mod code;
-
 use super::{Cell, Entity};
 use crate::settings::Settings;
 use crate::utils::move_pos;
@@ -12,8 +11,9 @@ use queues::*;
 use rand::distributions::Standard;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
+use std::rc::Rc;
 
-#[derive(Clone)]
+#[derive(Debug)]
 pub struct Creature {
     id: u64,
     coord: Coord,
@@ -90,6 +90,7 @@ impl Creature {
     // (this passing of a Entity via the Queue has already been proven for Grass)
     pub fn _reproduce(&mut self, queue: &mut UpdateQueue) {
         let child = Creature::new(0, self.coord, self.config);
-        queue.add(Update::AddCreature(child)).ok();
+        let child_ref = Rc::new(child);
+        queue.add(Update::AddCreature(child_ref)).ok();
     }
 }
