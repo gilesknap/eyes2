@@ -29,12 +29,6 @@ fn main() {
         Settings::load()
     };
 
-    if args.gui {
-        let mut gui = EyesTui::new();
-        gui.render();
-        return;
-    }
-
     println!("Launching eyes2 evolution simulator ...");
     println!("{:#?}", settings);
 
@@ -52,13 +46,13 @@ fn world_loop(settings: Settings) {
 
         world.populate();
 
-        let mut gui = EyesGui::new();
+        let mut gui = EyesTui::new();
 
         let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         loop {
             if tick % 100 == 0 {
-                gui.render(&world);
+                gui.render().unwrap();
             }
             tick += 1;
             world.tick();
