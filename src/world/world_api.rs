@@ -3,13 +3,11 @@ use super::{Update, UpdateQueue};
 use crate::entity::{creature::Creature, grass::Grass, Cell, Entity};
 use crate::settings::Settings;
 use direction::Coord;
-use queues::*;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
 use std::cmp;
 use std::collections::HashMap;
 use std::f64::MAX_EXP;
-use std::rc::Rc;
 
 // public static methods
 impl World {
@@ -61,7 +59,7 @@ impl World {
             let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
 
             let id = self.get_next_id();
-            self.updates.add(Update::AddGrass(id, Coord { x, y })).ok();
+            self.updates.push(Update::AddGrass(id, Coord { x, y }));
         }
         for _ in 0..self.config.creature_count as usize {
             let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
@@ -69,8 +67,7 @@ impl World {
 
             let id = self.get_next_id();
             let creature = Creature::new(id, Coord { x, y }, self.config.clone());
-            let child_ref = Rc::new(creature);
-            self.updates.add(Update::AddCreature(child_ref)).ok();
+            self.updates.push(Update::AddCreature(creature));
         }
         self.apply_updates();
 

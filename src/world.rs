@@ -3,19 +3,17 @@
 //!
 pub mod world_api;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use crate::entity::Entity;
 use crate::entity::{creature::Creature, grass::Grass, Cell};
 use crate::settings::Settings;
 use direction::Coord;
-use queues::*;
 
 // The world is a 2D grid of cells
 pub type WorldGrid = Vec<Vec<Cell>>;
 
 // a queue of updates to the world to be applied at the end of the tick
-pub type UpdateQueue = Queue<Update>;
+pub type UpdateQueue = Vec<Update>;
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
 pub struct World {
@@ -26,7 +24,7 @@ pub struct World {
     // the list of all the grass blocks in the world
     grass: HashMap<u64, Grass>,
     // queue of updates to the world to be applied at the end of the tick
-    updates: Queue<Update>,
+    updates: UpdateQueue,
     // record of the number of ticks that have passed in the world
     ticks: u64,
     // the settings for the world
@@ -41,9 +39,8 @@ pub struct World {
 
 /// Represent the possible world update service requests that
 /// Entities can place on the update queue.
-#[derive(Clone)]
 pub enum Update {
-    AddCreature(Rc<Creature>),
+    AddCreature(Creature),
     MoveCreature(u64, Coord, Coord),
     AddGrass(u64, Coord),
     RemoveCreature(u64, Coord),
@@ -69,12 +66,10 @@ impl World {
 
     fn apply_updates(&mut self) {
         // TODO is this the best way to iterate over all items in a queue?
-        while self.updates.size() > 0 {
-            let update = self.updates.remove().unwrap();
+        while self.updates.len() > 0 {
+            let update = self.updates.remove(0);
             match update {
-                Update::AddCreature(creature_ref) => {
-                    // TODO review this try_unwrap
-                    let creature = Rc::try_unwrap(creature_ref).unwrap();
+                Update::AddCreature(creature) => {
                     let coord = creature.coord();
                     let id = creature.id();
                     let cell = self.grid[coord.x as usize][coord.y as usize];

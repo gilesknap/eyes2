@@ -7,11 +7,9 @@ use crate::utils::move_pos;
 use crate::world::{Update, UpdateQueue};
 use code::Processor;
 use direction::{Coord, Direction};
-use queues::*;
 use rand::distributions::Standard;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
-use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Creature {
@@ -71,15 +69,11 @@ impl Creature {
         self.code.tick();
 
         if self.code.energy == 0 {
-            queue
-                .add(Update::RemoveCreature(self.id, self.coord()))
-                .ok();
+            queue.push(Update::RemoveCreature(self.id, self.coord()));
         } else if self.rng.gen_range(0.0..1.0) <= self.config.creature_move_rate {
             let direction: Direction = self.rng.sample(Standard);
             let new_pos = move_pos(self.coord, direction, self.config.size);
-            queue
-                .add(Update::MoveCreature(self.id(), self.coord(), new_pos))
-                .ok();
+            queue.push(Update::MoveCreature(self.id(), self.coord(), new_pos));
         }
     }
 
@@ -91,6 +85,6 @@ impl Creature {
     // way to call this from the genome code ...
     pub fn _reproduce(&mut self, queue: &mut UpdateQueue) {
         let child = Creature::new(0, self.coord, self.config);
-        queue.add(Update::AddCreature(Rc::new(child))).ok();
+        queue.push(Update::AddCreature(child));
     }
 }

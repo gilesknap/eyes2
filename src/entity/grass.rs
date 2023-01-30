@@ -7,7 +7,6 @@ use crate::utils::{move_pos, rotate_direction};
 use crate::world::Update;
 use crate::world::UpdateQueue;
 use direction::{Coord, Direction};
-use queues::*;
 
 pub struct Grass {
     id: u64,
@@ -61,7 +60,7 @@ impl Grass {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
         let new_coord = move_pos(self.coord, self.next_grow_dir, self.config.size);
 
-        queue.add(Update::AddGrass(self.id, new_coord)).ok();
+        queue.push(Update::AddGrass(self.id, new_coord));
 
         self.next_grow_dir = rotate_direction(self.next_grow_dir);
     }
