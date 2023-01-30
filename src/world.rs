@@ -53,7 +53,11 @@ pub enum Update {
 /// This is where world services requests from Entities to make changes to
 /// the world.
 impl World {
-    /// process the updates to the world that have been queued in the previous tick
+    fn get_next_id(&mut self) -> u64 {
+        self.next_id += 1;
+        self.next_id
+    }
+
     fn eat_grass(&mut self, grass_id: u64, id: u64) {
         self.grass.remove(&grass_id);
         self.creatures
@@ -62,11 +66,23 @@ impl World {
             .eat(self.config.grass_energy);
     }
 
-    fn get_next_id(&mut self) -> u64 {
-        self.next_id += 1;
-        self.next_id
+    fn validate_creature(&self, id: u64, coord: Coord) {
+        // TODO How do I pass the type to use in the match so this can be
+        // used for Cell::Grass too ??
+        let cell = self.grid[coord.x as usize][coord.y as usize];
+        match cell {
+            // TODO I'm going to treat these as panic for now. But maybe once we go multithread there may
+            // be requests from creatures that have not yet responded to deletion
+            Cell::Creature(match_id) => {
+                if match_id != id {
+                    panic!("creature id does not match world grid");
+                }
+            }
+            _ => panic!("no creature in world at grid coordinate"),
+        };
     }
 
+    /// process the updates to the world that have been queued in the previous tick
     fn apply_updates(&mut self) {
         // TODO is this the best way to iterate over all items in a queue?
         while self.updates.len() > 0 {
@@ -81,7 +97,7 @@ impl World {
                             self.creatures.insert(id, creature);
                         }
                         Cell::Grass(grass_id) => {
-                            self.creatures.insert(id, creature);
+                            self.creatures.insert(id, creature); // TODO consider factoring out this repetition
                             self.eat_grass(grass_id, id);
                         }
                         _ => continue, // skip add if there is already a creature in the cell
@@ -104,6 +120,7 @@ impl World {
                     };
                 }
                 Update::RemoveCreature(id, coord) => {
+                    self.validate_creature(id, coord);
                     self.creatures.remove(&id);
                     self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                 }
@@ -116,10 +133,11 @@ impl World {
                                 self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
                             }
                         }
-                        _ => continue,
+                        _ => panic!("no grass in world at grid coordinate"),
                     };
                 }
                 Update::MoveCreature(id, old_coord, new_coord) => {
+                    self.validate_creature(id, old_coord);
                     let cell = self.grid[new_coord.x as usize][new_coord.y as usize];
                     match cell {
                         Cell::Empty => {}
