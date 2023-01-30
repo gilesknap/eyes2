@@ -13,6 +13,9 @@ use direction::Coord;
 pub type WorldGrid = Vec<Vec<Cell>>;
 
 // a queue of updates to the world to be applied at the end of the tick
+// Note I did not use queues crate because it clones the objects in the
+// Queue and we specifically want to pass object ownership for e.g.
+// AddCreature(Creature)
 pub type UpdateQueue = Vec<Update>;
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks

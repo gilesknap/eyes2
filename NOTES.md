@@ -25,9 +25,9 @@ Things that we have so far with **TODO**s for missing patterns:
     - Variables and mutable variables
     - if , loop, while, for
 - Chap 4
-    - **TODO** frankly struggling with ownership of world things and even world itself
-    - have used clone and copy on type.rs since I don't need them owned
-    - **TODO** slices
+    - I now have a reasonable understanding of ownership and borrowing see
+      for example AddCreature(Creature) being handed over via UpdateQueue
+    - **TODO** not yet used slices
 - Chap 5
     - structures and implementations
 - Chap 6
@@ -42,10 +42,10 @@ Things that we have so far with **TODO**s for missing patterns:
     - **TODO** string UTF8 - could use some nice characters for rendering the world
 - Chap 9
     - Use of Result and match
-    - Use of expect (**TODO** do we want examples of unwrap, panic?)
-    - **TODO** use of ? to propagate errors upward [here](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#a-shortcut-for-propagating-errors-the--operator)
+    - Use of expect unwrap() ok()
+    - use of ? to propagate errors upward
 - Chap 10
-    - **TODO** use of generics and traits
+    - use of generics and traits (see Entity generic and trait)
     - perhaps to treat grass and creatures as generic entities in the world
 
 
