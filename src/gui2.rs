@@ -2,19 +2,20 @@ use crossterm::{
     event::{self, Event as CEvent, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
+use direction::Coord;
+use eyes2::entity::Cell;
+use eyes2::world::World;
+use std::cmp::min;
 use std::{
     io, thread,
     time::{Duration, Instant},
 };
-use thiserror::Error;
 use tui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
-    widgets::{
-        Block, BorderType, Borders, Cell, List, ListItem, ListState, Paragraph, Row, Table, Tabs,
-    },
+    widgets::{Block, BorderType, Borders, ListState, Paragraph, Tabs},
     Terminal,
 };
 
@@ -101,7 +102,7 @@ impl EyesTui {
         new
     }
 
-    pub fn render(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn render(&mut self, world: &World) -> Result<(), Box<dyn std::error::Error>> {
         self.terminal.draw(|rect| {
             let size = rect.size();
             let chunks = Layout::default()
@@ -124,7 +125,7 @@ impl EyesTui {
                     Block::default()
                         .borders(Borders::ALL)
                         .style(Style::default().fg(Color::White))
-                        .title("Copyright")
+                        .title("Status")
                         .border_type(BorderType::Plain),
                 );
 
@@ -153,8 +154,10 @@ impl EyesTui {
                 .divider(Span::raw("|"));
 
             rect.render_widget(tabs, chunks[0]);
+
+            let (w, h) = (chunks[1].width, chunks[1].height);
             match self.active_menu_item {
-                MenuItem::View => rect.render_widget(EyesTui::render_home(), chunks[1]),
+                MenuItem::View => rect.render_widget(EyesTui::render_world(world, h, w), chunks[1]),
                 MenuItem::Monitor => {
                     let chunks = Layout::default()
                         .direction(Direction::Horizontal)
@@ -212,29 +215,34 @@ impl EyesTui {
         Paragraph::new(vec![Spans::from(vec![Span::raw("monitor")])])
     }
 
-    fn render_home<'a>() -> Paragraph<'a> {
-        let home = Paragraph::new(vec![
-            Spans::from(vec![Span::raw("")]),
-            Spans::from(vec![Span::raw("Welcome")]),
-            Spans::from(vec![Span::raw("")]),
-            Spans::from(vec![Span::raw("to")]),
-            Spans::from(vec![Span::raw("")]),
-            Spans::from(vec![Span::styled(
-                "eyes1",
-                Style::default().fg(Color::LightBlue),
-            )]),
-            Spans::from(vec![Span::raw("")]),
-            Spans::from(vec![Span::raw("some instructions")]),
-        ])
-        .alignment(Alignment::Center)
-        .block(
+    fn render_world<'a>(world: &World, h: u16, w: u16) -> Paragraph<'a> {
+        let mut lines: Vec<Spans> = Vec::new();
+
+        for y in 0..min(h, world.get_size() as u16) {
+            let mut line: Vec<Span> = Vec::new();
+            for x in 0..min(w, world.get_size() as u16) {
+                let cell = world.get_cell(Coord {
+                    x: x as i32,
+                    y: y as i32,
+                });
+                let span = match cell {
+                    Cell::Empty => Span::raw(" "),
+                    Cell::Grass(_) => Span::styled("o", Style::default().fg(Color::Green)),
+                    Cell::Creature(_) => Span::styled("x", Style::default().fg(Color::Red)),
+                };
+                line.push(span);
+            }
+            lines.push(Spans::from(line));
+        }
+
+        let render = Paragraph::new(lines).alignment(Alignment::Left).block(
             Block::default()
                 .borders(Borders::ALL)
                 .style(Style::default().fg(Color::White))
-                .title("Home")
+                .title("World")
                 .border_type(BorderType::Plain),
         );
-        home
+        render
     }
 }
 

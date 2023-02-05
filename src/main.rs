@@ -1,7 +1,7 @@
 mod gui2;
 use clap::Parser;
+use eyes2::settings::Settings;
 use eyes2::world;
-use eyes2::{gui::EyesGui, settings::Settings};
 use gui2::EyesTui;
 use num_format::{Locale, ToFormattedString};
 use std::{thread::sleep, time};
@@ -52,7 +52,7 @@ fn world_loop(settings: Settings) {
         // inner loop runs until all creatures die
         loop {
             if tick % 100 == 0 {
-                gui.render().unwrap();
+                gui.render(&world).unwrap();
             }
             tick += 1;
             world.tick();

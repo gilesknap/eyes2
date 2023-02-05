@@ -2,7 +2,7 @@
 
 pub mod settings;
 // represent individual entities in the world
-mod entity;
+pub mod entity;
 // inspect the world and render it (using curses?) also handle user input
 pub mod gui;
 // represent the state of the world as a grid of cells

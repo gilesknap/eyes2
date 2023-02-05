@@ -12,6 +12,7 @@
         "initscr",
         "pancurses",
         "printw",
-        "rngs"
+        "rngs",
+        "Termion"
     ]
 }
