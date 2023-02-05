@@ -5,7 +5,7 @@ use crossterm::{
 use direction::Coord;
 use eyes2::entity::Cell;
 use eyes2::world::World;
-use std::cmp::min;
+use std::{cmp::min, rc::Rc};
 use std::{
     io, thread,
     time::{Duration, Instant},
@@ -47,9 +47,7 @@ impl From<MenuItem> for usize {
 }
 
 pub struct EyesTui {
-    stdout: io::Stdout,
     terminal: Terminal<CrosstermBackend<io::Stdout>>,
-    backend: CrosstermBackend<io::Stdout>,
     menu_titles: Vec<&'static str>,
     active_menu_item: MenuItem,
     menu_state: ListState,
@@ -62,8 +60,6 @@ impl EyesTui {
         let (tx, rx) = mpsc::channel();
 
         let mut new = EyesTui {
-            stdout: io::stdout(),
-            backend: CrosstermBackend::new(io::stdout()),
             terminal: Terminal::new(backend).expect("can create terminal"),
             menu_titles: vec!["View", "Monitor", "Pause", "Debug", "Edit"],
             active_menu_item: MenuItem::View,
@@ -76,7 +72,7 @@ impl EyesTui {
 
         enable_raw_mode().expect("can run in raw mode");
 
-        let tick_rate = Duration::from_millis(200);
+        let tick_rate = Duration::from_millis(20);
 
         thread::spawn(move || {
             let mut last_tick = Instant::now();
@@ -216,6 +212,10 @@ impl EyesTui {
     }
 
     fn render_world<'a>(world: &World, h: u16, w: u16) -> Paragraph<'a> {
+        let empty: Span = Span::raw(" ");
+        let grass: Span = Span::styled("o", Style::default().fg(Color::Green));
+        let creature: Span = Span::styled("x", Style::default().bg(Color::Red));
+
         let mut lines: Vec<Spans> = Vec::new();
 
         for y in 0..min(h, world.get_size() as u16) {
@@ -226,9 +226,9 @@ impl EyesTui {
                     y: y as i32,
                 });
                 let span = match cell {
-                    Cell::Empty => Span::raw(" "),
-                    Cell::Grass(_) => Span::styled("o", Style::default().fg(Color::Green)),
-                    Cell::Creature(_) => Span::styled("x", Style::default().fg(Color::Red)),
+                    Cell::Empty => empty.clone(),
+                    Cell::Grass(_) => grass.clone(),
+                    Cell::Creature(_) => creature.clone(),
                 };
                 line.push(span);
             }
