@@ -15,8 +15,3 @@ crossterm = "0.25"
 direction = { version = "0.18.1", features = ["rand"] }
 num-format = "0.4.4"
 
-
-tui = { version = "0.14", default-features = false, features = ['crossterm', 'serde'] }
-chrono = { version = "0.4", features = ["serde"] }
-serde_json = "1.0"
-thiserror = "1.0"

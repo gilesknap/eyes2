@@ -56,7 +56,7 @@ fn world_loop(settings: Settings) {
             world.tick();
             // TODO make this delay configurable and for larger delays make
             // the gui.render run every tick so you can see details of progress
-            sleep(time::Duration::from_micros(1));
+            sleep(time::Duration::from_micros(0));
             if world.creature_count() == 0 {
                 break;
             }

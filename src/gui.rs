@@ -58,7 +58,7 @@ impl EyesGui {
         let (y_max, x_max) = self.window.get_max_yx();
         if (y_max, x_max) != (self.y_max, self.x_max) {
             (self.y_max, self.x_max) = (y_max, x_max);
-            self.window.clear();
+            self.right_pane.clear();
             self.resize(world);
             self.window.refresh();
         }
@@ -80,36 +80,26 @@ impl EyesGui {
 impl EyesGui {
     fn resize(&mut self, world: &World) -> bool {
         let status_width = 30;
-        let borders = 2;
         let world_width = world.get_size();
 
-        let x_space = min(
-            max(self.x_max - world_width as i32 - status_width - borders, 0),
-            world_width,
-        );
+        let mut x_space = self.x_max - status_width;
+        x_space = x_space.clamp(0, world_width as i32);
+        let y_space = self.y_max.clamp(0, world_width as i32);
+        let w_stats = max(min(status_width, 1 + self.x_max - x_space), 0);
 
-        self.left_pane.resize(self.y_max, x_space);
-        self.right_pane.mvwin(0, x_space + 1);
-        self.right_pane.resize(
-            self.y_max,
-            max(min(status_width, self.x_max - x_space - borders), 0),
-        );
+        self.left_pane.resize(y_space, x_space);
+        self.right_pane.mvwin(0, x_space);
+        self.right_pane.resize(y_space, w_stats);
 
         self.right_pane.draw_box(0, 0);
-
         x_space > 0 && self.y_max > 0
     }
 
     fn render_grid(&mut self, world: &World) {
-        for y in 0..world.get_size() {
-            if y >= self.y_max {
-                break;
-            }
+        let (height, width) = self.left_pane.get_max_yx();
+        for y in 0..height {
             self.left_pane.mv(y, 0);
-            for x in 0..world.get_size() {
-                if x >= self.x_max - 1 {
-                    break;
-                }
+            for x in 0..width {
                 match world.get_cell(Coord { x, y }) {
                     Cell::Empty => {
                         self.left_pane.attron(ColorPair(BLACK));
