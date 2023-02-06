@@ -13,6 +13,7 @@
         "initscr",
         "mvderwin",
         "mvwin",
+        "newwin",
         "pancurses",
         "printw",
         "rngs",

@@ -17,17 +17,10 @@ const GREEN: u8 = 2;
 const BLACK: u8 = 3;
 const GREEN_FG: u8 = 4;
 
-struct Pane {
-    x: u16,
-    y: u16,
-    width: u16,
-    height: u16,
-}
-
 pub struct EyesGui {
     window: pancurses::Window,
-    left_pane: Pane,
-    right_pane: Pane,
+    left_pane: pancurses::Window,
+    right_pane: pancurses::Window,
     y_max: i32,
     x_max: i32,
     view_world: bool,
@@ -36,6 +29,9 @@ pub struct EyesGui {
 impl EyesGui {
     pub fn new() -> EyesGui {
         let window = initscr();
+        // choose some minimal initial sizes
+        let left_pane = pancurses::newwin(1, 1, 0, 0);
+        let right_pane = pancurses::newwin(1, 1, 0, 3);
 
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
@@ -50,18 +46,8 @@ impl EyesGui {
 
         EyesGui {
             window,
-            left_pane: Pane {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-            },
-            right_pane: Pane {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-            },
+            left_pane,
+            right_pane,
             y_max: 0,
             x_max: 0,
             view_world: true,
@@ -102,20 +88,7 @@ impl EyesGui {
             world_width,
         );
 
-        self.left_pane = Pane {
-            x: 0,
-            y: 0,
-            width: x_space as u16,
-            height: self.y_max as u16,
-        };
-
-        self.right_pane = Pane {
-            x: (x_space + 1) as u16,
-            y: 0,
-            width: max(min(status_width, self.x_max - x_space - borders), 0) as u16,
-            height: self.y_max as u16,
-        };
-
+        self.left_pane.resize(self.y_max, x_space);
         self.right_pane.mvwin(0, x_space + 1);
         self.right_pane.resize(
             self.y_max,
