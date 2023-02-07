@@ -1,6 +1,7 @@
 {
     "rust-analyzer.inlayHints.typeHints.enable": false,
     "cSpell.words": [
+        "addnstr",
         "addstr",
         "attroff",
         "attron",
@@ -14,6 +15,7 @@
         "mvderwin",
         "mvwin",
         "newwin",
+        "noecho",
         "pancurses",
         "printw",
         "rngs",

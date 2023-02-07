@@ -13,10 +13,10 @@ struct Args {
     // reset settings to defaults
     #[arg(short, long)]
     reset: bool,
-    // test the tui gui
-    #[arg(short, long)]
-    gui: bool,
 }
+
+const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 1, 10, 100, 1000, 10000, 1000000];
+const SPEED_DELAY: [u64; 10] = [1000, 100, 10, 1, 0, 0, 0, 0, 0, 0];
 
 fn main() {
     let args = Args::parse();
@@ -49,14 +49,17 @@ fn world_loop(settings: Settings) {
         let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         loop {
-            if tick % 10 == 0 {
+            if tick % SPEED_TICKS[gui.speed as usize - 1] == 0 {
                 gui.render(&world);
+                gui.handle_input();
             }
             tick += 1;
             world.tick();
             // TODO make this delay configurable and for larger delays make
             // the gui.render run every tick so you can see details of progress
-            sleep(time::Duration::from_micros(0));
+            sleep(time::Duration::from_millis(
+                SPEED_DELAY[gui.speed as usize - 1],
+            ));
             if world.creature_count() == 0 {
                 break;
             }
