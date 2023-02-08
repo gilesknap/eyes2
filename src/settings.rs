@@ -49,10 +49,11 @@ impl Settings {
     pub fn load() -> Settings {
         let mut settings: Settings = confy::load("eyes2", None).unwrap();
         settings.size = settings.size.clamp(10, 200);
-        settings.grass_count = settings.grass_count.clamp(0, settings.size ^ 2);
-        settings.creature_count = settings.creature_count.clamp(0, settings.size ^ 2);
-        settings.max_grass_per_interval =
-            settings.max_grass_per_interval.clamp(0, settings.size ^ 2);
+        settings.grass_count = settings.grass_count.clamp(0, settings.size.pow(2));
+        settings.creature_count = settings.creature_count.clamp(0, settings.size.pow(2));
+        settings.max_grass_per_interval = settings
+            .max_grass_per_interval
+            .clamp(0, settings.size.pow(2));
         settings.creature_move_rate = settings.creature_move_rate.clamp(0.0, 1.0);
 
         settings.speed = settings.speed.clamp(1, 10);
