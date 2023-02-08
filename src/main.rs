@@ -42,7 +42,7 @@ fn world_loop(mut settings: Settings) {
 
     // outer loop continues until user cancels
     'outer: loop {
-        let mut world = world::World::new(settings);
+        let mut world = world::types::World::new(settings);
 
         world.populate();
 
@@ -92,7 +92,7 @@ fn performance_test(settings: Settings) {
     };
 
     let ticks = 10000000;
-    let mut world = world::World::new(test_settings);
+    let mut world = world::types::World::new(test_settings);
 
     world.populate();
 

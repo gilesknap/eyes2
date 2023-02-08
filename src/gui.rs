@@ -2,7 +2,7 @@
 //! and handles user input.
 //!
 use crate::entity::Cell;
-use crate::world::World;
+use crate::world::types::World;
 
 use num_format::{Locale, ToFormattedString};
 use std::{

@@ -1,7 +1,7 @@
 use crate::settings::Settings;
 
 // use all items from the parent module
-use super::World;
+use super::types::World;
 
 fn get_config() -> Settings {
     Settings {

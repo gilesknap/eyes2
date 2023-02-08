@@ -4,7 +4,7 @@ mod code;
 use super::{Cell, Entity};
 use crate::settings::Settings;
 use crate::utils::move_pos;
-use crate::world::{Update, UpdateQueue};
+use crate::world::types::{Update, UpdateQueue};
 use code::Processor;
 use direction::{Coord, Direction};
 use rand::distributions::Standard;

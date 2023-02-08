@@ -1,5 +1,3 @@
-use super::World;
-use super::{Update, UpdateQueue};
 use crate::entity::{creature::Creature, grass::Grass, Cell, Entity};
 use crate::settings::Settings;
 use direction::Coord;
@@ -8,6 +6,8 @@ use rand::{rngs::StdRng, Rng};
 use std::cmp;
 use std::collections::HashMap;
 use std::f64::MAX_EXP;
+
+use super::types::{Update, UpdateQueue, World};
 
 // public static methods
 impl World {
