@@ -3,10 +3,12 @@
 //!
 use crate::entity::entity::Cell;
 use crate::world::types::World;
+use std::thread;
 
 use num_format::{Locale, ToFormattedString};
 use std::{
     cmp::{max, min},
+    sync::{Arc, RwLock},
     time::{self, Instant},
 };
 
@@ -65,7 +67,20 @@ impl EyesGui {
         }
     }
 
-    pub fn render(&mut self, world: &World) {
+    pub fn background(&mut self, world_rw: Arc<RwLock<World>>) {
+        thread::spawn(move || {
+            loop {
+                thread::sleep(time::Duration::from_millis(2000));
+                {
+                    let world = world_rw.read().unwrap();
+                    self.render(&world, true);
+                }
+        })
+        .join()
+        .unwrap();
+    }
+
+    pub fn render(&mut self, world: &World, show_world: bool) {
         let (y_max, x_max) = self.window.get_max_yx();
         if (y_max, x_max) != (self.y_max, self.x_max) {
             (self.y_max, self.x_max) = (y_max, x_max);
@@ -73,7 +88,7 @@ impl EyesGui {
             self.resize(world);
             self.window.refresh();
             self.render_grid(world);
-        } else {
+        } else if show_world {
             self.render_grid(world);
         }
 

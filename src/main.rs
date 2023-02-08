@@ -16,7 +16,7 @@ struct Args {
     reset: bool,
 }
 
-const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 1, 10, 100, 1000, 10000, 1000000];
+// const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 1, 10, 100, 1000, 10000, 1000000];
 const SPEED_DELAY: [u64; 10] = [1000, 100, 10, 1, 0, 0, 0, 0, 0, 0];
 
 fn main() {
@@ -43,25 +43,24 @@ fn world_loop(mut settings: Settings) {
 
     // outer loop continues until user cancels
     'outer: loop {
-        let world_rw = RwLock::new(World::new(settings));
+        let world_rw = Arc::new(RwLock::new(World::new(settings)));
         {
             let mut world = world_rw.write().unwrap();
             world.populate();
         }
 
         gui.speed = settings.speed;
+        gui.background(world_rw.clone());
 
-        let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         'inner: loop {
-            let mut world = world_rw.write().unwrap();
-            if tick % SPEED_TICKS[gui.speed as usize - 1] == 0 {
-                gui.render(&world);
-                if gui.handle_input(&mut world) {
-                    break 'outer;
-                };
+            // let mut world = world_rw.write().unwrap();
+            let mut world = World::new(settings);
+
+            if gui.handle_input(&mut world) {
+                break 'outer;
             }
-            tick += 1;
+
             world.tick();
             sleep(time::Duration::from_millis(
                 SPEED_DELAY[gui.speed as usize - 1],
