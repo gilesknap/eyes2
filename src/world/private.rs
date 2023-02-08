@@ -1,6 +1,8 @@
-use crate::entity::Entity;
-use crate::entity::{grass::Grass, Cell};
+use crate::entity::{entity::Cell, entity::Entity, grass::Grass};
 use direction::Coord;
+use rand::prelude::*;
+use std::cmp;
+use std::f64::MAX_EXP;
 
 use super::types::{Update, World};
 
@@ -34,6 +36,49 @@ impl World {
             }
             _ => panic!("no creature in world at grid coordinate"),
         };
+    }
+
+    pub(super) fn do_tick(&mut self) {
+        for creature in self.creatures.values_mut() {
+            creature.tick(&mut self.updates);
+        }
+
+        // limit calls to grass tick relative to grass_interval
+        if self.ticks >= self.next_grass_tick && !self.grass.is_empty() {
+            // pick a random grass block to grow
+            // TODO - need to work out how to do this without cloning the keys
+            // TODO - and without traversing the entire map to get this one item
+            // I believe that IndexMap might be the answer
+            // https://users.rust-lang.org/t/random-entry-of-hashmap/26548/4
+            let keys: Vec<u64> = self.grass.keys().cloned().collect();
+            let which = self.rng.gen_range(0..self.grass.len());
+
+            let grass = self.grass.get_mut(&keys[which]).unwrap();
+            grass.tick(&mut self.updates);
+
+            // Calculate the next tick for grass. It is grass interval
+            // divided by the number of grass blocks, but capped at
+            // max_grass_per_interval
+            self.next_grass_tick = match self.grass.len() {
+                // when there is no grass left never call grass tick again
+                0 => MAX_EXP as u64,
+                // Otherwise calculate the next tick on which we will call grass tick.
+                // We calculate it as between 1000 ticks and 100,000 ticks per grass block
+                // inversely proportional to grass_rate of 1-100
+                _ => {
+                    let total_ticks = (101 - self.grass_rate) * 1000;
+                    let div = cmp::min(
+                        self.grass.len(),
+                        self.config.max_grass_per_interval as usize,
+                    ) as u64;
+
+                    self.ticks + total_ticks / div
+                }
+            }
+        }
+
+        self.apply_updates();
+        self.ticks += 1;
     }
 
     /// process the updates to the world that have been queued in the previous tick

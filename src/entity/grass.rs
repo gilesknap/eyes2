@@ -1,7 +1,7 @@
 //! represents a grass block in the world that can grow new grass blocks
 //! nearby at random depending on light levels
 //!
-use super::{Cell, Entity};
+use super::entity::{Cell, Entity};
 use crate::settings::Settings;
 use crate::utils::{move_pos, rotate_direction};
 use crate::world::types::Update;

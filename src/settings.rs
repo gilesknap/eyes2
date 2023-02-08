@@ -41,7 +41,7 @@ const DEFAULT_SETTINGS: Settings = Settings {
     creature_idle_energy: 1,
     creature_move_rate: 0.005,
 
-    speed: 1,
+    speed: 5,
     grass_interval: 100,
 };
 

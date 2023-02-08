@@ -1,7 +1,7 @@
 //! represents a creature in the world that can eat grass and reproduce
 //!
 mod code;
-use super::{Cell, Entity};
+use super::entity::{Cell, Entity};
 use crate::settings::Settings;
 use crate::utils::move_pos;
 use crate::world::types::{Update, UpdateQueue};

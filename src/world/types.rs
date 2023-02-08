@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use direction::Coord;
 
 use crate::{
-    entity::{creature::Creature, grass::Grass, Cell},
+    entity::{creature::Creature, entity::Cell, grass::Grass},
     settings::Settings,
 };
 

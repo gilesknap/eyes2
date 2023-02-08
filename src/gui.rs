@@ -1,7 +1,7 @@
 //! The GUI for the evolution simulation. Renders the current state of the world
 //! and handles user input.
 //!
-use crate::entity::Cell;
+use crate::entity::entity::Cell;
 use crate::world::types::World;
 
 use num_format::{Locale, ToFormattedString};
