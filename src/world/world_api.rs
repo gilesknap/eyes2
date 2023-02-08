@@ -25,6 +25,7 @@ impl World {
             updates: UpdateQueue::new(),
             ticks: 0,
             config,
+            grass_rate: config.grass_interval,
             next_grass_tick: 0,
             rng: StdRng::from_entropy(),
             next_id: 0,
@@ -37,7 +38,7 @@ impl World {
 
 // public instance methods
 impl World {
-    pub fn get_size(&self) -> i32 {
+    pub fn get_size(&self) -> u16 {
         self.config.size
     }
 
@@ -51,6 +52,19 @@ impl World {
 
     pub fn creature_count(&self) -> usize {
         self.creatures.len()
+    }
+
+    pub fn grass_rate(&self) -> u64 {
+        self.grass_rate
+    }
+
+    pub fn increment_grass_rate(&mut self, up: bool) {
+        if up {
+            self.grass_rate += 1;
+        } else {
+            self.grass_rate -= 1;
+        }
+        self.grass_rate = self.grass_rate.clamp(1, 100)
     }
 
     pub fn populate(&mut self) {
@@ -99,14 +113,19 @@ impl World {
             // divided by the number of grass blocks, but capped at
             // max_grass_per_interval
             self.next_grass_tick = match self.grass.len() {
+                // when there is no grass left never call grass tick again
                 0 => MAX_EXP as u64,
+                // Otherwise calculate the next tick on which we will call grass tick.
+                // We calculate it as between 2000 ticks and 200,000 ticks per grass block
+                // inversely proportional to grass_rate of 1-100
                 _ => {
-                    self.ticks
-                        + self.config.grass_interval
-                            / cmp::min(
-                                self.grass.len(),
-                                self.config.max_grass_per_interval as usize,
-                            ) as u64
+                    let total_ticks = (101 - self.grass_rate) * 2000;
+                    let div = cmp::min(
+                        self.grass.len(),
+                        self.config.max_grass_per_interval as usize,
+                    ) as u64;
+
+                    self.ticks + total_ticks / div
                 }
             }
         }

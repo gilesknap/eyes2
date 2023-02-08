@@ -32,6 +32,8 @@ pub struct World {
     ticks: u64,
     // the settings for the world
     config: Settings,
+    // the interval between grass growth events
+    grass_rate: u64,
     // track when we will next call grass tick
     next_grass_tick: u64,
     // a random number generator

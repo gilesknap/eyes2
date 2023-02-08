@@ -37,30 +37,36 @@ fn main() {
     }
 }
 
-fn world_loop(settings: Settings) {
+fn world_loop(mut settings: Settings) {
     // outer loop continues until user cancels
-    loop {
+    'outer: loop {
         let mut world = world::World::new(settings);
 
         world.populate();
 
         let mut gui = EyesGui::new();
+        gui.speed = settings.speed;
 
         let mut tick: u64 = 0;
         // inner loop runs until all creatures die
         loop {
+            // TODO run the GUI in a separate thread instead of using SPEED_TICKS
             if tick % SPEED_TICKS[gui.speed as usize - 1] == 0 {
                 gui.render(&world);
-                gui.handle_input();
+                if gui.handle_input(&mut world) {
+                    break 'outer;
+                };
             }
             tick += 1;
             world.tick();
-            // TODO make this delay configurable and for larger delays make
-            // the gui.render run every tick so you can see details of progress
+
             sleep(time::Duration::from_millis(
                 SPEED_DELAY[gui.speed as usize - 1],
             ));
             if world.creature_count() == 0 {
+                // copy variable config to the next world
+                settings.grass_interval = world.grass_rate();
+                settings.speed = gui.speed;
                 break;
             }
         }

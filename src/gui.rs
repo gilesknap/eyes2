@@ -93,11 +93,12 @@ impl EyesGui {
         self.status(5, "grass:", &grass);
         self.status(7, "ticks/s:", &rate);
         self.status(9, "speed:", &(self.speed).to_string());
+        self.status(11, "grass rate:", &world.grass_rate().to_string());
     }
 
-    pub fn handle_input(&mut self) {
+    pub fn handle_input(&mut self, world: &mut World) -> bool {
         match self.window.getch() {
-            Some(pancurses::Input::Character('q')) => panic!("User quit"),
+            Some(pancurses::Input::Character('q')) => return true,
             Some(pancurses::Input::Character(' ')) => {
                 self.speed = 10;
             }
@@ -107,12 +108,17 @@ impl EyesGui {
             Some(pancurses::Input::KeyDown) => {
                 self.speed -= 1;
             }
-            Some(key) => {
-                println!("{:#?}", key)
+            Some(pancurses::Input::KeyRight) => {
+                world.increment_grass_rate(true);
             }
+            Some(pancurses::Input::KeyLeft) => {
+                world.increment_grass_rate(false);
+            }
+            Some(_) => {}
             None => {}
         };
         self.speed = self.speed.clamp(1, 10);
+        false
     }
 }
 
