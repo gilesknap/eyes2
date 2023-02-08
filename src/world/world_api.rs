@@ -31,7 +31,6 @@ impl World {
             next_id: 0,
         };
 
-        println!("Created a new world of size {} square", world.config.size);
         world
     }
 }
@@ -84,11 +83,6 @@ impl World {
             self.updates.push(Update::AddCreature(creature));
         }
         self.apply_updates();
-
-        println!(
-            "Added {} grass and {} creatures to the world",
-            self.config.grass_count, self.config.creature_count
-        );
     }
 
     pub fn tick(&mut self) {
@@ -116,10 +110,10 @@ impl World {
                 // when there is no grass left never call grass tick again
                 0 => MAX_EXP as u64,
                 // Otherwise calculate the next tick on which we will call grass tick.
-                // We calculate it as between 2000 ticks and 200,000 ticks per grass block
+                // We calculate it as between 1000 ticks and 100,000 ticks per grass block
                 // inversely proportional to grass_rate of 1-100
                 _ => {
-                    let total_ticks = (101 - self.grass_rate) * 2000;
+                    let total_ticks = (101 - self.grass_rate) * 1000;
                     let div = cmp::min(
                         self.grass.len(),
                         self.config.max_grass_per_interval as usize,

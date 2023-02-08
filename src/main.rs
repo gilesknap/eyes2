@@ -38,13 +38,14 @@ fn main() {
 }
 
 fn world_loop(mut settings: Settings) {
+    let mut gui = EyesGui::new();
+
     // outer loop continues until user cancels
     'outer: loop {
         let mut world = world::World::new(settings);
 
         world.populate();
 
-        let mut gui = EyesGui::new();
         gui.speed = settings.speed;
 
         let mut tick: u64 = 0;

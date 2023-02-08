@@ -169,7 +169,7 @@ impl EyesGui {
     }
 
     fn status(&mut self, pos: i32, label: &str, value: &str) {
-        let margin = 12;
+        let margin = 14;
         let borders = 2;
         let (height, width) = self.right_pane.get_max_yx();
 
@@ -182,7 +182,7 @@ impl EyesGui {
         self.right_pane.printw(label);
         self.right_pane.attroff(ColorPair(BLUE));
 
-        let padded = format!("{}             ", value);
+        let padded = format!("{}                  ", value);
         self.right_pane.mv(pos, margin);
         self.right_pane
             .addnstr(padded, (width - margin - borders) as usize);
