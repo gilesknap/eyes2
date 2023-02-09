@@ -3,7 +3,7 @@ use eyes2::world::types::World;
 use eyes2::{gui::EyesGui, settings::Settings};
 use num_format::{Locale, ToFormattedString};
 use std::sync::{Arc, RwLock};
-use std::{thread::sleep, time};
+use std::{thread, time};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -17,7 +17,7 @@ struct Args {
 }
 
 // const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 1, 10, 100, 1000, 10000, 1000000];
-const SPEED_DELAY: [u64; 10] = [1000, 100, 10, 1, 0, 0, 0, 0, 0, 0];
+// const SPEED_DELAY: [u64; 10] = [1000, 100, 10, 1, 0, 0, 0, 0, 0, 0];
 
 fn main() {
     let args = Args::parse();
@@ -38,7 +38,7 @@ fn main() {
     }
 }
 
-fn world_loop(mut settings: Settings) {
+fn world_loop(settings: Settings) {
     let mut gui = EyesGui::new();
 
     // outer loop continues until user cancels
@@ -50,29 +50,43 @@ fn world_loop(mut settings: Settings) {
         }
 
         gui.speed = settings.speed;
-        gui.background(world_rw.clone());
+
+        let back_world_rw = world_rw.clone();
+        thread::spawn(move || {
+            background_loop(back_world_rw);
+        });
 
         // inner loop runs until all creatures die
-        'inner: loop {
-            // let mut world = world_rw.write().unwrap();
-            let mut world = World::new(settings);
+        loop {
+            {
+                let mut world = world_rw.write().unwrap();
 
-            if gui.handle_input(&mut world) {
-                break 'outer;
+                gui.render(&world, true);
+                if gui.handle_input(&mut world) {
+                    break 'outer;
+                }
             }
+            thread::sleep(time::Duration::from_millis(100));
+        }
+    }
+}
 
-            world.tick();
-            sleep(time::Duration::from_millis(
-                SPEED_DELAY[gui.speed as usize - 1],
-            ));
-
-            if world.creature_count() == 0 {
-                // copy variable config to the next world
-                settings.grass_interval = world.grass_rate();
-                settings.speed = gui.speed;
-                break 'inner;
+fn background_loop(world_rw: Arc<RwLock<World>>) {
+    loop {
+        {
+            let mut world = world_rw.write().unwrap();
+            for _ in 0..10000 {
+                world.tick();
             }
         }
+        thread::sleep(time::Duration::from_micros(1));
+        // if world.creature_count() == 0 {
+        //     // copy variable config to the next world
+        //     settings.grass_interval = world.grass_rate();
+        //     settings.speed = gui.speed;
+        //     break 'inner;
+        // }
+        // }
     }
 }
 
