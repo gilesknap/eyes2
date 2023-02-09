@@ -27,9 +27,6 @@ fn main() {
         Settings::load()
     };
 
-    println!("Launching eyes2 evolution simulator ...");
-    println!("{:#?}", settings);
-
     if args.performance {
         performance_test(settings);
     } else {
@@ -80,7 +77,7 @@ fn performance_test(settings: Settings) {
         size: 40,
         grass_count: 1000,
         creature_count: 1,
-        grass_interval: 5000,
+        grass_interval: 95,
         max_grass_per_interval: 200,
         grass_energy: 1000,
         creature_move_energy: 0,
@@ -96,10 +93,13 @@ fn performance_test(settings: Settings) {
 
     world.populate();
 
+    println!("{:#?}", test_settings);
     println!(
-        "Performance test with {} ticks ...",
+        "\nPerformance test with {} ticks ...",
         ticks.to_formatted_string(&Locale::en)
     );
+    println!("\ntypical result on giles ws1 is 500ms\n");
+
     let now = time::Instant::now();
 
     for _ in 0..ticks {
