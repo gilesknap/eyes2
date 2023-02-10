@@ -146,7 +146,7 @@ impl EyesGui {
         for y in 0..height {
             self.left_pane.mv(y, 0);
             for x in 0..width {
-                match world.get_cell(Coord { x, y }) {
+                match world.grid.get_cell(Coord { x, y }) {
                     Cell::Empty => {
                         self.left_pane.attron(ColorPair(BLACK));
                         self.left_pane.addstr(" ");

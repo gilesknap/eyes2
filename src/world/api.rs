@@ -1,21 +1,20 @@
-use crate::entity::{
-    creature::Creature,
-    entity::{Cell, Entity},
-};
+use crate::entity::{creature::Creature, entity::Entity};
 use crate::settings::Settings;
 use direction::Coord;
 use rand::prelude::*;
 use rand::{rngs::StdRng, Rng};
 use std::collections::HashMap;
 
-use super::types::{Update, UpdateQueue, World};
+use super::{
+    grid::WorldGrid,
+    types::{Update, UpdateQueue, World},
+};
 
 // public static methods
 impl World {
     pub fn new(config: Settings) -> World {
         // create a square 2d vector of empty cells
-        let grid = vec![Cell::Empty; config.size.pow(2) as usize];
-        config.size as usize;
+        let grid = WorldGrid::new(config.size);
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
@@ -28,7 +27,6 @@ impl World {
             config,
             grass_rate: config.grass_interval,
             next_grass_tick: 0,
-            grass_count: 0,
             rng: StdRng::from_entropy(),
             next_id: 0,
         };
@@ -48,7 +46,7 @@ impl World {
     }
 
     pub fn grass_count(&self) -> usize {
-        self.grass_count as usize
+        self.grid.grass_count as usize
     }
 
     pub fn creature_count(&self) -> usize {
@@ -72,7 +70,7 @@ impl World {
         for _ in 0..self.config.grass_count as usize {
             let x = self.rng.gen_range(0..self.config.size - 1) as i32;
             let y = self.rng.gen_range(0..self.config.size - 1) as i32;
-            self.add_grass(Coord { x, y });
+            self.grid.add_grass(Coord { x, y });
         }
         for _ in 0..self.config.creature_count as usize {
             let x = self.rng.gen_range(0..self.config.size) as i32;
@@ -88,18 +86,5 @@ impl World {
     #[inline(always)]
     pub fn tick(&mut self) {
         self.do_tick();
-    }
-
-    /// read a cell from the grid - used for rendering the world
-    #[inline(always)]
-    pub fn get_cell(&self, position: Coord) -> Cell {
-        // TODO Currently using Copy to return this - maybe should switch to
-        // using a Box? Then could remove the Copy trait from Cell
-        self.grid[(position.x + position.y * self.config.size as i32) as usize]
-    }
-
-    #[inline(always)]
-    pub fn set_cell(&mut self, position: Coord, value: Cell) {
-        self.grid[(position.x + position.y * self.config.size as i32) as usize] = value;
     }
 }

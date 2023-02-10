@@ -17,7 +17,7 @@ impl World {
     pub(super) fn validate_creature(&self, id: u64, coord: Coord) {
         // TODO How do I pass the type to use in the match so this can be
         // used for Cell::Grass too ??
-        let cell = self.get_cell(coord);
+        let cell = self.grid.get_cell(coord);
         match cell {
             // TODO I'm going to treat these as panic for now. But maybe once we go multithread there may
             // be requests from creatures that have not yet responded to deletion
@@ -55,7 +55,7 @@ impl World {
                 Update::AddCreature(creature) => {
                     let coord = creature.coord();
                     let id = creature.id();
-                    let cell = self.get_cell(coord);
+                    let cell = self.grid.get_cell(coord);
                     match cell {
                         Cell::Empty => {
                             self.creatures.insert(id, creature);
@@ -66,16 +66,16 @@ impl World {
                         }
                         _ => continue, // skip add if there is already a creature in the cell
                     };
-                    self.set_cell(coord, Cell::Creature(id));
+                    self.grid.set_cell(coord, Cell::Creature(id));
                 }
                 Update::RemoveCreature(id, coord) => {
                     self.validate_creature(id, coord);
                     self.creatures.remove(&id);
-                    self.set_cell(coord, Cell::Empty);
+                    self.grid.set_cell(coord, Cell::Empty);
                 }
                 Update::MoveCreature(id, old_coord, new_coord) => {
                     self.validate_creature(id, old_coord);
-                    let cell = self.get_cell(new_coord);
+                    let cell = self.grid.get_cell(new_coord);
                     match cell {
                         Cell::Empty => {}
                         Cell::Grass => self.eat_grass(new_coord, id),
@@ -83,8 +83,8 @@ impl World {
                         Cell::Creature(_) => continue,
                     }
                     self.creatures.get_mut(&id).unwrap().move_to(new_coord);
-                    self.set_cell(old_coord, Cell::Empty);
-                    self.set_cell(new_coord, Cell::Creature(id));
+                    self.grid.set_cell(old_coord, Cell::Empty);
+                    self.grid.set_cell(new_coord, Cell::Creature(id));
                 }
             }
         }
@@ -98,27 +98,6 @@ impl World {
         // logarithmic proportion to grass
         (101 - self.grass_rate as u64).pow(2) * 100
     }
-
-    pub(super) fn add_grass(&mut self, coord: Coord) {
-        match self.get_cell(coord) {
-            Cell::Empty => {
-                self.set_cell(coord, Cell::Grass);
-                self.grass_count += 1;
-            }
-            _ => {}
-        }
-    }
-
-    pub(super) fn remove_grass(&mut self, coord: Coord) {
-        match self.get_cell(coord) {
-            Cell::Grass => {
-                self.set_cell(coord, Cell::Empty);
-                self.grass_count -= 1;
-            }
-            _ => {}
-        }
-    }
-
     pub(super) fn grow_grass(&mut self) {
         // walk through all the cells in the grid except the edges and grow grass
         // adjacent to cells that already have grass
@@ -128,7 +107,7 @@ impl World {
         for x in 1..self.config.size as i32 - 2 {
             for y in 1..self.config.size as i32 - 2 {
                 let coord = Coord::new(x, y);
-                let cell = self.get_cell(coord);
+                let cell = self.grid.get_cell(coord);
                 match cell {
                     Cell::Grass => {
                         new_grass.push(coord + grow_dir.coord());
@@ -140,12 +119,12 @@ impl World {
         }
 
         for coord in new_grass {
-            self.add_grass(coord);
+            self.grid.add_grass(coord);
         }
     }
 
     pub(super) fn eat_grass(&mut self, coord: Coord, id: u64) {
-        self.remove_grass(coord);
+        self.grid.remove_grass(coord);
         self.creatures
             .get_mut(&id)
             .unwrap()
