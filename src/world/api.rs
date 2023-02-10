@@ -15,7 +15,8 @@ use super::types::{Update, UpdateQueue, World};
 impl World {
     pub fn new(config: Settings) -> World {
         // create a square 2d vector of empty cells
-        let grid = vec![vec![Cell::Empty; config.size as usize]; config.size as usize];
+        let grid = vec![Cell::Empty; config.size.pow(2) as usize];
+        config.size as usize;
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
@@ -87,14 +88,21 @@ impl World {
         self.apply_updates();
     }
 
+    #[inline(always)]
     pub fn tick(&mut self) {
         self.do_tick();
     }
 
     /// read a cell from the grid - used for rendering the world
+    #[inline(always)]
     pub fn get_cell(&self, position: Coord) -> Cell {
         // TODO Currently using Copy to return this - maybe should switch to
         // using a Box? Then could remove the Copy trait from Cell
-        return self.grid[position.x as usize][position.y as usize];
+        self.grid[(position.x + position.y * self.config.size as i32) as usize]
+    }
+
+    #[inline(always)]
+    pub fn set_cell(&mut self, position: Coord, value: Cell) {
+        self.grid[(position.x + position.y * self.config.size as i32) as usize] = value;
     }
 }

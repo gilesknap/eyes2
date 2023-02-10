@@ -25,7 +25,7 @@ impl World {
     pub(super) fn validate_creature(&self, id: u64, coord: Coord) {
         // TODO How do I pass the type to use in the match so this can be
         // used for Cell::Grass too ??
-        let cell = self.grid[coord.x as usize][coord.y as usize];
+        let cell = self.get_cell(coord);
         match cell {
             // TODO I'm going to treat these as panic for now. But maybe once we go multithread there may
             // be requests from creatures that have not yet responded to deletion
@@ -90,7 +90,7 @@ impl World {
                 Update::AddCreature(creature) => {
                     let coord = creature.coord();
                     let id = creature.id();
-                    let cell = self.grid[coord.x as usize][coord.y as usize];
+                    let cell = self.get_cell(coord);
                     match cell {
                         Cell::Empty => {
                             self.creatures.insert(id, creature);
@@ -101,10 +101,10 @@ impl World {
                         }
                         _ => continue, // skip add if there is already a creature in the cell
                     };
-                    self.grid[coord.x as usize][coord.y as usize] = Cell::Creature(id);
+                    self.set_cell(coord, Cell::Creature(id));
                 }
                 Update::AddGrass(_id, coord) => {
-                    let cell = self.grid[coord.x as usize][coord.y as usize];
+                    let cell = self.get_cell(coord);
                     match cell {
                         Cell::Empty => {
                             // TODO should call grow here (using id to get grass to grow)
@@ -113,7 +113,7 @@ impl World {
                             let id = self.get_next_id();
                             let grass = Grass::new(id, coord, self.config);
                             self.grass.insert(id, grass);
-                            self.grid[coord.x as usize][coord.y as usize] = Cell::Grass(id)
+                            self.set_cell(coord, Cell::Grass(id));
                         }
                         _ => continue,
                     };
@@ -121,15 +121,15 @@ impl World {
                 Update::RemoveCreature(id, coord) => {
                     self.validate_creature(id, coord);
                     self.creatures.remove(&id);
-                    self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
+                    self.set_cell(coord, Cell::Empty);
                 }
                 Update::RemoveGrass(id, coord) => {
-                    let cell = self.grid[coord.x as usize][coord.y as usize];
+                    let cell = self.get_cell(coord);
                     match cell {
                         Cell::Grass(grass_id) => {
                             if grass_id == id {
                                 self.grass.remove(&id);
-                                self.grid[coord.x as usize][coord.y as usize] = Cell::Empty;
+                                self.set_cell(coord, Cell::Empty);
                             }
                         }
                         _ => panic!("no grass in world at grid coordinate"),
@@ -137,7 +137,7 @@ impl World {
                 }
                 Update::MoveCreature(id, old_coord, new_coord) => {
                     self.validate_creature(id, old_coord);
-                    let cell = self.grid[new_coord.x as usize][new_coord.y as usize];
+                    let cell = self.get_cell(new_coord);
                     match cell {
                         Cell::Empty => {}
                         Cell::Grass(grass_id) => self.eat_grass(grass_id, id),
@@ -145,9 +145,8 @@ impl World {
                         Cell::Creature(_) => continue,
                     }
                     self.creatures.get_mut(&id).unwrap().move_to(new_coord);
-                    let grid = &mut self.grid;
-                    grid[old_coord.x as usize][old_coord.y as usize] = Cell::Empty;
-                    grid[new_coord.x as usize][new_coord.y as usize] = Cell::Creature(id);
+                    self.set_cell(old_coord, Cell::Empty);
+                    self.set_cell(new_coord, Cell::Creature(id));
                 }
             }
         }
