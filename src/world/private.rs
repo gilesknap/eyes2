@@ -26,14 +26,8 @@ impl World {
                 let cell = self.get_cell(coord);
                 match cell {
                     Cell::Grass => {
-                        let grow_coord = coord + grow_dir.coord();
-                        match self.get_cell(grow_coord) {
-                            Cell::Empty => {
-                                new_grass.push(coord);
-                                grow_dir = rotate_direction(grow_dir);
-                            }
-                            _ => {}
-                        }
+                        new_grass.push(coord + grow_dir.coord());
+                        grow_dir = rotate_direction(grow_dir);
                     }
                     _ => {}
                 }
@@ -41,12 +35,12 @@ impl World {
         }
 
         for coord in new_grass {
-            self.set_cell(coord, Cell::Grass);
+            self.add_grass(coord);
         }
     }
 
     pub(super) fn eat_grass(&mut self, coord: Coord, id: u64) {
-        self.set_cell(coord, Cell::Empty);
+        self.remove_grass(coord);
         self.creatures
             .get_mut(&id)
             .unwrap()
@@ -76,8 +70,9 @@ impl World {
 
         // limit calls to grass tick relative to grass_interval
         // TODO divide by number of grass
-        if self.ticks >= self.next_grass_tick / 1000 {
+        if self.ticks >= self.next_grass_tick {
             self.grow_grass();
+            self.next_grass_tick += self.ticks_per_grass();
         }
 
         self.apply_updates();
@@ -125,6 +120,40 @@ impl World {
                     self.set_cell(new_coord, Cell::Creature(id));
                 }
             }
+        }
+    }
+}
+
+// fully private methods
+impl World {
+    fn ticks_per_grass(&self) -> u64 {
+        // ticks per grass growth is between 10000 to 1000,000 in inverse
+        // proportion to grass
+        let ticks = (101 - self.grass_rate as u64) * 100000;
+
+        // increase rate proportional to grass count but with a cutoff
+        // at max_grass_per_interval
+        let div = std::cmp::min(self.config.grass_count, self.config.max_grass_per_interval);
+        ticks / div as u64
+    }
+
+    pub(super) fn add_grass(&mut self, coord: Coord) {
+        match self.get_cell(coord) {
+            Cell::Empty => {
+                self.set_cell(coord, Cell::Grass);
+                self.grass_count += 1;
+            }
+            _ => {}
+        }
+    }
+
+    pub(super) fn remove_grass(&mut self, coord: Coord) {
+        match self.get_cell(coord) {
+            Cell::Grass => {
+                self.set_cell(coord, Cell::Empty);
+                self.grass_count -= 1;
+            }
+            _ => {}
         }
     }
 }

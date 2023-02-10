@@ -28,6 +28,7 @@ impl World {
             config,
             grass_rate: config.grass_interval,
             next_grass_tick: 0,
+            grass_count: 0,
             rng: StdRng::from_entropy(),
             next_id: 0,
         };
@@ -47,7 +48,7 @@ impl World {
     }
 
     pub fn grass_count(&self) -> usize {
-        0
+        self.grass_count as usize
     }
 
     pub fn creature_count(&self) -> usize {
@@ -71,10 +72,7 @@ impl World {
         for _ in 0..self.config.grass_count as usize {
             let x = self.rng.gen_range(0..self.config.size - 1) as i32;
             let y = self.rng.gen_range(0..self.config.size - 1) as i32;
-            match self.get_cell(Coord { x, y }) {
-                Cell::Empty => self.set_cell(Coord { x, y }, Cell::Grass),
-                _ => {}
-            }
+            self.add_grass(Coord { x, y });
         }
         for _ in 0..self.config.creature_count as usize {
             let x = self.rng.gen_range(0..self.config.size) as i32;

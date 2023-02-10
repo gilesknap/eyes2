@@ -32,6 +32,8 @@ pub struct World {
     pub(super) grass_rate: u64,
     // track when we will next call grass tick
     pub(super) next_grass_tick: u64,
+    // number of grass blocks in the world
+    pub(super) grass_count: u64,
     // a random number generator
     pub(super) rng: rand::rngs::StdRng,
     // next unique id to assign to an Entity

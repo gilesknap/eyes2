@@ -38,12 +38,9 @@ fn check_populate() {
     assert!(world.grass_count() <= config.grass_count as usize);
     assert!(world.creature_count() <= config.creature_count as usize);
 
-    let grass_count = world.grass_count();
     let creature_count = world.creature_count();
 
-    world.grass.remove(&0);
     world.creatures.remove(&0);
 
-    assert_eq!(world.grass_count(), grass_count - 1 as usize);
     assert_eq!(world.creature_count(), creature_count - 1 as usize);
 }
