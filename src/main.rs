@@ -44,12 +44,15 @@ fn world_loop(mut settings: Settings) {
 
         let speed = settings.speed;
         let (tx_grid, rx_grid) = mpsc::channel();
+        let (tx_ready, rx_ready) = mpsc::channel();
 
         thread::spawn(move || {
             let mut gui = EyesGui::new();
             loop {
+                tx_ready.send(()).unwrap();
                 let grid: WorldGrid = rx_grid.recv().unwrap();
                 gui.render(grid);
+                thread::sleep(time::Duration::from_millis(100));
             }
         });
 
@@ -57,7 +60,9 @@ fn world_loop(mut settings: Settings) {
         loop {
             // TODO run the GUI in a separate thread instead of using SPEED_TICKS
             if world.grid.ticks % 100000 == 0 {
-                tx_grid.send(world.grid.clone()).unwrap();
+                if !rx_ready.try_recv().is_err() {
+                    tx_grid.send(world.grid.clone()).unwrap();
+                }
             }
             world.grid.ticks += 1;
             world.tick();
