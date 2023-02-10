@@ -37,13 +37,13 @@ impl World {
 
         // limit calls to grass tick relative to grass_interval
         // TODO divide by number of grass
-        if self.ticks >= self.next_grass_tick {
+        if self.grid.ticks >= self.next_grass_tick {
             self.grow_grass();
             self.next_grass_tick += self.ticks_per_grass();
         }
 
         self.apply_updates();
-        self.ticks += 1;
+        self.grid.ticks += 1;
     }
 
     /// process the updates to the world that have been queued in the previous tick

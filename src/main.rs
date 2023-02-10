@@ -1,8 +1,9 @@
 use clap::Parser;
 use eyes2::world;
+use eyes2::world::grid::WorldGrid;
 use eyes2::{gui::EyesGui, settings::Settings};
 use num_format::{Locale, ToFormattedString};
-use std::{thread::sleep, time};
+use std::{sync::mpsc, thread, time};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -35,36 +36,40 @@ fn main() {
 }
 
 fn world_loop(mut settings: Settings) {
-    let mut gui = EyesGui::new();
-
     // outer loop continues until user cancels
-    'outer: loop {
+    loop {
         let mut world = world::types::World::new(settings);
 
         world.populate();
 
-        gui.speed = settings.speed;
+        let speed = settings.speed;
+        let (tx_grid, rx_grid) = mpsc::channel();
 
-        let mut tick: u64 = 0;
+        thread::spawn(move || {
+            let mut gui = EyesGui::new();
+            loop {
+                let grid: WorldGrid = rx_grid.recv().unwrap();
+                gui.render(grid);
+            }
+        });
+
         // inner loop runs until all creatures die
         loop {
             // TODO run the GUI in a separate thread instead of using SPEED_TICKS
-            if tick % SPEED_TICKS[gui.speed as usize - 1] == 0 {
-                gui.render(&world);
-                if gui.handle_input(&mut world) {
-                    break 'outer;
-                };
+            if world.grid.ticks % 100000 == 0 {
+                tx_grid.send(world.grid.clone()).unwrap();
             }
-            tick += 1;
+            world.grid.ticks += 1;
             world.tick();
 
-            sleep(time::Duration::from_millis(
-                SPEED_DELAY[gui.speed as usize - 1],
-            ));
+            // sleep(time::Duration::from_millis(
+            //     SPEED_DELAY[gui.speed as usize - 1],
+            // ));
+
             if world.creature_count() == 0 {
                 // copy variable config to the next world
                 settings.grass_interval = world.grass_rate();
-                settings.speed = gui.speed;
+                settings.speed = speed;
                 break;
             }
         }
@@ -110,7 +115,7 @@ fn performance_test(settings: Settings) {
         "Performance test ends with {} creatures and {} grass.\n\
         Performed {} ticks in {} milliseconds.",
         world.creature_count(),
-        world.grass_count(),
+        world.grid.grass_count(),
         ticks.to_formatted_string(&Locale::en),
         now.elapsed().as_millis(),
     );

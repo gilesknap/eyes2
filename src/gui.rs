@@ -1,8 +1,8 @@
 //! The GUI for the evolution simulation. Renders the current state of the world
 //! and handles user input.
 //!
-use crate::entity::entity::Cell;
 use crate::world::types::World;
+use crate::{entity::entity::Cell, world::grid::WorldGrid};
 
 use num_format::{Locale, ToFormattedString};
 use std::{
@@ -65,35 +65,36 @@ impl EyesGui {
         }
     }
 
-    pub fn render(&mut self, world: &World) {
+    pub fn render(&mut self, grid: WorldGrid) {
+        let grid_ref = &grid;
         let (y_max, x_max) = self.window.get_max_yx();
         if (y_max, x_max) != (self.y_max, self.x_max) {
             (self.y_max, self.x_max) = (y_max, x_max);
             self.right_pane.clear();
-            self.resize(world);
+            self.resize(grid_ref);
             self.window.refresh();
-            self.render_grid(world);
+            self.render_grid(grid_ref);
         } else {
-            self.render_grid(world);
+            self.render_grid(grid_ref);
         }
 
-        let ticks = world.get_ticks().to_formatted_string(&Locale::en);
-        let creatures = world.creature_count().to_string();
-        let grass = world.grass_count().to_string();
+        let ticks = grid.ticks.to_formatted_string(&Locale::en);
+        // let creatures = grid.creature_count().to_string();
+        let grass = grid.grass_count().to_string();
 
         let rate = {
-            let ticks = world.get_ticks() - self.last_tick;
+            let ticks = grid.ticks - self.last_tick;
             let time = self.last_tick_time.elapsed().as_secs_f64();
             ((ticks as f64 / time) as u64).to_formatted_string(&Locale::en)
         };
-        self.last_tick = world.get_ticks();
+        self.last_tick = grid.ticks;
         self.last_tick_time = time::Instant::now();
         self.status(1, "ticks:", &ticks);
-        self.status(3, "creatures:", &creatures);
+        // self.status(3, "creatures:", &creatures);
         self.status(5, "grass:", &grass);
         self.status(7, "ticks/s:", &rate);
-        self.status(9, "speed:", &(self.speed).to_string());
-        self.status(11, "grass rate:", &world.grass_rate().to_string());
+        // self.status(9, "speed:", &(self.speed).to_string());
+        // self.status(11, "grass rate:", &grid.grass_rate().to_string());
     }
 
     pub fn handle_input(&mut self, world: &mut World) -> bool {
@@ -124,9 +125,9 @@ impl EyesGui {
 
 // private methods
 impl EyesGui {
-    fn resize(&mut self, world: &World) -> bool {
+    fn resize(&mut self, grid: &WorldGrid) -> bool {
         let status_width = 30;
-        let world_width = world.get_size();
+        let world_width = grid.get_size();
 
         let mut x_space = self.x_max - status_width;
         x_space = x_space.clamp(0, world_width as i32);
@@ -141,12 +142,12 @@ impl EyesGui {
         x_space > 0 && self.y_max > 0
     }
 
-    fn render_grid(&mut self, world: &World) {
+    fn render_grid(&mut self, grid: &WorldGrid) {
         let (height, width) = self.left_pane.get_max_yx();
         for y in 0..height {
             self.left_pane.mv(y, 0);
             for x in 0..width {
-                match world.grid.get_cell(Coord { x, y }) {
+                match grid.get_cell(Coord { x, y }) {
                     Cell::Empty => {
                         self.left_pane.attron(ColorPair(BLACK));
                         self.left_pane.addstr(" ");

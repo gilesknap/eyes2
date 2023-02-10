@@ -4,13 +4,16 @@ use crate::entity::entity::Cell;
 
 // the representation of the world cells plus some metadata
 // used to pass information to the renderer thread
+#[derive(Clone, Debug)]
 pub struct WorldGrid {
     // the grid of cells
     grid: Vec<Cell>,
-    // number of grass blocks in the world
-    pub grass_count: u64,
     // the dimensions of the (square) grid
-    pub size: u16,
+    size: u16,
+    // number of grass blocks in the world
+    grass_count: u64,
+    // ticks since the world started
+    pub ticks: u64,
 }
 
 impl WorldGrid {
@@ -20,9 +23,20 @@ impl WorldGrid {
 
         WorldGrid {
             grid,
-            grass_count: 0,
             size,
+            grass_count: 0,
+            ticks: 0,
         }
+    }
+
+    #[inline(always)]
+    pub fn get_size(&self) -> u16 {
+        self.size
+    }
+
+    #[inline(always)]
+    pub fn grass_count(&self) -> usize {
+        self.grass_count as usize
     }
 
     /// read a cell from the grid - used for rendering the world

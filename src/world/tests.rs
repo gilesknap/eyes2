@@ -35,7 +35,7 @@ fn check_populate() {
     let mut world = World::new(config);
     world.populate();
 
-    assert!(world.grass_count() <= config.grass_count as usize);
+    assert!(world.grid.grass_count() <= config.grass_count as usize);
     assert!(world.creature_count() <= config.creature_count as usize);
 
     let creature_count = world.creature_count();

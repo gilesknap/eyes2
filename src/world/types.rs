@@ -20,8 +20,6 @@ pub struct World {
     pub(super) creatures: HashMap<u64, Creature>,
     // queue of updates to the world to be applied at the end of the tick
     pub(super) updates: UpdateQueue,
-    // record of the number of ticks that have passed in the world
-    pub(super) ticks: u64,
     // the settings for the world
     pub(super) config: Settings,
     // the interval between grass growth events

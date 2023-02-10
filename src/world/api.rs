@@ -23,7 +23,6 @@ impl World {
             grid,
             creatures: HashMap::<u64, Creature>::new(),
             updates: UpdateQueue::new(),
-            ticks: 0,
             config,
             grass_rate: config.grass_interval,
             next_grass_tick: 0,
@@ -42,11 +41,7 @@ impl World {
     }
 
     pub fn get_ticks(&self) -> u64 {
-        self.ticks
-    }
-
-    pub fn grass_count(&self) -> usize {
-        self.grid.grass_count as usize
+        self.grid.ticks
     }
 
     pub fn creature_count(&self) -> usize {
