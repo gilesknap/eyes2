@@ -1,8 +1,8 @@
-use crate::entity::{entity::Cell, entity::Entity, grass::Grass};
-use direction::Coord;
-use rand::prelude::*;
-use std::cmp;
-use std::f64::MAX_EXP;
+use crate::{
+    entity::{entity::Cell, entity::Entity},
+    utils::rotate_direction,
+};
+use direction::{Coord, Direction};
 
 use super::types::{Update, World};
 
@@ -14,8 +14,39 @@ impl World {
         self.next_id
     }
 
-    pub(super) fn eat_grass(&mut self, grass_id: u64, id: u64) {
-        self.grass.remove(&grass_id);
+    pub(super) fn grow_grass(&mut self) {
+        // walk through all the cells in the grid except the edges and grow grass
+        // adjacent to cells that already have grass
+        let mut grow_dir = Direction::North;
+        let mut new_grass: Vec<Coord> = Vec::new();
+
+        for x in 1..self.config.size as i32 - 2 {
+            for y in 1..self.config.size as i32 - 2 {
+                let coord = Coord::new(x, y);
+                let cell = self.get_cell(coord);
+                match cell {
+                    Cell::Grass => {
+                        let grow_coord = coord + grow_dir.coord();
+                        match self.get_cell(grow_coord) {
+                            Cell::Empty => {
+                                new_grass.push(coord);
+                                grow_dir = rotate_direction(grow_dir);
+                            }
+                            _ => {}
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        for coord in new_grass {
+            self.set_cell(coord, Cell::Grass);
+        }
+    }
+
+    pub(super) fn eat_grass(&mut self, coord: Coord, id: u64) {
+        self.set_cell(coord, Cell::Empty);
         self.creatures
             .get_mut(&id)
             .unwrap()
@@ -44,37 +75,9 @@ impl World {
         }
 
         // limit calls to grass tick relative to grass_interval
-        if self.ticks >= self.next_grass_tick && !self.grass.is_empty() {
-            // pick a random grass block to grow
-            // TODO - need to work out how to do this without cloning the keys
-            // TODO - and without traversing the entire map to get this one item
-            // I believe that IndexMap might be the answer
-            // https://users.rust-lang.org/t/random-entry-of-hashmap/26548/4
-            let keys: Vec<u64> = self.grass.keys().cloned().collect();
-            let which = self.rng.gen_range(0..self.grass.len());
-
-            let grass = self.grass.get_mut(&keys[which]).unwrap();
-            grass.tick(&mut self.updates);
-
-            // Calculate the next tick for grass. It is grass interval
-            // divided by the number of grass blocks, but capped at
-            // max_grass_per_interval
-            self.next_grass_tick = match self.grass.len() {
-                // when there is no grass left never call grass tick again
-                0 => MAX_EXP as u64,
-                // Otherwise calculate the next tick on which we will call grass tick.
-                // We calculate it as between 1000 ticks and 100,000 ticks per grass block
-                // inversely proportional to grass_rate of 1-100
-                _ => {
-                    let total_ticks = (101 - self.grass_rate) * 1000;
-                    let div = cmp::min(
-                        self.grass.len(),
-                        self.config.max_grass_per_interval as usize,
-                    ) as u64;
-
-                    self.ticks + total_ticks / div
-                }
-            }
+        // TODO divide by number of grass
+        if self.ticks >= self.next_grass_tick / 1000 {
+            self.grow_grass();
         }
 
         self.apply_updates();
@@ -95,52 +98,25 @@ impl World {
                         Cell::Empty => {
                             self.creatures.insert(id, creature);
                         }
-                        Cell::Grass(grass_id) => {
+                        Cell::Grass => {
                             self.creatures.insert(id, creature); // TODO consider factoring out this repetition
-                            self.eat_grass(grass_id, id);
+                            self.eat_grass(coord, id);
                         }
                         _ => continue, // skip add if there is already a creature in the cell
                     };
                     self.set_cell(coord, Cell::Creature(id));
-                }
-                Update::AddGrass(_id, coord) => {
-                    let cell = self.get_cell(coord);
-                    match cell {
-                        Cell::Empty => {
-                            // TODO should call grow here (using id to get grass to grow)
-                            // ANS: In fact we can do that in the grass tick and pass the new
-                            // grass object using the pattern tested in AddCreature
-                            let id = self.get_next_id();
-                            let grass = Grass::new(id, coord, self.config);
-                            self.grass.insert(id, grass);
-                            self.set_cell(coord, Cell::Grass(id));
-                        }
-                        _ => continue,
-                    };
                 }
                 Update::RemoveCreature(id, coord) => {
                     self.validate_creature(id, coord);
                     self.creatures.remove(&id);
                     self.set_cell(coord, Cell::Empty);
                 }
-                Update::RemoveGrass(id, coord) => {
-                    let cell = self.get_cell(coord);
-                    match cell {
-                        Cell::Grass(grass_id) => {
-                            if grass_id == id {
-                                self.grass.remove(&id);
-                                self.set_cell(coord, Cell::Empty);
-                            }
-                        }
-                        _ => panic!("no grass in world at grid coordinate"),
-                    };
-                }
                 Update::MoveCreature(id, old_coord, new_coord) => {
                     self.validate_creature(id, old_coord);
                     let cell = self.get_cell(new_coord);
                     match cell {
                         Cell::Empty => {}
-                        Cell::Grass(grass_id) => self.eat_grass(grass_id, id),
+                        Cell::Grass => self.eat_grass(new_coord, id),
                         // skip move if there is already a creature in the cell
                         Cell::Creature(_) => continue,
                     }

@@ -33,6 +33,6 @@ pub enum Cell {
     // the cell is occupied by a Creature (with a unique number)
     Creature(u64),
 
-    // the cell is occupied by a block of grass (with a unique number)
-    Grass(u64),
+    // the cell is occupied by a block of grass
+    Grass,
 }

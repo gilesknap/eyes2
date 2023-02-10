@@ -1,7 +1,6 @@
 use crate::entity::{
     creature::Creature,
     entity::{Cell, Entity},
-    grass::Grass,
 };
 use crate::settings::Settings;
 use direction::Coord;
@@ -24,7 +23,6 @@ impl World {
         let world = World {
             grid,
             creatures: HashMap::<u64, Creature>::new(),
-            grass: HashMap::<u64, Grass>::new(),
             updates: UpdateQueue::new(),
             ticks: 0,
             config,
@@ -49,7 +47,7 @@ impl World {
     }
 
     pub fn grass_count(&self) -> usize {
-        self.grass.len()
+        0
     }
 
     pub fn creature_count(&self) -> usize {
@@ -71,15 +69,16 @@ impl World {
 
     pub fn populate(&mut self) {
         for _ in 0..self.config.grass_count as usize {
-            let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
-            let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
-
-            let id = self.get_next_id();
-            self.updates.push(Update::AddGrass(id, Coord { x, y }));
+            let x = self.rng.gen_range(0..self.config.size - 1) as i32;
+            let y = self.rng.gen_range(0..self.config.size - 1) as i32;
+            match self.get_cell(Coord { x, y }) {
+                Cell::Empty => self.set_cell(Coord { x, y }, Cell::Grass),
+                _ => {}
+            }
         }
         for _ in 0..self.config.creature_count as usize {
-            let x = rand::thread_rng().gen_range(0..self.config.size) as i32;
-            let y = rand::thread_rng().gen_range(0..self.config.size) as i32;
+            let x = self.rng.gen_range(0..self.config.size) as i32;
+            let y = self.rng.gen_range(0..self.config.size) as i32;
 
             let id = self.get_next_id();
             let creature = Creature::new(id, Coord { x, y }, self.config.clone());

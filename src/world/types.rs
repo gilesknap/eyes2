@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use direction::Coord;
 
 use crate::{
-    entity::{creature::Creature, entity::Cell, grass::Grass},
+    entity::{creature::Creature, entity::Cell},
     settings::Settings,
 };
 
@@ -22,8 +22,6 @@ pub struct World {
     pub(super) grid: WorldGrid,
     // the list of creatures in the world
     pub(super) creatures: HashMap<u64, Creature>,
-    // the list of all the grass blocks in the world
-    pub(super) grass: HashMap<u64, Grass>,
     // queue of updates to the world to be applied at the end of the tick
     pub(super) updates: UpdateQueue,
     // record of the number of ticks that have passed in the world
@@ -45,7 +43,5 @@ pub struct World {
 pub enum Update {
     AddCreature(Creature),
     MoveCreature(u64, Coord, Coord),
-    AddGrass(u64, Coord),
     RemoveCreature(u64, Coord),
-    RemoveGrass(u64, Coord),
 }

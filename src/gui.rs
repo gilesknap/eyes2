@@ -152,7 +152,7 @@ impl EyesGui {
                         self.left_pane.addstr(" ");
                         self.left_pane.attroff(ColorPair(BLACK));
                     }
-                    Cell::Grass(_) => {
+                    Cell::Grass => {
                         self.left_pane.attron(ColorPair(GREEN));
                         self.left_pane.printw("o");
                         self.left_pane.attroff(ColorPair(GREEN));
