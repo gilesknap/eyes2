@@ -12,6 +12,8 @@ pub struct WorldGrid {
     size: u16,
     // number of grass blocks in the world
     grass_count: u64,
+    // number of grass blocks in the world
+    pub creature_count: u64,
     // ticks since the world started
     pub ticks: u64,
 }
@@ -25,6 +27,7 @@ impl WorldGrid {
             grid,
             size,
             grass_count: 0,
+            creature_count: 0,
             ticks: 0,
         }
     }
@@ -37,6 +40,11 @@ impl WorldGrid {
     #[inline(always)]
     pub fn grass_count(&self) -> usize {
         self.grass_count as usize
+    }
+
+    #[inline(always)]
+    pub fn creature_count(&self) -> usize {
+        self.creature_count as usize
     }
 
     /// read a cell from the grid - used for rendering the world

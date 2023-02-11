@@ -79,7 +79,7 @@ impl EyesGui {
         }
 
         let ticks = grid.ticks.to_formatted_string(&Locale::en);
-        // let creatures = grid.creature_count().to_string();
+        let creatures = grid.creature_count.to_string();
         let grass = grid.grass_count().to_string();
 
         let rate = {
@@ -90,7 +90,7 @@ impl EyesGui {
         self.last_tick = grid.ticks;
         self.last_tick_time = time::Instant::now();
         self.status(1, "ticks:", &ticks);
-        // self.status(3, "creatures:", &creatures);
+        self.status(3, "creatures:", &creatures);
         self.status(5, "grass:", &grass);
         self.status(7, "ticks/s:", &rate);
         // self.status(9, "speed:", &(self.speed).to_string());

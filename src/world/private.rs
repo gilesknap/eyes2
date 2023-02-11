@@ -15,8 +15,6 @@ impl World {
     }
 
     pub(super) fn validate_creature(&self, id: u64, coord: Coord) {
-        // TODO How do I pass the type to use in the match so this can be
-        // used for Cell::Grass too ??
         let cell = self.grid.get_cell(coord);
         match cell {
             // TODO I'm going to treat these as panic for now. But maybe once we go multithread there may
@@ -36,7 +34,6 @@ impl World {
         }
 
         // limit calls to grass tick relative to grass_interval
-        // TODO divide by number of grass
         if self.grid.ticks >= self.next_grass_tick {
             self.grow_grass();
             self.next_grass_tick += self.ticks_per_grass();
@@ -50,7 +47,7 @@ impl World {
     pub(super) fn apply_updates(&mut self) {
         // TODO is this the best way to iterate over all items in a queue?
         while self.updates.len() > 0 {
-            let update = self.updates.remove(0);
+            let update = self.updates.pop().unwrap();
             match update {
                 Update::AddCreature(creature) => {
                     let coord = creature.coord();
@@ -59,9 +56,11 @@ impl World {
                     match cell {
                         Cell::Empty => {
                             self.creatures.insert(id, creature);
+                            self.grid.creature_count += 1;
                         }
                         Cell::Grass => {
                             self.creatures.insert(id, creature); // TODO consider factoring out this repetition
+                            self.grid.creature_count += 1;
                             self.eat_grass(coord, id);
                         }
                         _ => continue, // skip add if there is already a creature in the cell
@@ -71,6 +70,7 @@ impl World {
                 Update::RemoveCreature(id, coord) => {
                     self.validate_creature(id, coord);
                     self.creatures.remove(&id);
+                    self.grid.creature_count -= 1;
                     self.grid.set_cell(coord, Cell::Empty);
                 }
                 Update::MoveCreature(id, old_coord, new_coord) => {
