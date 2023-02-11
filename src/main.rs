@@ -3,7 +3,6 @@ use eyes2::gui::GuiCmd;
 use eyes2::world;
 use eyes2::world::grid::WorldGrid;
 use eyes2::{gui::EyesGui, settings::Settings};
-use pancurses::endwin;
 use std::io;
 use std::io::prelude::*;
 use std::{sync::mpsc, thread, time};
@@ -39,19 +38,21 @@ fn main() {
 }
 
 fn world_loop(mut settings: Settings) {
+    // setup channels for gui and world threads
+    let (tx_grid, rx_grid) = mpsc::channel();
+    let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
+
+    // launch the gui thread
+    thread::spawn(move || {
+        let mut gui = EyesGui::new();
+        gui.gui_loop(rx_grid, tx_gui_cmd).ok()
+    });
+
     // outer loop continues until user cancels
     'outer: loop {
         let mut world = world::types::World::new(settings);
 
         world.populate();
-
-        let (tx_grid, rx_grid) = mpsc::channel();
-        let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
-
-        thread::spawn(move || {
-            let mut gui = EyesGui::new();
-            gui.gui_loop(rx_grid, tx_gui_cmd).ok()
-        });
 
         // inner loop runs until all creatures die
         loop {
@@ -84,7 +85,6 @@ fn world_loop(mut settings: Settings) {
             }
         }
     }
-    endwin();
 }
 
 fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> bool {

@@ -14,7 +14,8 @@ use std::{
 
 use direction::Coord;
 use pancurses::{
-    init_pair, initscr, start_color, ColorPair, COLOR_BLACK, COLOR_BLUE, COLOR_GREEN, COLOR_RED,
+    endwin, init_pair, initscr, start_color, ColorPair, COLOR_BLACK, COLOR_BLUE, COLOR_GREEN,
+    COLOR_RED,
 };
 
 const RED: u8 = 1;
@@ -22,6 +23,7 @@ const GREEN: u8 = 2;
 const BLACK: u8 = 3;
 const BLUE: u8 = 4;
 
+#[derive(Debug, Clone)]
 pub enum GuiCmd {
     None,
     Quit,
@@ -85,12 +87,16 @@ impl EyesGui {
     ) -> Result<(), Box<dyn Error>> {
         loop {
             let cmd = self.get_cmd();
-            tx_gui_cmd.send(cmd)?;
+            tx_gui_cmd.send(cmd.clone())?;
+            if let GuiCmd::Quit = cmd {
+                break;
+            }
 
             let grid: WorldGrid = rx_grid.recv()?;
             self.render(grid);
             thread::sleep(time::Duration::from_millis(100));
         }
+        Ok(())
     }
 
     pub fn render(&mut self, grid: WorldGrid) {
@@ -211,5 +217,7 @@ impl EyesGui {
 }
 
 impl Drop for EyesGui {
-    fn drop(&mut self) {}
+    fn drop(&mut self) {
+        endwin();
+    }
 }
