@@ -110,7 +110,7 @@ fn performance_test(settings: Settings) {
     let test_settings = Settings {
         size: 40,
         grass_count: 1000,
-        creature_count: 1,
+        creature_count: 50,
         grass_rate: 50,
         creature_move_energy: 0,
         creature_idle_energy: 0,
@@ -122,7 +122,7 @@ fn performance_test(settings: Settings) {
 
     println!("{:#?}", test_settings);
     println!("\nPerformance test with above settings ...");
-    println!("\ntypical rate on giles ws1 is 150,000,000 ticks/s \n");
+    println!("\ntypical rate on giles ws1 is 5.4 million ticks/s (49 creatures)\n");
 
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
