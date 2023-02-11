@@ -3,8 +3,9 @@ use eyes2::gui::GuiCmd;
 use eyes2::world;
 use eyes2::world::grid::WorldGrid;
 use eyes2::{gui::EyesGui, settings::Settings};
-use num_format::{Locale, ToFormattedString};
 use pancurses::endwin;
+use std::io;
+use std::io::prelude::*;
 use std::{sync::mpsc, thread, time};
 
 #[derive(Parser, Debug)]
@@ -18,7 +19,7 @@ struct Args {
     reset: bool,
 }
 
-const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 1, 10, 100, 1000, 10000, 1000000];
+const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 1, 10, 100, 1000, 10000, 100000];
 const SPEED_DELAY: [u64; 10] = [1000, 100, 10, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
@@ -54,7 +55,7 @@ fn world_loop(mut settings: Settings) {
 
         // inner loop runs until all creatures die
         loop {
-            if world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1] == 0 {
+            if world.grid.ticks % 1000 == 0 {
                 // Gui loop sends a command every 100ms, the None command indicates
                 // no user input, but ready to receive the next world update
                 let next_cmd = rx_gui_cmd.try_recv();
@@ -65,10 +66,6 @@ fn world_loop(mut settings: Settings) {
                     }
                     tx_grid.send(world.grid.clone()).unwrap();
                 }
-
-                thread::sleep(time::Duration::from_millis(
-                    SPEED_DELAY[world.grid.speed as usize - 1],
-                ));
             }
             world.grid.ticks += 1;
             world.tick();
@@ -95,6 +92,12 @@ fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> bool {
         GuiCmd::SpeedDown => {
             grid.increment_speed(false);
         }
+        GuiCmd::GrassUp => {
+            grid.increment_grass_rate(true);
+        }
+        GuiCmd::GrassDown => {
+            grid.increment_grass_rate(false);
+        }
         _ => {}
     }
     false
@@ -106,41 +109,27 @@ fn performance_test(settings: Settings) {
         size: 40,
         grass_count: 1000,
         creature_count: 1,
-        grass_rate: 95,
-        max_grass_per_interval: 200,
-        grass_energy: 1000,
+        grass_rate: 50,
         creature_move_energy: 0,
         creature_idle_energy: 0,
-        creature_move_rate: 0.05,
-        // The below adds all the other settings from the original 'settings'
-        // meaning that if I add a new setting, I don't have to add it here too
+        creature_move_rate: 0.005,
+
         ..settings
     };
 
-    let ticks = 10000000;
-    let mut world = world::types::World::new(test_settings);
-
-    world.populate();
-
     println!("{:#?}", test_settings);
-    println!(
-        "\nPerformance test with {} ticks ...",
-        ticks.to_formatted_string(&Locale::en)
-    );
-    println!("\ntypical result on giles ws1 is 500ms\n");
+    println!("\nPerformance test with above settings ...");
+    println!("\ntypical rate on giles ws1 is 150,000,000 ticks/s \n");
 
-    let now = time::Instant::now();
+    let mut stdin = io::stdin();
+    let mut stdout = io::stdout();
 
-    for _ in 0..ticks {
-        world.tick();
-    }
+    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
+    write!(stdout, "Press any key to continue...").unwrap();
+    stdout.flush().unwrap();
 
-    println!(
-        "Performance test ends with {} creatures and {} grass.\n\
-        Performed {} ticks in {} milliseconds.",
-        world.creature_count(),
-        world.grid.grass_count(),
-        ticks.to_formatted_string(&Locale::en),
-        now.elapsed().as_millis(),
-    );
+    // Read a single byte and discard
+    let _ = stdin.read(&mut [0u8]).unwrap();
+
+    world_loop(test_settings);
 }

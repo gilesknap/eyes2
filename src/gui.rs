@@ -139,7 +139,7 @@ impl EyesGui {
 // private methods
 impl EyesGui {
     fn resize(&mut self, grid: &WorldGrid) -> bool {
-        let status_width = 30;
+        let status_width = 33;
         let world_width = grid.get_size();
 
         let mut x_space = self.x_max - status_width;
