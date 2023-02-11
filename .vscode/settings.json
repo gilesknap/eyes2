@@ -9,6 +9,7 @@
         "confy",
         "Crossterm",
         "endwin",
+        "fastrand",
         "flushinp",
         "getch",
         "indexmap",

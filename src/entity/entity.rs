@@ -9,7 +9,7 @@ use crate::world::types::UpdateQueue;
 
 pub trait Entity {
     // static methods
-    fn new(id: u64, coord: Coord, config: Settings) -> Self;
+    fn new(coord: Coord, config: Settings) -> Self;
     fn cell_type(id: u64) -> Cell;
 
     // property getters

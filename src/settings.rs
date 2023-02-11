@@ -11,13 +11,15 @@ pub struct Settings {
     // max growth of grass per interval - caps the max load grass can put on the system
     pub max_grass_per_interval: u16,
     // energy gained from eating grass
-    pub grass_energy: u32,
+    pub grass_energy: i32,
     // range of energy for new creatures
-    pub creature_initial_energy: (u32, u32),
+    pub creature_initial_energy: (i32, i32),
+    // energy level for reproduction
+    pub creature_reproduction_energy: i32,
     // energy lost from moving
-    pub creature_move_energy: u32,
+    pub creature_move_energy: i32,
     // energy gained from idling
-    pub creature_idle_energy: u32,
+    pub creature_idle_energy: i32,
     // Speed of Creature movement chance of moving per tick
     // Only used for Random movement mode (not Genome based movement control)
     pub creature_move_rate: f32, // MAX 1.0
@@ -37,7 +39,8 @@ const DEFAULT_SETTINGS: Settings = Settings {
     max_grass_per_interval: 200,
     grass_energy: 1000,
     creature_initial_energy: (10000, 20000),
-    creature_move_energy: 100,
+    creature_reproduction_energy: 100000,
+    creature_move_energy: 10,
     creature_idle_energy: 1,
     creature_move_rate: 0.005,
 

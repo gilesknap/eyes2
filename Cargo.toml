@@ -7,11 +7,11 @@ edition = "2021"
 
 [dependencies]
 pancurses = "0.17.0"
-rand = "0.8.5"
 confy = "0.5.1"
 serde = { version = "1.0.152", features = ["derive"] }
 clap = { version = "4.1.4", features = ["derive"] }
 crossterm = "0.25"
-direction = { version = "0.18.1", features = ["rand"] }
+direction = { version = "0.18.1"}
 num-format = "0.4.4"
+fastrand = "1.8.0"
 

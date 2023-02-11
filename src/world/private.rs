@@ -49,9 +49,10 @@ impl World {
         while self.updates.len() > 0 {
             let update = self.updates.pop().unwrap();
             match update {
-                Update::AddCreature(creature) => {
+                Update::AddCreature(mut creature) => {
                     let coord = creature.coord();
-                    let id = creature.id();
+                    let id = self.get_next_id();
+                    creature.set_id(id);
                     let cell = self.grid.get_cell(coord);
                     match cell {
                         Cell::Empty => {

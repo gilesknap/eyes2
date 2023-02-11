@@ -8,7 +8,7 @@ const GENOME: usize = 1000;
 
 #[derive(Debug)]
 pub struct Processor {
-    pub energy: u32,       // energy level
+    pub energy: i32,       // energy level
     ip: u16,               // instruction pointer
     a: u16,                // accumulator
     i: [u16; 5],           // registers
@@ -18,9 +18,9 @@ pub struct Processor {
 }
 
 impl Processor {
-    pub fn new(energy: u32) -> Processor {
+    pub fn new(energy: i32) -> Processor {
         Processor {
-            energy: energy,
+            energy,
             ip: 0,
             a: 0,
             i: [0; 5],
@@ -33,7 +33,7 @@ impl Processor {
     pub fn randomize() -> [u16; GENOME] {
         let mut genome = [0; GENOME];
         for i in 0..genome.len() {
-            genome[i] = rand::random();
+            genome[i] = fastrand::u16(..);
         }
         genome
     }

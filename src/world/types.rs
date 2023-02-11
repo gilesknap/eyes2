@@ -25,7 +25,7 @@ pub struct World {
     // track when we will next call grass tick
     pub(super) next_grass_tick: u64,
     // a random number generator
-    pub(super) rng: rand::rngs::StdRng,
+    pub(super) rng: fastrand::Rng,
     // next unique id to assign to an Entity
     pub(super) next_id: u64,
 }

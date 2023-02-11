@@ -122,7 +122,7 @@ fn performance_test(settings: Settings) {
 
     println!("{:#?}", test_settings);
     println!("\nPerformance test with above settings ...");
-    println!("\ntypical rate on giles ws1 is 5.4 million ticks/s (49 creatures)\n");
+    println!("\ntypical rate on giles ws1 is 6.7 million ticks/s (49 creatures)\n");
 
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
