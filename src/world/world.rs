@@ -104,7 +104,6 @@ impl World {
 
     /// process the updates to the world that have been queued in the previous tick
     pub(super) fn apply_updates(&mut self) {
-        // TODO is this the best way to iterate over all items in a queue?
         while self.updates.len() > 0 {
             let update = self.updates.pop().unwrap();
             match update {
