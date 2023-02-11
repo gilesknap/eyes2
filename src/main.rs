@@ -1,11 +1,10 @@
 use clap::Parser;
+use eyes2::gui::GuiCmd;
 use eyes2::world;
 use eyes2::world::grid::WorldGrid;
 use eyes2::{gui::EyesGui, settings::Settings};
 use num_format::{Locale, ToFormattedString};
 use pancurses::endwin;
-use std::error::Error;
-use std::sync::mpsc::SendError;
 use std::{sync::mpsc, thread, time};
 
 #[derive(Parser, Debug)]
@@ -45,44 +44,62 @@ fn world_loop(mut settings: Settings) {
 
         world.populate();
 
-        let speed = settings.speed;
         let (tx_grid, rx_grid) = mpsc::channel();
-        let (tx_ready, rx_ready) = mpsc::channel();
-        let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<()>();
+        let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
 
         thread::spawn(move || {
             let mut gui = EyesGui::new();
-            gui.gui_loop(tx_ready, rx_grid, tx_gui_cmd).ok()
+            gui.gui_loop(rx_grid, tx_gui_cmd).ok()
         });
 
         // inner loop runs until all creatures die
         loop {
-            // TODO run the GUI in a separate thread instead of using SPEED_TICKS
             if world.grid.ticks % 1000 == 0 {
-                if rx_ready.try_recv().is_ok() {
+                // Gui loop sends a command every 100ms, the None command indicates
+                // no user input, but ready to receive the next world update
+                let next_cmd = rx_gui_cmd.try_recv();
+                if next_cmd.is_ok() {
+                    let grid = &mut world.grid;
+                    if handle_input(next_cmd.unwrap(), grid) {
+                        break 'outer;
+                    }
                     tx_grid.send(world.grid.clone()).unwrap();
-                }
-                if rx_gui_cmd.try_recv().is_ok() {
-                    break 'outer;
                 }
             }
             world.grid.ticks += 1;
             world.tick();
 
-            // sleep(time::Duration::from_millis(
-            //     SPEED_DELAY[gui.speed as usize - 1],
-            // ));
+            if world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1] == 0 {
+                thread::sleep(time::Duration::from_millis(
+                    SPEED_DELAY[world.grid.speed as usize - 1],
+                ));
+            }
 
             if world.creature_count() == 0 {
                 // copy variable config to the next world
-                settings.grass_rate = world.grass_rate();
-                settings.speed = speed;
+                settings.grass_rate = world.grid.grass_rate;
+                settings.speed = world.grid.speed;
                 break;
             }
         }
     }
-
     endwin();
+}
+
+fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> bool {
+    match cmd {
+        GuiCmd::Quit => {
+            return true;
+        }
+        GuiCmd::SpeedUp => {
+            grid.increment_speed(true);
+        }
+        GuiCmd::SpeedDown => {
+            grid.increment_speed(false);
+        }
+        _ => {}
+    }
+    false
 }
 
 fn performance_test(settings: Settings) {

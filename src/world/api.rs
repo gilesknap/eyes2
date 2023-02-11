@@ -14,7 +14,7 @@ use super::{
 impl World {
     pub fn new(config: Settings) -> World {
         // create a square 2d vector of empty cells
-        let grid = WorldGrid::new(config.size, config.grass_rate);
+        let grid = WorldGrid::new(config.size, config.grass_rate, config.speed);
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
@@ -39,16 +39,8 @@ impl World {
         self.config.size
     }
 
-    pub fn get_ticks(&self) -> u64 {
-        self.grid.ticks
-    }
-
     pub fn creature_count(&self) -> u64 {
         self.creatures.len() as u64
-    }
-
-    pub fn grass_rate(&self) -> u64 {
-        self.grid.grass_rate
     }
 
     pub fn populate(&mut self) {

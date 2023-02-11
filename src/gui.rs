@@ -14,14 +14,25 @@ use std::{
 
 use direction::Coord;
 use pancurses::{
-    endwin, init_pair, initscr, start_color, ColorPair, COLOR_BLACK, COLOR_BLUE, COLOR_GREEN,
-    COLOR_RED,
+    init_pair, initscr, start_color, ColorPair, COLOR_BLACK, COLOR_BLUE, COLOR_GREEN, COLOR_RED,
 };
 
 const RED: u8 = 1;
 const GREEN: u8 = 2;
 const BLACK: u8 = 3;
 const BLUE: u8 = 4;
+
+pub enum GuiCmd {
+    None,
+    Quit,
+    Pause,
+    Resume,
+    SpeedUp,
+    SpeedDown,
+    SpeedMax,
+    GrassUp,
+    GrassDown,
+}
 
 pub struct EyesGui {
     window: pancurses::Window,
@@ -31,7 +42,6 @@ pub struct EyesGui {
     x_max: i32,
     last_tick: u64,
     last_tick_time: Instant,
-    pub speed: u64,
 }
 
 impl EyesGui {
@@ -61,7 +71,6 @@ impl EyesGui {
             right_pane,
             y_max: 0,
             x_max: 0,
-            speed: 1,
             last_tick: 0,
             last_tick_time: time::Instant::now(),
         }
@@ -69,17 +78,15 @@ impl EyesGui {
 
     pub fn gui_loop(
         &mut self,
-        tx_ready: mpsc::Sender<()>,
         rx_grid: mpsc::Receiver<WorldGrid>,
-        tx_gui_cmd: mpsc::Sender<()>,
+        tx_gui_cmd: mpsc::Sender<GuiCmd>,
     ) -> Result<(), Box<dyn Error>> {
         loop {
-            tx_ready.send(())?;
+            let cmd = self.get_cmd();
+            tx_gui_cmd.send(cmd)?;
+
             let grid: WorldGrid = rx_grid.recv()?;
             self.render(grid);
-            if self.handle_input() {
-                tx_gui_cmd.send(())?;
-            }
             thread::sleep(time::Duration::from_millis(100));
         }
     }
@@ -112,33 +119,20 @@ impl EyesGui {
         self.status(3, "creatures:", &creatures);
         self.status(5, "grass:", &grass);
         self.status(7, "ticks/s:", &rate);
-        // self.status(9, "speed:", &(self.speed).to_string());
+        self.status(9, "speed:", &grid.speed.to_string());
         self.status(11, "grass rate:", &grid.grass_rate.to_string());
     }
 
-    pub fn handle_input(&mut self) -> bool {
+    pub fn get_cmd(&mut self) -> GuiCmd {
         match self.window.getch() {
-            Some(pancurses::Input::Character('q')) => return true,
-            Some(pancurses::Input::Character(' ')) => {
-                self.speed = 10;
-            }
-            Some(pancurses::Input::KeyUp) => {
-                self.speed += 1;
-            }
-            Some(pancurses::Input::KeyDown) => {
-                self.speed -= 1;
-            }
-            Some(pancurses::Input::KeyRight) => {
-                //world.increment_grass_rate(true);
-            }
-            Some(pancurses::Input::KeyLeft) => {
-                //world.increment_grass_rate(false);
-            }
-            Some(_) => {}
-            None => {}
-        };
-        self.speed = self.speed.clamp(1, 10);
-        false
+            Some(pancurses::Input::Character('q')) => GuiCmd::Quit,
+            Some(pancurses::Input::Character(' ')) => GuiCmd::SpeedMax,
+            Some(pancurses::Input::KeyUp) => GuiCmd::SpeedUp,
+            Some(pancurses::Input::KeyDown) => GuiCmd::SpeedDown,
+            Some(pancurses::Input::KeyRight) => GuiCmd::GrassUp,
+            Some(pancurses::Input::KeyLeft) => GuiCmd::GrassDown,
+            _ => GuiCmd::None,
+        }
     }
 }
 
