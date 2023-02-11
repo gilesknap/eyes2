@@ -1,7 +1,7 @@
 //! Implement the 'RISC Instruction Set' for 'creatures'
 //!
 
-// TODO I've noticed that the creature does not have any RAM other than
+// TODO I've noticed that the original eyes creature does not have any RAM other than
 // its 5 registers - might be nice to add some?
 
 const GENOME: usize = 1000;

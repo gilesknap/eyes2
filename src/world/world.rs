@@ -118,7 +118,7 @@ impl World {
                             self.grid.creature_count = self.creature_count();
                         }
                         Cell::Grass => {
-                            self.creatures.insert(id, creature); // TODO consider factoring out this repetition
+                            self.creatures.insert(id, creature); // TODO how to out this repetition?
                             self.grid.creature_count = self.creature_count();
                             self.eat_grass(coord, id);
                         }
