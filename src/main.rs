@@ -55,15 +55,17 @@ fn world_loop(mut settings: Settings) {
         world.populate();
 
         // inner loop runs until all creatures die
-        loop {
+        'inner: loop {
             if (world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1]) == 0 {
                 // Gui loop sends a command every 100ms, the None command indicates
                 // no user input, but ready to receive the next world update
                 let next_cmd = rx_gui_cmd.try_recv();
                 if next_cmd.is_ok() {
                     let grid = &mut world.grid;
-                    if handle_input(next_cmd.unwrap(), grid) {
-                        break 'outer;
+                    match handle_input(next_cmd.unwrap(), grid) {
+                        1 => break 'inner,
+                        2 => break 'outer,
+                        _ => {}
                     }
                     tx_grid.send(world.grid.clone()).unwrap();
                 }
@@ -78,19 +80,22 @@ fn world_loop(mut settings: Settings) {
             world.tick();
 
             if world.creature_count() == 0 {
-                // copy variable config to the next world
-                settings.grass_rate = world.grid.grass_rate;
-                settings.speed = world.grid.speed;
                 break;
             }
         }
+        // copy variable config to the next world
+        settings.grass_rate = world.grid.grass_rate;
+        settings.speed = world.grid.speed;
     }
 }
 
-fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> bool {
+fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> u8 {
     match cmd {
         GuiCmd::Quit => {
-            return true;
+            return 2;
+        }
+        GuiCmd::Reset => {
+            return 1;
         }
         GuiCmd::SpeedUp => {
             grid.increment_speed(true);
@@ -106,7 +111,7 @@ fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> bool {
         }
         _ => {}
     }
-    false
+    0
 }
 
 fn performance_test(settings: Settings) {

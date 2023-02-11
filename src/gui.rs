@@ -27,6 +27,7 @@ const BLUE: u8 = 4;
 pub enum GuiCmd {
     None,
     Quit,
+    Reset,
     Pause,
     Resume,
     SpeedUp,
@@ -88,8 +89,10 @@ impl EyesGui {
         loop {
             let cmd = self.get_cmd();
             tx_gui_cmd.send(cmd.clone())?;
-            if let GuiCmd::Quit = cmd {
-                break;
+            match cmd {
+                GuiCmd::Quit => break,
+                GuiCmd::Reset => continue,
+                _ => {}
             }
 
             let grid: WorldGrid = rx_grid.recv()?;
@@ -135,6 +138,7 @@ impl EyesGui {
         let result = match self.window.getch() {
             Some(pancurses::Input::Character('q')) => GuiCmd::Quit,
             Some(pancurses::Input::Character(' ')) => GuiCmd::SpeedMax,
+            Some(pancurses::Input::Character('r')) => GuiCmd::Reset,
             Some(pancurses::Input::KeyUp) => GuiCmd::SpeedUp,
             Some(pancurses::Input::KeyDown) => GuiCmd::SpeedDown,
             Some(pancurses::Input::KeyRight) => GuiCmd::GrassUp,
