@@ -3,10 +3,10 @@
 mod code;
 use super::entity::{Cell, Entity};
 use crate::settings::Settings;
-use crate::utils::move_pos;
+use crate::utils::{move_pos, random_direction};
 use crate::world::types::{Update, UpdateQueue};
 use code::Processor;
-use direction::{Coord, Direction};
+use direction::Coord;
 use fastrand::Rng as FastRng;
 
 #[derive(Debug)]
@@ -61,21 +61,6 @@ impl Entity for Creature {
 }
 
 impl Creature {
-    fn random_direction(&self) -> Direction {
-        // TODO is this the fastest way to do this?
-        match self.rng.u8(0..8) {
-            0 => Direction::North,
-            1 => Direction::NorthEast,
-            2 => Direction::East,
-            3 => Direction::SouthEast,
-            4 => Direction::South,
-            5 => Direction::SouthWest,
-            6 => Direction::West,
-            7 => Direction::NorthWest,
-            _ => unreachable!(),
-        }
-    }
-
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
         self.code.energy -= self.config.creature_idle_energy;
 
@@ -84,9 +69,9 @@ impl Creature {
         if self.code.energy <= 0 {
             queue.push(Update::RemoveCreature(self.id, self.coord()));
         } else if self.code.energy >= self.config.creature_reproduction_energy {
-            self._reproduce(queue);
+            self.reproduce(queue);
         } else if self.rng.f32() <= self.config.creature_move_rate {
-            let direction = self.random_direction();
+            let direction = random_direction(&self.rng);
             let new_pos = move_pos(self.coord, direction, self.config.size);
 
             self.code.energy -= self.config.creature_move_energy;
@@ -98,7 +83,7 @@ impl Creature {
         self.code.energy += amount;
     }
 
-    pub fn _reproduce(&mut self, queue: &mut UpdateQueue) {
+    pub fn reproduce(&mut self, queue: &mut UpdateQueue) {
         let mut child = Creature::new(self.coord, self.config);
         self.code.energy /= 2;
         child.code.energy = self.code.energy;

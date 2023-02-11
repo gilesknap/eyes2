@@ -51,7 +51,7 @@ fn world_loop(mut settings: Settings) {
     let mut restarts = 0;
     // outer loop continues until user quits or resets the world
     'outer: loop {
-        let mut world = world::types::World::new(settings, restarts);
+        let mut world = world::World::new(settings, restarts);
 
         world.populate();
 

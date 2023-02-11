@@ -1,7 +1,7 @@
 use crate::settings::Settings;
 
 // use all items from the parent module
-use super::types::World;
+use super::World;
 
 fn get_config() -> Settings {
     Settings {
@@ -20,7 +20,7 @@ fn get_config() -> Settings {
 
 #[test]
 fn check_add_creature() {
-    let mut _world = World::new(get_config());
+    let mut _world = World::new(get_config(), 0);
 
     // world
     //     .creatures
@@ -32,7 +32,7 @@ fn check_add_creature() {
 #[test]
 fn check_populate() {
     let config = get_config();
-    let mut world = World::new(config);
+    let mut world = World::new(config, 0);
     world.populate();
 
     assert!(world.grid.grass_count() <= config.grass_count as usize);
