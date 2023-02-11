@@ -36,11 +36,11 @@ fn check_populate() {
     world.populate();
 
     assert!(world.grid.grass_count() <= config.grass_count as usize);
-    assert!(world.creature_count() <= config.creature_count as usize);
+    assert!(world.creature_count() <= config.creature_count as u64);
 
     let creature_count = world.creature_count();
 
-    world.creatures.remove(&0);
+    world.creatures.remove(&1);
 
-    assert_eq!(world.creature_count(), creature_count - 1 as usize);
+    assert_eq!(world.creature_count(), creature_count - 1 as u64);
 }
