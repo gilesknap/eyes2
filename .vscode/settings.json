@@ -9,6 +9,7 @@
         "confy",
         "Crossterm",
         "endwin",
+        "flushinp",
         "getch",
         "indexmap",
         "initscr",

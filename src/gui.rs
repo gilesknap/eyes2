@@ -126,7 +126,7 @@ impl EyesGui {
     }
 
     pub fn get_cmd(&mut self) -> GuiCmd {
-        match self.window.getch() {
+        let result = match self.window.getch() {
             Some(pancurses::Input::Character('q')) => GuiCmd::Quit,
             Some(pancurses::Input::Character(' ')) => GuiCmd::SpeedMax,
             Some(pancurses::Input::KeyUp) => GuiCmd::SpeedUp,
@@ -134,7 +134,10 @@ impl EyesGui {
             Some(pancurses::Input::KeyRight) => GuiCmd::GrassUp,
             Some(pancurses::Input::KeyLeft) => GuiCmd::GrassDown,
             _ => GuiCmd::None,
-        }
+        };
+        pancurses::flushinp();
+
+        result
     }
 }
 
