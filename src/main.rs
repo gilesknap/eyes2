@@ -38,7 +38,7 @@ fn main() {
 }
 
 fn world_loop(mut settings: Settings) {
-    // setup channels for gui and world threads
+    // setup channels for gui and world thread communications
     let (tx_grid, rx_grid) = mpsc::channel();
     let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
 
@@ -48,7 +48,7 @@ fn world_loop(mut settings: Settings) {
         gui.gui_loop(rx_grid, tx_gui_cmd).ok()
     });
 
-    // outer loop continues until user cancels
+    // outer loop continues until user quits or resets the world
     'outer: loop {
         let mut world = world::types::World::new(settings);
 
@@ -57,15 +57,13 @@ fn world_loop(mut settings: Settings) {
         // inner loop runs until all creatures die
         'inner: loop {
             if (world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1]) == 0 {
-                // Gui loop sends a command every 100ms, the None command indicates
-                // no user input, but ready to receive the next world update
+                // Gui loop sends a command or GuiCmd::None every 100ms
                 let next_cmd = rx_gui_cmd.try_recv();
                 if next_cmd.is_ok() {
-                    let grid = &mut world.grid;
-                    match handle_input(next_cmd.unwrap(), grid) {
-                        1 => break 'inner,
-                        2 => break 'outer,
-                        _ => {}
+                    match next_cmd.unwrap() {
+                        GuiCmd::Reset => break 'inner,
+                        GuiCmd::Quit => break 'outer,
+                        input => handle_input(input, &mut world.grid),
                     }
                     tx_grid.send(world.grid.clone()).unwrap();
                 }
@@ -89,14 +87,8 @@ fn world_loop(mut settings: Settings) {
     }
 }
 
-fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> u8 {
+fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) {
     match cmd {
-        GuiCmd::Quit => {
-            return 2;
-        }
-        GuiCmd::Reset => {
-            return 1;
-        }
         GuiCmd::SpeedUp => {
             grid.increment_speed(true);
         }
@@ -111,7 +103,6 @@ fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) -> u8 {
         }
         _ => {}
     }
-    0
 }
 
 fn performance_test(settings: Settings) {
