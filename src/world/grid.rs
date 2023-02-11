@@ -87,22 +87,16 @@ impl WorldGrid {
     }
 
     pub fn add_grass(&mut self, coord: direction::Coord) {
-        match self.get_cell(coord) {
-            entity::Cell::Empty => {
-                self.set_cell(coord, entity::Cell::Grass);
-                self.grass_count += 1;
-            }
-            _ => {}
+        if let entity::Cell::Empty = self.get_cell(coord) {
+            self.set_cell(coord, entity::Cell::Grass);
+            self.grass_count += 1;
         }
     }
 
     pub fn remove_grass(&mut self, coord: direction::Coord) {
-        match self.get_cell(coord) {
-            entity::Cell::Grass => {
-                self.set_cell(coord, entity::Cell::Empty);
-                self.grass_count -= 1;
-            }
-            _ => {}
+        if let entity::Cell::Grass = self.get_cell(coord) {
+            self.set_cell(coord, entity::Cell::Empty);
+            self.grass_count -= 1;
         }
     }
 }

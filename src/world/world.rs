@@ -1,11 +1,9 @@
+use crate::entity::{Cell, Creature, Entity};
 use crate::settings::Settings;
-use direction;
+use crate::utils;
+use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 use std::collections::HashMap;
-
-use crate::entity;
-use crate::entity::Entity; // required for trait implementation
-use crate::utils;
 
 use super::{
     grid::WorldGrid,
@@ -18,7 +16,7 @@ pub struct World {
     // the grid of cells
     pub grid: WorldGrid,
     // the list of creatures in the world
-    pub(super) creatures: HashMap<u64, entity::Creature>,
+    pub(super) creatures: HashMap<u64, Creature>,
     // queue of updates to the world to be applied at the end of the tick
     pub(super) updates: UpdateQueue,
     // the settings for the world
@@ -42,7 +40,7 @@ impl World {
         // between multiple owners
         let world = World {
             grid,
-            creatures: HashMap::<u64, entity::Creature>::new(),
+            creatures: HashMap::<u64, Creature>::new(),
             updates: UpdateQueue::new(),
             config,
             next_grass_tick: 0,
@@ -68,13 +66,13 @@ impl World {
         for _ in 0..self.config.grass_count as usize {
             let x = self.rng.i32(0..self.config.size as i32 - 1);
             let y = self.rng.i32(0..self.config.size as i32 - 1);
-            self.grid.add_grass(direction::Coord { x, y });
+            self.grid.add_grass(Coord { x, y });
         }
         for _ in 0..self.config.creature_count as usize {
             let x = self.rng.i32(0..self.config.size as i32);
             let y = self.rng.i32(0..self.config.size as i32);
 
-            let creature = entity::Creature::new(direction::Coord { x, y }, self.config.clone());
+            let creature = Creature::new(Coord { x, y }, self.config.clone());
             self.updates.push(Update::AddCreature(creature));
         }
         self.apply_updates();
@@ -116,37 +114,37 @@ impl World {
                     creature.set_id(id);
                     let cell = self.grid.get_cell(coord);
                     match cell {
-                        entity::Cell::Empty => {
+                        Cell::Empty => {
                             self.creatures.insert(id, creature);
                             self.grid.creature_count = self.creature_count();
                         }
-                        entity::Cell::Grass => {
+                        Cell::Grass => {
                             self.creatures.insert(id, creature); // TODO consider factoring out this repetition
                             self.grid.creature_count = self.creature_count();
                             self.eat_grass(coord, id);
                         }
                         _ => continue, // skip add if there is already a creature in the cell
                     };
-                    self.grid.set_cell(coord, entity::Cell::Creature(id));
+                    self.grid.set_cell(coord, Cell::Creature(id));
                 }
                 Update::RemoveCreature(id, coord) => {
                     self.validate_creature(id, coord);
                     self.creatures.remove(&id);
                     self.grid.creature_count = self.creature_count();
-                    self.grid.set_cell(coord, entity::Cell::Empty);
+                    self.grid.set_cell(coord, Cell::Empty);
                 }
                 Update::MoveCreature(id, old_coord, new_coord) => {
                     self.validate_creature(id, old_coord);
                     let cell = self.grid.get_cell(new_coord);
                     match cell {
-                        entity::Cell::Empty => {}
-                        entity::Cell::Grass => self.eat_grass(new_coord, id),
+                        Cell::Empty => {}
+                        Cell::Grass => self.eat_grass(new_coord, id),
                         // skip move if there is already a creature in the cell
-                        entity::Cell::Creature(_) => continue,
+                        Cell::Creature(_) => continue,
                     }
                     self.creatures.get_mut(&id).unwrap().move_to(new_coord);
-                    self.grid.set_cell(old_coord, entity::Cell::Empty);
-                    self.grid.set_cell(new_coord, entity::Cell::Creature(id));
+                    self.grid.set_cell(old_coord, Cell::Empty);
+                    self.grid.set_cell(new_coord, Cell::Creature(id));
                 }
             }
         }
@@ -157,12 +155,12 @@ impl World {
         self.next_id
     }
 
-    fn validate_creature(&self, id: u64, coord: direction::Coord) {
+    fn validate_creature(&self, id: u64, coord: Coord) {
         let cell = self.grid.get_cell(coord);
         match cell {
             // TODO I'm going to treat these as panic for now. But maybe once we go multithread there may
-            // be requests from creatures that have not yet responded to deletion
-            entity::Cell::Creature(match_id) => {
+            // be requests from creatures that have not yet realized they were deleted
+            Cell::Creature(match_id) => {
                 if match_id != id {
                     panic!("creature id does not match world grid");
                 }
@@ -182,15 +180,15 @@ impl World {
     fn grow_grass(&mut self) {
         // walk through all the cells in the grid except the edges and grow grass
         // adjacent to cells that already have grass
-        let mut grow_dir = direction::Direction::North;
-        let mut new_grass: Vec<direction::Coord> = Vec::new();
+        let mut grow_dir = Direction::North;
+        let mut new_grass: Vec<Coord> = Vec::new();
 
         for x in 1..self.config.size as i32 - 2 {
             for y in 1..self.config.size as i32 - 2 {
-                let coord = direction::Coord::new(x, y);
+                let coord = Coord::new(x, y);
                 let cell = self.grid.get_cell(coord);
                 match cell {
-                    entity::Cell::Grass => {
+                    Cell::Grass => {
                         new_grass.push(coord + grow_dir.coord());
                         grow_dir = utils::rotate_direction(grow_dir);
                     }
@@ -204,7 +202,7 @@ impl World {
         }
     }
 
-    fn eat_grass(&mut self, coord: direction::Coord, id: u64) {
+    fn eat_grass(&mut self, coord: Coord, id: u64) {
         self.grid.remove_grass(coord);
         self.creatures
             .get_mut(&id)
