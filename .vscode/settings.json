@@ -15,6 +15,7 @@
         "mvderwin",
         "mvwin",
         "newwin",
+        "nodelay",
         "noecho",
         "pancurses",
         "printw",

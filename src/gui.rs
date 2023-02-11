@@ -61,6 +61,8 @@ impl EyesGui {
         window.keypad(true);
         window.clear();
         window.refresh();
+        window.nodelay(true);
+
         pancurses::curs_set(0);
         pancurses::noecho();
         // pancurses::raw();

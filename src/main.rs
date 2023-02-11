@@ -19,8 +19,8 @@ struct Args {
     reset: bool,
 }
 
-const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 1, 10, 100, 1000, 10000, 100000];
-const SPEED_DELAY: [u64; 10] = [1000, 100, 10, 1, 1, 1, 1, 1, 1, 0];
+const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 10000, 100000];
+const SPEED_DELAY: [u64; 10] = [1000, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
     let args = Args::parse();
@@ -55,7 +55,7 @@ fn world_loop(mut settings: Settings) {
 
         // inner loop runs until all creatures die
         loop {
-            if world.grid.ticks % 1000 == 0 {
+            if (world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1]) == 0 {
                 // Gui loop sends a command every 100ms, the None command indicates
                 // no user input, but ready to receive the next world update
                 let next_cmd = rx_gui_cmd.try_recv();
@@ -65,6 +65,12 @@ fn world_loop(mut settings: Settings) {
                         break 'outer;
                     }
                     tx_grid.send(world.grid.clone()).unwrap();
+                }
+
+                if world.grid.speed < 10 {
+                    thread::sleep(time::Duration::from_millis(
+                        SPEED_DELAY[world.grid.speed as usize - 1],
+                    ));
                 }
             }
             world.grid.ticks += 1;
@@ -113,6 +119,7 @@ fn performance_test(settings: Settings) {
         creature_move_energy: 0,
         creature_idle_energy: 0,
         creature_move_rate: 0.005,
+        speed: 10,
 
         ..settings
     };
