@@ -59,8 +59,8 @@ fn world_loop(mut settings: Settings) {
         // inner loop runs until all creatures die
         loop {
             // TODO run the GUI in a separate thread instead of using SPEED_TICKS
-            if world.grid.ticks % 100000 == 0 {
-                if !rx_ready.try_recv().is_err() {
+            if world.grid.ticks % 1000 == 0 {
+                if rx_ready.try_recv().is_ok() {
                     tx_grid.send(world.grid.clone()).unwrap();
                 }
             }
