@@ -20,10 +20,12 @@ pub struct WorldGrid {
     pub speed: u64,
     // ticks since the world started
     pub ticks: u64,
+    // number of world restarts
+    pub restarts: u64,
 }
 
 impl WorldGrid {
-    pub fn new(size: u16, grass_rate: u64, speed: u64) -> WorldGrid {
+    pub fn new(size: u16, grass_rate: u64, speed: u64, restarts: u64) -> WorldGrid {
         // create a square 2d vector of empty cells
         let grid = vec![Cell::Empty; size.pow(2) as usize];
 
@@ -35,6 +37,7 @@ impl WorldGrid {
             speed,
             creature_count: 0,
             ticks: 0,
+            restarts,
         }
     }
 

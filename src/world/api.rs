@@ -11,9 +11,9 @@ use super::{
 
 // public static methods
 impl World {
-    pub fn new(config: Settings) -> World {
+    pub fn new(config: Settings, restarts: u64) -> World {
         // create a square 2d vector of empty cells
-        let grid = WorldGrid::new(config.size, config.grass_rate, config.speed);
+        let grid = WorldGrid::new(config.size, config.grass_rate, config.speed, restarts);
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it

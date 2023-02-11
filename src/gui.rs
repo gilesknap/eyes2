@@ -105,33 +105,31 @@ impl EyesGui {
     pub fn render(&mut self, grid: WorldGrid) {
         let grid_ref = &grid;
         let (y_max, x_max) = self.window.get_max_yx();
+
         if (y_max, x_max) != (self.y_max, self.x_max) {
             (self.y_max, self.x_max) = (y_max, x_max);
             self.right_pane.clear();
             self.resize(grid_ref);
             self.window.refresh();
-            self.render_grid(grid_ref);
-        } else {
-            self.render_grid(grid_ref);
         }
+        self.render_grid(grid_ref);
 
-        let ticks = grid.ticks.to_formatted_string(&Locale::en);
-        let creatures = grid.creature_count.to_string();
-        let grass = grid.grass_count().to_string();
-
+        let l = &Locale::en;
         let rate = {
             let ticks = grid.ticks - self.last_tick;
             let time = self.last_tick_time.elapsed().as_secs_f64();
-            ((ticks as f64 / time) as u64).to_formatted_string(&Locale::en)
+            ((ticks as f64 / time) as u64).to_formatted_string(l)
         };
         self.last_tick = grid.ticks;
         self.last_tick_time = time::Instant::now();
-        self.status(1, "ticks:", &ticks);
-        self.status(3, "creatures:", &creatures);
-        self.status(5, "grass:", &grass);
-        self.status(7, "ticks/s:", &rate);
-        self.status(9, "speed:", &grid.speed.to_string());
-        self.status(11, "grass rate:", &grid.grass_rate.to_string());
+
+        self.status(1, "ticks:", &grid.ticks.to_formatted_string(l));
+        self.status(2, "ticks/s:", &rate);
+        self.status(3, "restarts:", &grid.restarts.to_formatted_string(l));
+        self.status(5, "creatures:", &grid.creature_count.to_string());
+        self.status(6, "grass:", &grid.grass_count().to_string());
+        self.status(8, "speed:", &grid.speed.to_string());
+        self.status(9, "grass rate:", &grid.grass_rate.to_string());
     }
 
     pub fn get_cmd(&mut self) -> GuiCmd {

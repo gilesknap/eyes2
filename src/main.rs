@@ -48,9 +48,10 @@ fn world_loop(mut settings: Settings) {
         gui.gui_loop(rx_grid, tx_gui_cmd).ok()
     });
 
+    let mut restarts = 0;
     // outer loop continues until user quits or resets the world
     'outer: loop {
-        let mut world = world::types::World::new(settings);
+        let mut world = world::types::World::new(settings, restarts);
 
         world.populate();
 
@@ -84,6 +85,7 @@ fn world_loop(mut settings: Settings) {
         // copy variable config to the next world
         settings.grass_rate = world.grid.grass_rate;
         settings.speed = world.grid.speed;
+        restarts += 1;
     }
 }
 
