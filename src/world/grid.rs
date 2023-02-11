@@ -12,6 +12,8 @@ pub struct WorldGrid {
     size: u16,
     // number of grass blocks in the world
     grass_count: u64,
+    // the interval between grass growth events
+    pub grass_rate: u64,
     // number of grass blocks in the world
     pub creature_count: u64,
     // ticks since the world started
@@ -19,7 +21,7 @@ pub struct WorldGrid {
 }
 
 impl WorldGrid {
-    pub fn new(size: u16) -> WorldGrid {
+    pub fn new(size: u16, grass_rate: u64) -> WorldGrid {
         // create a square 2d vector of empty cells
         let grid = vec![Cell::Empty; size.pow(2) as usize];
 
@@ -27,6 +29,7 @@ impl WorldGrid {
             grid,
             size,
             grass_count: 0,
+            grass_rate,
             creature_count: 0,
             ticks: 0,
         }
@@ -47,6 +50,14 @@ impl WorldGrid {
         self.creature_count as usize
     }
 
+    pub fn increment_grass_rate(&mut self, up: bool) {
+        if up {
+            self.grass_rate += 1;
+        } else {
+            self.grass_rate -= 1;
+        }
+        self.grass_rate = self.grass_rate.clamp(1, 100)
+    }
     /// read a cell from the grid - used for rendering the world
     #[inline(always)]
     pub fn get_cell(&self, position: Coord) -> Cell {

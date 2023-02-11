@@ -33,7 +33,7 @@ impl World {
             creature.tick(&mut self.updates);
         }
 
-        // limit calls to grass tick relative to grass_interval
+        // limit calls to grass tick relative to grass_rate
         if self.grid.ticks >= self.next_grass_tick {
             self.grow_grass();
             self.next_grass_tick += self.ticks_per_grass();
@@ -56,11 +56,11 @@ impl World {
                     match cell {
                         Cell::Empty => {
                             self.creatures.insert(id, creature);
-                            self.grid.creature_count += 1;
+                            self.grid.creature_count = self.creature_count();
                         }
                         Cell::Grass => {
                             self.creatures.insert(id, creature); // TODO consider factoring out this repetition
-                            self.grid.creature_count += 1;
+                            self.grid.creature_count = self.creature_count();
                             self.eat_grass(coord, id);
                         }
                         _ => continue, // skip add if there is already a creature in the cell
@@ -70,7 +70,7 @@ impl World {
                 Update::RemoveCreature(id, coord) => {
                     self.validate_creature(id, coord);
                     self.creatures.remove(&id);
-                    self.grid.creature_count -= 1;
+                    self.grid.creature_count = self.creature_count();
                     self.grid.set_cell(coord, Cell::Empty);
                 }
                 Update::MoveCreature(id, old_coord, new_coord) => {
@@ -96,7 +96,7 @@ impl World {
     fn ticks_per_grass(&self) -> u64 {
         // ticks per grass growth is between 100 to 1,000,000 in inverse
         // logarithmic proportion to grass
-        (101 - self.grass_rate as u64).pow(2) * 100
+        (101 - self.grid.grass_rate as u64).pow(2) * 100
     }
     pub(super) fn grow_grass(&mut self) {
         // walk through all the cells in the grid except the edges and grow grass

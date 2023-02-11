@@ -3,6 +3,9 @@ use eyes2::world;
 use eyes2::world::grid::WorldGrid;
 use eyes2::{gui::EyesGui, settings::Settings};
 use num_format::{Locale, ToFormattedString};
+use pancurses::endwin;
+use std::error::Error;
+use std::sync::mpsc::SendError;
 use std::{sync::mpsc, thread, time};
 
 #[derive(Parser, Debug)]
@@ -37,7 +40,7 @@ fn main() {
 
 fn world_loop(mut settings: Settings) {
     // outer loop continues until user cancels
-    loop {
+    'outer: loop {
         let mut world = world::types::World::new(settings);
 
         world.populate();
@@ -45,15 +48,11 @@ fn world_loop(mut settings: Settings) {
         let speed = settings.speed;
         let (tx_grid, rx_grid) = mpsc::channel();
         let (tx_ready, rx_ready) = mpsc::channel();
+        let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<()>();
 
         thread::spawn(move || {
             let mut gui = EyesGui::new();
-            loop {
-                tx_ready.send(()).unwrap();
-                let grid: WorldGrid = rx_grid.recv().unwrap();
-                gui.render(grid);
-                thread::sleep(time::Duration::from_millis(100));
-            }
+            gui.gui_loop(tx_ready, rx_grid, tx_gui_cmd).ok()
         });
 
         // inner loop runs until all creatures die
@@ -62,6 +61,9 @@ fn world_loop(mut settings: Settings) {
             if world.grid.ticks % 1000 == 0 {
                 if rx_ready.try_recv().is_ok() {
                     tx_grid.send(world.grid.clone()).unwrap();
+                }
+                if rx_gui_cmd.try_recv().is_ok() {
+                    break 'outer;
                 }
             }
             world.grid.ticks += 1;
@@ -73,12 +75,14 @@ fn world_loop(mut settings: Settings) {
 
             if world.creature_count() == 0 {
                 // copy variable config to the next world
-                settings.grass_interval = world.grass_rate();
+                settings.grass_rate = world.grass_rate();
                 settings.speed = speed;
                 break;
             }
         }
     }
+
+    endwin();
 }
 
 fn performance_test(settings: Settings) {
@@ -87,7 +91,7 @@ fn performance_test(settings: Settings) {
         size: 40,
         grass_count: 1000,
         creature_count: 1,
-        grass_interval: 95,
+        grass_rate: 95,
         max_grass_per_interval: 200,
         grass_energy: 1000,
         creature_move_energy: 0,

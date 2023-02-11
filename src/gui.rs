@@ -1,10 +1,12 @@
 //! The GUI for the evolution simulation. Renders the current state of the world
 //! and handles user input.
 //!
-use crate::world::types::World;
 use crate::{entity::entity::Cell, world::grid::WorldGrid};
 
 use num_format::{Locale, ToFormattedString};
+use std::error::Error;
+use std::sync::mpsc;
+use std::thread;
 use std::{
     cmp::{max, min},
     time::{self, Instant},
@@ -65,6 +67,23 @@ impl EyesGui {
         }
     }
 
+    pub fn gui_loop(
+        &mut self,
+        tx_ready: mpsc::Sender<()>,
+        rx_grid: mpsc::Receiver<WorldGrid>,
+        tx_gui_cmd: mpsc::Sender<()>,
+    ) -> Result<(), Box<dyn Error>> {
+        loop {
+            tx_ready.send(())?;
+            let grid: WorldGrid = rx_grid.recv()?;
+            self.render(grid);
+            if self.handle_input() {
+                tx_gui_cmd.send(())?;
+            }
+            thread::sleep(time::Duration::from_millis(100));
+        }
+    }
+
     pub fn render(&mut self, grid: WorldGrid) {
         let grid_ref = &grid;
         let (y_max, x_max) = self.window.get_max_yx();
@@ -94,10 +113,10 @@ impl EyesGui {
         self.status(5, "grass:", &grass);
         self.status(7, "ticks/s:", &rate);
         // self.status(9, "speed:", &(self.speed).to_string());
-        // self.status(11, "grass rate:", &grid.grass_rate().to_string());
+        self.status(11, "grass rate:", &grid.grass_rate.to_string());
     }
 
-    pub fn handle_input(&mut self, world: &mut World) -> bool {
+    pub fn handle_input(&mut self) -> bool {
         match self.window.getch() {
             Some(pancurses::Input::Character('q')) => return true,
             Some(pancurses::Input::Character(' ')) => {
@@ -110,10 +129,10 @@ impl EyesGui {
                 self.speed -= 1;
             }
             Some(pancurses::Input::KeyRight) => {
-                world.increment_grass_rate(true);
+                //world.increment_grass_rate(true);
             }
             Some(pancurses::Input::KeyLeft) => {
-                world.increment_grass_rate(false);
+                //world.increment_grass_rate(false);
             }
             Some(_) => {}
             None => {}
@@ -193,7 +212,5 @@ impl EyesGui {
 }
 
 impl Drop for EyesGui {
-    fn drop(&mut self) {
-        endwin();
-    }
+    fn drop(&mut self) {}
 }

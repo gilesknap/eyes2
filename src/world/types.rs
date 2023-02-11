@@ -22,8 +22,6 @@ pub struct World {
     pub(super) updates: UpdateQueue,
     // the settings for the world
     pub(super) config: Settings,
-    // the interval between grass growth events
-    pub(super) grass_rate: u64,
     // track when we will next call grass tick
     pub(super) next_grass_tick: u64,
     // a random number generator

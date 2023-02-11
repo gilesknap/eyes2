@@ -27,7 +27,7 @@ pub struct Settings {
     // speed of the simulation
     pub speed: u64,
     // number of ticks between grass growth
-    pub grass_interval: u64,
+    pub grass_rate: u64,
 }
 
 const DEFAULT_SETTINGS: Settings = Settings {
@@ -42,7 +42,7 @@ const DEFAULT_SETTINGS: Settings = Settings {
     creature_move_rate: 0.005,
 
     speed: 5,
-    grass_interval: 100,
+    grass_rate: 100,
 };
 
 impl Settings {
@@ -57,7 +57,7 @@ impl Settings {
         settings.creature_move_rate = settings.creature_move_rate.clamp(0.0, 1.0);
 
         settings.speed = settings.speed.clamp(1, 10);
-        settings.grass_interval = settings.grass_interval.clamp(1, 100);
+        settings.grass_rate = settings.grass_rate.clamp(1, 100);
 
         settings
     }

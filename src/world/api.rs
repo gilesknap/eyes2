@@ -14,7 +14,7 @@ use super::{
 impl World {
     pub fn new(config: Settings) -> World {
         // create a square 2d vector of empty cells
-        let grid = WorldGrid::new(config.size);
+        let grid = WorldGrid::new(config.size, config.grass_rate);
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
@@ -24,7 +24,6 @@ impl World {
             creatures: HashMap::<u64, Creature>::new(),
             updates: UpdateQueue::new(),
             config,
-            grass_rate: config.grass_interval,
             next_grass_tick: 0,
             rng: StdRng::from_entropy(),
             next_id: 0,
@@ -44,21 +43,12 @@ impl World {
         self.grid.ticks
     }
 
-    pub fn creature_count(&self) -> usize {
-        self.creatures.len()
+    pub fn creature_count(&self) -> u64 {
+        self.creatures.len() as u64
     }
 
     pub fn grass_rate(&self) -> u64 {
-        self.grass_rate
-    }
-
-    pub fn increment_grass_rate(&mut self, up: bool) {
-        if up {
-            self.grass_rate += 1;
-        } else {
-            self.grass_rate -= 1;
-        }
-        self.grass_rate = self.grass_rate.clamp(1, 100)
+        self.grid.grass_rate
     }
 
     pub fn populate(&mut self) {
