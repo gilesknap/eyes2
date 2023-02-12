@@ -1,3 +1,4 @@
+use super::{Update, UpdateQueue};
 use crate::Settings;
 use direction::Coord;
 use fastrand::Rng as FastRng;
@@ -10,6 +11,7 @@ pub struct Creature {
     energy: i32,
     config: Settings,
     rng: FastRng,
+    herbivore: bool,
 }
 
 // The representation of a creature in the world
@@ -25,6 +27,7 @@ impl Creature {
             energy,
             rng,
             config,
+            herbivore: true,
         }
     }
 
@@ -68,23 +71,7 @@ impl Creature {
     }
 }
 
-/// Each type of entity must use the an UpdateQueue to communicate with
-/// the world. The world will process the queue at the end of each tick.
-
-// a queue of updates to the world to be applied at the end of the tick
-// Note I did not use queues crate because it clones the objects in the
-// Queue and we specifically want to pass object ownership for e.g.
-// AddCreature(Creature)
-pub type UpdateQueue = Vec<Update>;
-
-/// Represent the possible world update service requests that
-/// Entities can place on the update queue.
-pub enum Update {
-    AddEntity(Creature),
-    MoveEntity(u64, Coord, Coord),
-    RemoveEntity(u64, Coord),
-}
-
+// private instance methods
 impl Creature {
     fn reproduce(&mut self, queue: &mut UpdateQueue) {
         let mut child = Creature::new(self.coord, self.config);

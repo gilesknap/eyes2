@@ -88,7 +88,7 @@ fn world_loop(mut settings: Settings) {
             world.tick();
 
             if world.creature_count() == 0 {
-                break;
+                break 'inner;
             }
         }
         // copy variable config to the next world
