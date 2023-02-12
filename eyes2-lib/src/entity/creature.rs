@@ -1,3 +1,5 @@
+use super::genotype::random::RandomGenotype;
+use super::Genotype;
 use super::{Update, UpdateQueue};
 use crate::Settings;
 use direction::Coord;
@@ -12,6 +14,7 @@ pub struct Creature {
     config: Settings,
     rng: FastRng,
     _herbivore: bool,
+    genotype: Option<Box<dyn Genotype>>,
 }
 
 // The representation of a creature in the world
@@ -28,6 +31,7 @@ impl Creature {
             rng,
             config,
             _herbivore: true,
+            genotype: Some(Box::new(RandomGenotype { energy })),
         }
     }
 

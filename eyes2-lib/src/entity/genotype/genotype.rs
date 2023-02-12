@@ -1,13 +1,10 @@
 use crate::entity::update::UpdateQueue;
-use crate::entity::Creature;
-use crate::Settings;
+// use crate::entity::Creature;
+// use crate::Settings;
 
-pub trait Genotype
-where
-    Self: Sized,
-{
-    // constructor
-    fn new(creature: Creature, config: Settings) -> Self;
+pub trait Genotype {
+    // // constructor
+    // fn new(creature: Creature, config: Settings) -> Self;
 
     // execute the next instruction of your Genomic code
     fn tick(&mut self, queue: &mut UpdateQueue);

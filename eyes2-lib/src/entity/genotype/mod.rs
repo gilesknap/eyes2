@@ -1,2 +1,2 @@
-mod genotype;
-mod random;
+pub mod genotype;
+pub mod random;

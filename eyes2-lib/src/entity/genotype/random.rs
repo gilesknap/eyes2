@@ -4,26 +4,22 @@
 // TODO I've noticed that the original eyes creature does not have any RAM other than
 // its 5 registers - might be nice to add some?
 
-const GENOME: usize = 1000;
+use crate::entity::update::UpdateQueue;
+use crate::entity::Genotype;
 
 #[derive(Debug)]
 pub struct RandomGenotype {
     pub energy: i32, // energy level
 }
 
+impl Genotype for RandomGenotype {
+    fn tick(&mut self, queue: &mut UpdateQueue) {
+        self.energy -= 1;
+    }
+}
+
 impl RandomGenotype {
     pub fn new(energy: i32) -> RandomGenotype {
         RandomGenotype { energy }
     }
-
-    pub fn randomize() -> [u16; GENOME] {
-        let mut genome = [0; GENOME];
-        for i in 0..genome.len() {
-            genome[i] = fastrand::u16(..);
-        }
-        genome
-    }
-
-    // totally dummy instruction set for now
-    pub fn tick(&mut self) {}
 }
