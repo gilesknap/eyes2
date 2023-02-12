@@ -73,7 +73,7 @@ impl World {
             let y = self.rng.i32(0..self.config.size as i32);
 
             let creature = Creature::new(Coord { x, y }, self.config.clone());
-            self.updates.push(Update::AddCreature(creature));
+            self.updates.push(Update::AddEntity(creature));
         }
         self.apply_updates();
     }
@@ -106,7 +106,7 @@ impl World {
         while self.updates.len() > 0 {
             let update = self.updates.pop().unwrap();
             match update {
-                Update::AddCreature(mut creature) => {
+                Update::AddEntity(mut creature) => {
                     let coord = creature.coord();
                     let id = self.get_next_id();
                     creature.set_id(id);
@@ -123,26 +123,26 @@ impl World {
                         }
                         _ => continue, // skip add if there is already a creature in the cell
                     };
-                    self.grid.set_cell(coord, Cell::Creature(id));
+                    self.grid.set_cell(coord, Cell::Entity(id));
                 }
-                Update::RemoveCreature(id, coord) => {
+                Update::RemoveEntity(id, coord) => {
                     self.validate_creature(id, coord);
                     self.creatures.remove(&id);
                     self.grid.creature_count = self.creature_count();
                     self.grid.set_cell(coord, Cell::Empty);
                 }
-                Update::MoveCreature(id, old_coord, new_coord) => {
+                Update::MoveEntity(id, old_coord, new_coord) => {
                     self.validate_creature(id, old_coord);
                     let cell = self.grid.get_cell(new_coord);
                     match cell {
                         Cell::Empty => {}
                         Cell::Grass => self.eat_grass(new_coord, id),
                         // skip move if there is already a creature in the cell
-                        Cell::Creature(_) => continue,
+                        Cell::Entity(_) => continue,
                     }
                     self.creatures.get_mut(&id).unwrap().move_to(new_coord);
                     self.grid.set_cell(old_coord, Cell::Empty);
-                    self.grid.set_cell(new_coord, Cell::Creature(id));
+                    self.grid.set_cell(new_coord, Cell::Entity(id));
                 }
             }
         }
@@ -158,7 +158,7 @@ impl World {
         match cell {
             // TODO I'm going to treat these as panic for now. But maybe once we go multithread there may
             // be requests from creatures that have not yet realized they were deleted
-            Cell::Creature(match_id) => {
+            Cell::Entity(match_id) => {
                 if match_id != id {
                     panic!("creature id does not match world grid");
                 }

@@ -184,7 +184,7 @@ impl EyesGui {
                         self.left_pane.printw("o");
                         self.left_pane.attroff(ColorPair(GREEN));
                     }
-                    Cell::Creature(_) => {
+                    Cell::Entity(_) => {
                         self.left_pane.attron(ColorPair(RED));
                         self.left_pane.printw("X");
                         self.left_pane.attroff(ColorPair(RED));

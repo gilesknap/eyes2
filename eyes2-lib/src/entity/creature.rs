@@ -1,7 +1,7 @@
 //! represents a creature in the world that can eat grass and reproduce
 //!
 mod code;
-use super::entity::{Cell, Entity};
+use super::entity::Entity;
 use crate::settings::Settings;
 use crate::utils::{move_pos, random_direction};
 use crate::world::types::{Update, UpdateQueue};
@@ -30,10 +30,6 @@ impl Entity for Creature {
             rng,
             config,
         }
-    }
-
-    fn cell_type(id: u64) -> Cell {
-        Cell::Creature(id)
     }
 
     fn id(&self) -> u64 {
@@ -67,7 +63,7 @@ impl Creature {
         self.code.tick();
 
         if self.code.energy <= 0 {
-            queue.push(Update::RemoveCreature(self.id, self.coord()));
+            queue.push(Update::RemoveEntity(self.id, self.coord()));
         } else if self.code.energy >= self.config.creature_reproduction_energy {
             self.reproduce(queue);
         } else if self.rng.f32() <= self.config.creature_move_rate {
@@ -75,7 +71,7 @@ impl Creature {
             let new_pos = move_pos(self.coord, direction, self.config.size);
 
             self.code.energy -= self.config.creature_move_energy;
-            queue.push(Update::MoveCreature(self.id(), self.coord(), new_pos));
+            queue.push(Update::MoveEntity(self.id(), self.coord(), new_pos));
         }
     }
 
@@ -93,6 +89,6 @@ impl Creature {
         } else {
             child.coord.x -= 1
         }
-        queue.push(Update::AddCreature(child));
+        queue.push(Update::AddEntity(child));
     }
 }

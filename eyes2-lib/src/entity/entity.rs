@@ -3,14 +3,13 @@
 //!
 use direction::Coord;
 
-use crate::settings::Settings;
 use crate::world::types::UpdateQueue;
+use crate::Settings;
 // a trait to declare that a type is an entity that can be stored in EntityMap
 
 pub trait Entity {
     // static methods
     fn new(coord: Coord, config: Settings) -> Self;
-    fn cell_type(id: u64) -> Cell;
 
     // property getters
     fn id(&self) -> u64;
@@ -31,7 +30,7 @@ pub enum Cell {
     Empty,
 
     // the cell is occupied by a Creature (with a unique number)
-    Creature(u64),
+    Entity(u64),
 
     // the cell is occupied by a block of grass
     Grass,
