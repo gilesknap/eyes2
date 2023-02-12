@@ -8,8 +8,6 @@ pub struct Settings {
     pub grass_count: u16,
     // number of creatures to add to the world
     pub creature_count: u16,
-    // max growth of grass per interval - caps the max load grass can put on the system
-    pub max_grass_per_interval: u16,
     // energy gained from eating grass
     pub grass_energy: i32,
     // range of energy for new creatures
@@ -36,7 +34,6 @@ const DEFAULT_SETTINGS: Settings = Settings {
     size: 40,
     grass_count: 100,
     creature_count: 25,
-    max_grass_per_interval: 200,
     grass_energy: 1000,
     creature_initial_energy: (10000, 20000),
     creature_reproduction_energy: 100000,
@@ -54,9 +51,6 @@ impl Settings {
         settings.size = settings.size.clamp(10, 200);
         settings.grass_count = settings.grass_count.clamp(0, settings.size.pow(2));
         settings.creature_count = settings.creature_count.clamp(0, settings.size.pow(2));
-        settings.max_grass_per_interval = settings
-            .max_grass_per_interval
-            .clamp(0, settings.size.pow(2));
         settings.creature_move_rate = settings.creature_move_rate.clamp(0.0, 1.0);
 
         settings.speed = settings.speed.clamp(1, 10);

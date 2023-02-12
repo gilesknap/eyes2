@@ -172,9 +172,10 @@ impl World {
 impl World {
     fn ticks_per_grass(&self) -> u64 {
         // ticks per grass growth is between 100 to 1,000,000 in inverse
-        // logarithmic proportion to grass
+        // logarithmic proportion to grass_rate parameter
         (101 - self.grid.grass_rate as u64).pow(2) * 100
     }
+
     fn grow_grass(&mut self) {
         // walk through all the cells in the grid except the edges and grow grass
         // adjacent to cells that already have grass

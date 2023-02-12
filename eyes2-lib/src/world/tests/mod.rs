@@ -9,7 +9,6 @@ fn get_config() -> Settings {
         grass_count: 10,
         creature_count: 25,
         grass_rate: 5000,
-        max_grass_per_interval: 500,
         grass_energy: 1000,
         creature_move_energy: 100,
         creature_idle_energy: 1,
