@@ -1,4 +1,5 @@
 pub mod creature;
+mod genotype;
 pub mod update;
 
 pub use self::creature::Creature;
