@@ -1,14 +1,11 @@
-use crate::entity::{Cell, Creature, Entity};
+use crate::entity::{Creature, Entity, Update, UpdateQueue};
 use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 use std::collections::HashMap;
 
-use super::{
-    grid::WorldGrid,
-    types::{Update, UpdateQueue},
-};
+use super::grid::{Cell, WorldGrid};
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
 // using fields to give visibility to the rest of the world module

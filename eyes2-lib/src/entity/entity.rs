@@ -1,14 +1,16 @@
 //! Define the Entity trait, which is implemented by all types of entities
 //! that can be stored in the EntityMap
 //!
+use super::Creature;
+use crate::Settings;
 use direction::Coord;
 
-use crate::world::types::UpdateQueue;
-use crate::Settings;
-// a trait to declare that a type is an entity that can be stored in EntityMap
-
-pub trait Entity {
-    // static methods
+/// each type of entity must implement this trait
+pub trait Entity
+where
+    Self: Sized,
+{
+    // constructor
     fn new(coord: Coord, config: Settings) -> Self;
 
     // property getters
@@ -23,15 +25,19 @@ pub trait Entity {
     fn tick(&mut self, queue: &mut UpdateQueue);
 }
 
-// represent the contents of a single cell in the world
-#[derive(Debug, Copy, Clone)]
-pub enum Cell {
-    // the cell is empty
-    Empty,
+/// Each type of entity must use the an UpdateQueue to communicate with
+/// the world. The world will process the queue at the end of each tick.
 
-    // the cell is occupied by a Creature (with a unique number)
-    Entity(u64),
+// a queue of updates to the world to be applied at the end of the tick
+// Note I did not use queues crate because it clones the objects in the
+// Queue and we specifically want to pass object ownership for e.g.
+// AddEntity(Entity)
+pub type UpdateQueue = Vec<Update>;
 
-    // the cell is occupied by a block of grass
-    Grass,
+/// Represent the possible world update service requests that
+/// Entities can place on the update queue.
+pub enum Update {
+    AddEntity(Creature),
+    MoveEntity(u64, Coord, Coord),
+    RemoveEntity(u64, Coord),
 }

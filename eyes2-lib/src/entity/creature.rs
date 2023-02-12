@@ -1,10 +1,9 @@
 //! represents a creature in the world that can eat grass and reproduce
 //!
 mod code;
-use super::entity::Entity;
+use super::entity::{Entity, Update, UpdateQueue};
 use crate::settings::Settings;
 use crate::utils::{move_pos, random_direction};
-use crate::world::types::{Update, UpdateQueue};
 use code::Processor;
 use direction::Coord;
 use fastrand::Rng as FastRng;

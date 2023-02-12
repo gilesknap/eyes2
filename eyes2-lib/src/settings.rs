@@ -31,9 +31,9 @@ pub struct Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = Settings {
-    size: 40,
-    grass_count: 100,
-    creature_count: 25,
+    size: 47,
+    grass_count: 1000,
+    creature_count: 1,
     grass_energy: 1000,
     creature_initial_energy: (10000, 20000),
     creature_reproduction_energy: 100000,
@@ -41,8 +41,8 @@ const DEFAULT_SETTINGS: Settings = Settings {
     creature_idle_energy: 1,
     creature_move_rate: 0.005,
 
-    speed: 5,
-    grass_rate: 100,
+    speed: 9,
+    grass_rate: 85,
 };
 
 impl Settings {

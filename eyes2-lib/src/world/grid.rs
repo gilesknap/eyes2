@@ -1,4 +1,3 @@
-use crate::entity;
 use direction;
 
 // the representation of the world cells plus some metadata
@@ -6,7 +5,7 @@ use direction;
 #[derive(Clone, Debug)]
 pub struct WorldGrid {
     // the grid of cells
-    grid: Vec<entity::Cell>,
+    grid: Vec<Cell>,
     // the dimensions of the (square) grid
     size: u16,
     // number of grass blocks in the world
@@ -23,10 +22,23 @@ pub struct WorldGrid {
     pub restarts: u64,
 }
 
+// represent the contents of a single cell in the world
+#[derive(Debug, Copy, Clone)]
+pub enum Cell {
+    // the cell is empty
+    Empty,
+
+    // the cell is occupied by a Creature (with a unique number)
+    Entity(u64),
+
+    // the cell is occupied by a block of grass
+    Grass,
+}
+
 impl WorldGrid {
     pub fn new(size: u16, grass_rate: u64, speed: u64, restarts: u64) -> WorldGrid {
         // create a square 2d vector of empty cells
-        let grid = vec![entity::entity::Cell::Empty; size.pow(2) as usize];
+        let grid = vec![Cell::Empty; size.pow(2) as usize];
 
         WorldGrid {
             grid,
@@ -75,27 +87,27 @@ impl WorldGrid {
 
     /// read a cell from the grid - used for rendering the world
     #[inline(always)]
-    pub fn get_cell(&self, position: direction::Coord) -> entity::Cell {
+    pub fn get_cell(&self, position: direction::Coord) -> Cell {
         // TODO Currently using Copy to return this - maybe should switch to
-        // using a Box? Then could remove the Copy trait from entity::Cell
+        // using a Box? Then could remove the Copy trait from Cell
         self.grid[(position.x + position.y * self.size as i32) as usize]
     }
 
     #[inline(always)]
-    pub fn set_cell(&mut self, position: direction::Coord, value: entity::Cell) {
+    pub fn set_cell(&mut self, position: direction::Coord, value: Cell) {
         self.grid[(position.x + position.y * self.size as i32) as usize] = value;
     }
 
     pub fn add_grass(&mut self, coord: direction::Coord) {
-        if let entity::Cell::Empty = self.get_cell(coord) {
-            self.set_cell(coord, entity::Cell::Grass);
+        if let Cell::Empty = self.get_cell(coord) {
+            self.set_cell(coord, Cell::Grass);
             self.grass_count += 1;
         }
     }
 
     pub fn remove_grass(&mut self, coord: direction::Coord) {
-        if let entity::Cell::Grass = self.get_cell(coord) {
-            self.set_cell(coord, entity::Cell::Empty);
+        if let Cell::Grass = self.get_cell(coord) {
+            self.set_cell(coord, Cell::Empty);
             self.grass_count -= 1;
         }
     }

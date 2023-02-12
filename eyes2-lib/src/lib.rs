@@ -9,7 +9,5 @@ pub mod world;
 pub mod utils;
 
 // these are the public API structures
-pub use crate::entity::Cell;
 pub use crate::settings::Settings;
-pub use crate::world::World;
-pub use crate::world::WorldGrid;
+pub use crate::world::{Cell, World, WorldGrid};
