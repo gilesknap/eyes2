@@ -39,7 +39,7 @@ fn check_populate() {
 
     let _creature_count = world.creature_count();
 
-    // TODO I want to access private members of the world object here
+    // TODO I want to access private members of the world impl here
     // but I can't figure out how to do it (without writing the tests in the main
     // module)
 

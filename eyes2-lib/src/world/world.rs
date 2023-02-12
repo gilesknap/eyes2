@@ -81,7 +81,7 @@ impl World {
     }
 }
 
-/// internal implementation details of the World object
+/// internal implementation details of the World struct
 impl World {
     fn do_tick(&mut self) {
         for creature in self.creatures.values_mut() {
@@ -100,8 +100,8 @@ impl World {
 
     /// process the updates to the world that have been queued in the previous tick
     fn apply_updates(&mut self) {
-        while self.updates.len() > 0 {
-            let update = self.updates.pop().unwrap();
+        // Note: concise syntax for processing a vector of updates!
+        while let Some(update) = self.updates.pop() {
             match update {
                 Update::AddEntity(mut creature) => {
                     let coord = creature.coord();
