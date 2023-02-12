@@ -1,7 +1,7 @@
 pub mod gui;
 
 use clap::Parser;
-use eyes2_lib::{Settings, World, WorldGrid};
+use eyes2_lib::{Settings, World};
 use gui::{EyesGui, GuiCmd};
 use pancurses;
 use std::{sync::mpsc, thread, time};
@@ -17,6 +17,11 @@ struct Args {
     reset: bool,
 }
 
+// Simulation speed control arrays.
+// There is a tradeoff between how often we query the GUI and how long
+// a delay there is in the main loop. Playing with these values can
+// give a relatively smooth control of the speed of the simulation.
+// These two arrays represent that tradeoff.
 const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 10000, 100000];
 const SPEED_DELAY: [u64; 10] = [1000, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
@@ -59,11 +64,16 @@ fn world_loop(mut settings: Settings) {
             if (world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1]) == 0 {
                 // Gui loop sends a command or GuiCmd::None every 100ms
                 let next_cmd = rx_gui_cmd.try_recv();
+
                 if next_cmd.is_ok() {
                     match next_cmd.unwrap() {
                         GuiCmd::Reset => break 'inner,
                         GuiCmd::Quit => break 'outer,
-                        input => handle_input(input, &mut world.grid),
+                        GuiCmd::SpeedUp => world.grid.increment_speed(true),
+                        GuiCmd::SpeedDown => world.grid.increment_speed(false),
+                        GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
+                        GuiCmd::GrassDown => world.grid.increment_grass_rate(false),
+                        _ => {}
                     }
                     tx_grid.send(world.grid.clone()).unwrap();
                 }
@@ -85,24 +95,6 @@ fn world_loop(mut settings: Settings) {
         settings.grass_rate = world.grid.grass_rate;
         settings.speed = world.grid.speed;
         restarts += 1;
-    }
-}
-
-fn handle_input(cmd: GuiCmd, grid: &mut WorldGrid) {
-    match cmd {
-        GuiCmd::SpeedUp => {
-            grid.increment_speed(true);
-        }
-        GuiCmd::SpeedDown => {
-            grid.increment_speed(false);
-        }
-        GuiCmd::GrassUp => {
-            grid.increment_grass_rate(true);
-        }
-        GuiCmd::GrassDown => {
-            grid.increment_grass_rate(false);
-        }
-        _ => {}
     }
 }
 
