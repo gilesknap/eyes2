@@ -11,7 +11,7 @@ pub struct Creature {
     energy: i32,
     config: Settings,
     rng: FastRng,
-    herbivore: bool,
+    _herbivore: bool,
 }
 
 // The representation of a creature in the world
@@ -27,7 +27,7 @@ impl Creature {
             energy,
             rng,
             config,
-            herbivore: true,
+            _herbivore: true,
         }
     }
 
