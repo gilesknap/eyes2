@@ -11,22 +11,22 @@ use super::{
 };
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
-// using pub(super) fields to give visibility to the rest of the world module
+// using fields to give visibility to the rest of the world module
 pub struct World {
     // the grid of cells
     pub grid: WorldGrid,
     // the list of creatures in the world
-    pub(super) creatures: HashMap<u64, Creature>,
+    creatures: HashMap<u64, Creature>,
     // queue of updates to the world to be applied at the end of the tick
-    pub(super) updates: UpdateQueue,
+    updates: UpdateQueue,
     // the settings for the world
-    pub(super) config: Settings,
+    config: Settings,
     // track when we will next call grass tick
-    pub(super) next_grass_tick: u64,
+    next_grass_tick: u64,
     // a random number generator
-    pub(super) rng: fastrand::Rng,
+    rng: fastrand::Rng,
     // next unique id to assign to an Entity
-    pub(super) next_id: u64,
+    next_id: u64,
 }
 
 // public static methods
@@ -85,9 +85,8 @@ impl World {
 }
 
 /// internal implementation details of the World object
-/// using pub(super) to give visibility to the rest of the world module
 impl World {
-    pub(super) fn do_tick(&mut self) {
+    fn do_tick(&mut self) {
         for creature in self.creatures.values_mut() {
             creature.tick(&mut self.updates);
         }
@@ -103,7 +102,7 @@ impl World {
     }
 
     /// process the updates to the world that have been queued in the previous tick
-    pub(super) fn apply_updates(&mut self) {
+    fn apply_updates(&mut self) {
         while self.updates.len() > 0 {
             let update = self.updates.pop().unwrap();
             match update {

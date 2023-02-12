@@ -1,17 +1,6 @@
-[package]
-name = "eyes2"
-version = "0.1.0"
-edition = "2021"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-pancurses = "0.17.0"
-confy = "0.5.1"
-serde = { version = "1.0.152", features = ["derive"] }
-clap = { version = "4.1.4", features = ["derive"] }
-crossterm = "0.25"
-direction = { version = "0.18.1"}
-num-format = "0.4.4"
-fastrand = "1.8.0"
-
+members = [
+    "eyes2",
+    "eyes2-lib",
+]

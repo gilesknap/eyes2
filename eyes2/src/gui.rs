@@ -1,7 +1,7 @@
 //! The GUI for the evolution simulation. Renders the current state of the world
 //! and handles user input.
 //!
-use crate::{entity::entity::Cell, world::grid::WorldGrid};
+use eyes2_lib::{Cell, WorldGrid};
 
 use num_format::{Locale, ToFormattedString};
 use std::error::Error;

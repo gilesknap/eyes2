@@ -1,10 +1,9 @@
+pub mod gui;
+
 use clap::Parser;
-use eyes2::gui::GuiCmd;
-use eyes2::world;
-use eyes2::world::grid::WorldGrid;
-use eyes2::{gui::EyesGui, settings::Settings};
-use std::io;
-use std::io::prelude::*;
+use eyes2_lib::{Settings, World, WorldGrid};
+use gui::{EyesGui, GuiCmd};
+use pancurses;
 use std::{sync::mpsc, thread, time};
 
 #[derive(Parser, Debug)]
@@ -51,7 +50,7 @@ fn world_loop(mut settings: Settings) {
     let mut restarts = 0;
     // outer loop continues until user quits or resets the world
     'outer: loop {
-        let mut world = world::World::new(settings, restarts);
+        let mut world = World::new(settings, restarts);
 
         world.populate();
 
@@ -126,15 +125,8 @@ fn performance_test(settings: Settings) {
     println!("\nPerformance test with above settings ...");
     println!("\ntypical rate on giles ws1 is 6.7 million ticks/s (49 creatures)\n");
 
-    let mut stdin = io::stdin();
-    let mut stdout = io::stdout();
-
-    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
-    write!(stdout, "Press any key to continue...").unwrap();
-    stdout.flush().unwrap();
-
-    // Read a single byte and discard
-    let _ = stdin.read(&mut [0u8]).unwrap();
+    let window = pancurses::initscr();
+    window.getch();
 
     world_loop(test_settings);
 }

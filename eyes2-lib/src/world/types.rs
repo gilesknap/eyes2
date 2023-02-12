@@ -1,3 +1,4 @@
+/// A few simple types used for communicating with the world
 use crate::entity::creature::Creature;
 use direction::Coord;
 
