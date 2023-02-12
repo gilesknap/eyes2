@@ -1,87 +1,95 @@
-//! represents a creature in the world that can eat grass and reproduce
-//!
-mod code;
-use super::entity::{Entity, Update, UpdateQueue};
-use crate::settings::Settings;
-use crate::utils::{move_pos, random_direction};
-use code::Processor;
+use crate::Settings;
 use direction::Coord;
 use fastrand::Rng as FastRng;
 
-#[derive(Debug)]
+use crate::utils::{move_pos, random_direction};
+
 pub struct Creature {
     id: u64,
     coord: Coord,
-    code: Processor,
+    energy: i32,
     config: Settings,
     rng: FastRng,
 }
 
-impl Entity for Creature {
-    fn new(coord: Coord, config: Settings) -> Creature {
+// The representation of a creature in the world
+impl Creature {
+    pub fn new(coord: Coord, config: Settings) -> Creature {
         let rng = FastRng::new();
         let (b, e) = config.creature_initial_energy;
         let energy = rng.i32(b..e);
+
         Creature {
             id: 0,
             coord,
-            code: Processor::new(energy),
+            energy,
             rng,
             config,
         }
     }
 
-    fn id(&self) -> u64 {
+    pub fn id(&self) -> u64 {
         self.id
     }
 
-    fn coord(&self) -> Coord {
+    pub fn coord(&self) -> Coord {
         self.coord
     }
 
-    fn move_to(&mut self, pos: Coord) {
+    pub fn move_to(&mut self, pos: Coord) {
         self.coord = pos;
     }
 
-    fn set_id(&mut self, id: u64) {
+    pub fn set_id(&mut self, id: u64) {
         // id is immutable once set
         if self.id == 0 {
             self.id = id;
         }
     }
 
-    fn tick(&mut self, queue: &mut UpdateQueue) {
-        self.tick(queue)
+    pub fn eat(&mut self, amount: i32) {
+        self.energy += amount;
     }
-}
 
-impl Creature {
     pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        self.code.energy -= self.config.creature_idle_energy;
+        self.energy -= self.config.creature_idle_energy;
 
-        self.code.tick();
-
-        if self.code.energy <= 0 {
+        if self.energy <= 0 {
             queue.push(Update::RemoveEntity(self.id, self.coord()));
-        } else if self.code.energy >= self.config.creature_reproduction_energy {
+        } else if self.energy >= self.config.creature_reproduction_energy {
             self.reproduce(queue);
         } else if self.rng.f32() <= self.config.creature_move_rate {
             let direction = random_direction(&self.rng);
             let new_pos = move_pos(self.coord, direction, self.config.size);
 
-            self.code.energy -= self.config.creature_move_energy;
+            self.energy -= self.config.creature_move_energy;
             queue.push(Update::MoveEntity(self.id(), self.coord(), new_pos));
         }
     }
+}
 
-    pub fn eat(&mut self, amount: i32) {
-        self.code.energy += amount;
-    }
+/// Each type of entity must use the an UpdateQueue to communicate with
+/// the world. The world will process the queue at the end of each tick.
 
-    pub fn reproduce(&mut self, queue: &mut UpdateQueue) {
+// a queue of updates to the world to be applied at the end of the tick
+// Note I did not use queues crate because it clones the objects in the
+// Queue and we specifically want to pass object ownership for e.g.
+// AddCreature(Creature)
+pub type UpdateQueue = Vec<Update>;
+
+/// Represent the possible world update service requests that
+/// Entities can place on the update queue.
+pub enum Update {
+    AddEntity(Creature),
+    MoveEntity(u64, Coord, Coord),
+    RemoveEntity(u64, Coord),
+}
+
+impl Creature {
+    fn reproduce(&mut self, queue: &mut UpdateQueue) {
         let mut child = Creature::new(self.coord, self.config);
-        self.code.energy /= 2;
-        child.code.energy = self.code.energy;
+        self.energy /= 2;
+        child.energy = self.energy;
         // child is spawned to the left unless we are against the left wall
         if self.coord.x == 0 {
             child.coord.x += 1;

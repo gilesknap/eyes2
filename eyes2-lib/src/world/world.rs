@@ -1,4 +1,4 @@
-use crate::entity::{Creature, Entity, Update, UpdateQueue};
+use crate::entity::{Creature, Update, UpdateQueue};
 use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
