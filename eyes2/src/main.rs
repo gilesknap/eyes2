@@ -108,6 +108,7 @@ fn performance_test(settings: Settings) {
         creature_move_energy: 0,
         creature_idle_energy: 0,
         creature_move_rate: 0.005,
+        grass_energy: 0,
         speed: 10,
 
         ..settings

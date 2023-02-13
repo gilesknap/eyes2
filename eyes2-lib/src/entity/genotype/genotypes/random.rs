@@ -4,6 +4,7 @@
 use super::{Genotype, GenotypeActions};
 use crate::utils::random_direction;
 use crate::Settings;
+use direction::Direction;
 use fastrand::Rng as FastRng;
 
 #[derive(Clone, Debug)]
@@ -11,6 +12,7 @@ pub struct RandomGenomeType {
     config: Settings,
     energy: i32,
     rng: FastRng,
+    direction: Direction,
 }
 
 impl Genotype for RandomGenomeType {
@@ -20,8 +22,8 @@ impl Genotype for RandomGenomeType {
         }
 
         if self.rng.f32() <= self.config.creature_move_rate {
-            let direction = random_direction(&self.rng);
-            return GenotypeActions::Move(direction);
+            self.direction = random_direction(&self.rng);
+            return GenotypeActions::Move(self.direction);
         }
 
         GenotypeActions::None
@@ -38,6 +40,7 @@ impl RandomGenomeType {
             config,
             energy: 0,
             rng: FastRng::new(),
+            direction: Direction::North,
         }
     }
 
