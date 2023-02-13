@@ -1,93 +1,167 @@
-//! represents a creature in the world that can eat grass and reproduce
+//! The representation of a creature in the world
 //!
-mod code;
-use super::entity::{Entity, Update, UpdateQueue};
-use crate::settings::Settings;
-use crate::utils::{move_pos, random_direction};
-use code::Processor;
-use direction::Coord;
+//! This module implements the generic behaviour of a creature and enforces
+//! the rules of the world. The rules are:-
+//!
+//! 1. A creature can move one cell in any of the 8 directions (including diagonals)
+//! 2. A herbivore can eat grass if it is in the same cell as the grass
+//! 3. A carnivore can eat another creature if it is in the same cell as the other creature
+//! 4. A creature can reproduce if it has enough energy
+//! 5. A creature dies if it has no energy
+//! 6. A creature can request the value adjacent cells (i.e. the vision in 'eyes)
+//!
+//! The rules are implemented in the tick() method which is called once per tick
+//! of the world. Global settings control the energy costs and rewards of each action.
+//!
+//! The specific behaviour of an individual is determined by its genotype.
+//!
+//! genotypes must implement the Genotype trait and are registered in the
+//! new_genotype() function.
+//!
+//! genotypes call back into the creature to perform actions such as moving
+//! 'looking' via the GenotypeCallback trait.
+//!
+use crate::utils::move_pos;
+use std::rc::Rc;
+use std::sync::mpsc;
+
+use super::genotype::genotype::GenotypeActions;
+use super::Update;
+
+use super::{new_genotype, Genotype};
+use crate::Settings;
+use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 
-#[derive(Debug)]
 pub struct Creature {
+    // the unique id of the creature used to identify it in the world
     id: u64,
+    // the position of the creature in the world for reverse lookup
     coord: Coord,
-    code: Processor,
+    // the amount of energy the creature has
+    energy: i32,
+    // global settings for the world which include generic creature settings
     config: Settings,
-    rng: FastRng,
+    // transmitter to send updates to the world
+    tx: Rc<mpsc::Sender<Update>>,
+    // the world rules are different for herbivores and carnivores
+    _herbivore: bool,
+    // the genotype of the creature which determines its behaviour
+    genotype: Box<dyn Genotype>,
+    // the sigil used to represent the creature in the world
+    sigil: char,
 }
 
-impl Entity for Creature {
-    fn new(coord: Coord, config: Settings) -> Creature {
-        let rng = FastRng::new();
+// The representation of a creature in the world
+impl Creature {
+    pub fn new(
+        genotype: &str,
+        coord: Coord,
+        config: Settings,
+        tx: Rc<mpsc::Sender<Update>>,
+    ) -> Creature {
         let (b, e) = config.creature_initial_energy;
+
+        // TODO maybe pass a pre-created rng around to avoid creating a new one each time
+        let rng = FastRng::new();
         let energy = rng.i32(b..e);
+        let genotype = new_genotype(genotype, config.clone()).expect("unknown genotype requested");
+        let sigil = genotype.get_sigil();
+
         Creature {
             id: 0,
             coord,
-            code: Processor::new(energy),
-            rng,
+            energy,
             config,
+            tx,
+            _herbivore: true,
+            genotype,
+            sigil: sigil,
         }
     }
 
-    fn id(&self) -> u64 {
+    pub fn id(&self) -> u64 {
         self.id
     }
 
-    fn coord(&self) -> Coord {
+    pub fn coord(&self) -> Coord {
         self.coord
     }
 
-    fn move_to(&mut self, pos: Coord) {
+    pub fn move_to(&mut self, pos: Coord) {
         self.coord = pos;
     }
 
-    fn set_id(&mut self, id: u64) {
+    pub fn set_id(&mut self, id: u64) {
         // id is immutable once set
         if self.id == 0 {
             self.id = id;
         }
     }
 
-    fn tick(&mut self, queue: &mut UpdateQueue) {
-        self.tick(queue)
+    pub fn eat(&mut self, amount: i32) {
+        self.energy += amount;
+        self.genotype.set_energy(self.energy);
     }
-}
 
-impl Creature {
-    pub fn tick(&mut self, queue: &mut UpdateQueue) {
-        self.code.energy -= self.config.creature_idle_energy;
+    pub fn tick(&mut self) {
+        self.energy -= self.config.creature_idle_energy;
 
-        self.code.tick();
+        // check for death
+        if self.energy <= 0 {
+            self.tx
+                .send(Update::RemoveEntity(self.id, self.coord()))
+                .expect("failed to send remove entity");
+            return;
+        }
 
-        if self.code.energy <= 0 {
-            queue.push(Update::RemoveEntity(self.id, self.coord()));
-        } else if self.code.energy >= self.config.creature_reproduction_energy {
-            self.reproduce(queue);
-        } else if self.rng.f32() <= self.config.creature_move_rate {
-            let direction = random_direction(&self.rng);
-            let new_pos = move_pos(self.coord, direction, self.config.size);
-
-            self.code.energy -= self.config.creature_move_energy;
-            queue.push(Update::MoveEntity(self.id(), self.coord(), new_pos));
+        // call the genotype specific tick method
+        match self.genotype.tick() {
+            GenotypeActions::Move(direction) => self.move_dir(direction),
+            GenotypeActions::Reproduce(genotype) => self.reproduce(genotype),
+            GenotypeActions::Look(direction) => self.look(direction),
+            GenotypeActions::None => {}
         }
     }
 
-    pub fn eat(&mut self, amount: i32) {
-        self.code.energy += amount;
+    pub fn get_sigil(&self) -> char {
+        self.sigil
     }
+}
 
-    pub fn reproduce(&mut self, queue: &mut UpdateQueue) {
-        let mut child = Creature::new(self.coord, self.config);
-        self.code.energy /= 2;
-        child.code.energy = self.code.energy;
+// private instance methods
+impl Creature {
+    fn reproduce(&mut self, genotype: Box<dyn Genotype>) {
+        // TODO need to get child genotype into the new child
+        let mut child = Creature::new(
+            genotype.get_name().as_str(),
+            self.coord,
+            self.config.clone(),
+            self.tx.clone(),
+        );
+        self.energy /= 2;
+        child.energy = self.energy;
         // child is spawned to the left unless we are against the left wall
         if self.coord.x == 0 {
             child.coord.x += 1;
         } else {
             child.coord.x -= 1
         }
-        queue.push(Update::AddEntity(child));
+        self.tx
+            .send(Update::AddEntity(child))
+            .expect("creature reproduce failed");
+    }
+
+    fn move_dir(&mut self, direction: Direction) {
+        let new_pos = move_pos(self.coord, direction, self.config.size);
+
+        self.energy -= self.config.creature_move_energy;
+        self.tx
+            .send(Update::MoveEntity(self.id(), self.coord(), new_pos))
+            .expect("failed to send move entity");
+    }
+
+    fn look(&mut self, _direction: Direction) {
+        // TODO
     }
 }

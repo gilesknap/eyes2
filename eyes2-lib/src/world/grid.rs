@@ -29,7 +29,7 @@ pub enum Cell {
     Empty,
 
     // the cell is occupied by a Creature (with a unique number)
-    Entity(u64),
+    Entity(u64, char),
 
     // the cell is occupied by a block of grass
     Grass,

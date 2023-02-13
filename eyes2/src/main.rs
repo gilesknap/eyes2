@@ -12,7 +12,7 @@ struct Args {
     /// run a performance test
     #[arg(short, long)]
     performance: bool,
-    // reset settings to defaults
+    /// reset settings to defaults
     #[arg(short, long)]
     reset: bool,
 }
@@ -22,7 +22,7 @@ struct Args {
 // a delay there is in the main loop. Playing with these values can
 // give a relatively smooth control of the speed of the simulation.
 // These two arrays represent that tradeoff.
-const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 10000, 100000];
+const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 1000, 1000];
 const SPEED_DELAY: [u64; 10] = [1000, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
@@ -45,6 +45,7 @@ fn world_loop(mut settings: Settings) {
     // setup channels for gui and world thread communications
     let (tx_grid, rx_grid) = mpsc::channel();
     let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
+    let mut paused = false;
 
     // launch the gui thread
     thread::spawn(move || {
@@ -55,7 +56,7 @@ fn world_loop(mut settings: Settings) {
     let mut restarts = 0;
     // outer loop continues until user quits or resets the world
     'outer: loop {
-        let mut world = World::new(settings, restarts);
+        let mut world = World::new(settings.clone(), restarts);
 
         world.populate();
 
@@ -69,6 +70,7 @@ fn world_loop(mut settings: Settings) {
                     match next_cmd.unwrap() {
                         GuiCmd::Reset => break 'inner,
                         GuiCmd::Quit => break 'outer,
+                        GuiCmd::Pause => paused = !paused,
                         GuiCmd::SpeedUp => world.grid.increment_speed(true),
                         GuiCmd::SpeedDown => world.grid.increment_speed(false),
                         GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
@@ -84,11 +86,13 @@ fn world_loop(mut settings: Settings) {
                     ));
                 }
             }
-            world.grid.ticks += 1;
-            world.tick();
+            if !paused {
+                world.grid.ticks += 1;
+                world.tick();
+            }
 
             if world.creature_count() == 0 {
-                break;
+                break 'inner;
             }
         }
         // copy variable config to the next world
@@ -103,13 +107,14 @@ fn performance_test(settings: Settings) {
     let test_settings = Settings {
         size: 40,
         grass_count: 1000,
-        creature_count: 50,
         grass_rate: 50,
         creature_move_energy: 0,
         creature_idle_energy: 0,
         creature_move_rate: 0.005,
+        grass_energy: 0,
         speed: 10,
 
+        creatures: vec![("random".to_string(), 50)],
         ..settings
     };
 

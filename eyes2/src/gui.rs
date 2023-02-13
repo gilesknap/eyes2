@@ -15,13 +15,14 @@ use std::{
 use direction::Coord;
 use pancurses::{
     endwin, init_pair, initscr, start_color, ColorPair, COLOR_BLACK, COLOR_BLUE, COLOR_GREEN,
-    COLOR_RED,
+    COLOR_RED, COLOR_WHITE,
 };
 
 const RED: u8 = 1;
 const GREEN: u8 = 2;
 const BLACK: u8 = 3;
 const BLUE: u8 = 4;
+const CREATURE: u8 = 5;
 
 #[derive(Debug, Clone)]
 pub enum GuiCmd {
@@ -41,6 +42,7 @@ pub struct EyesGui {
     window: pancurses::Window,
     left_pane: pancurses::Window,
     right_pane: pancurses::Window,
+    help_pane: pancurses::Window,
     y_max: i32,
     x_max: i32,
     last_tick: u64,
@@ -53,9 +55,11 @@ impl EyesGui {
         // choose some minimal initial sizes
         let left_pane = pancurses::newwin(1, 1, 0, 0);
         let right_pane = pancurses::newwin(1, 1, 0, 3);
+        let help_pane = pancurses::newwin(20, 44, 3, 10);
 
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
+        init_pair(CREATURE as i16, COLOR_WHITE, COLOR_BLACK);
         init_pair(GREEN as i16, COLOR_GREEN, COLOR_BLACK);
         init_pair(BLUE as i16, COLOR_BLUE, COLOR_BLACK);
         init_pair(BLACK as i16, COLOR_BLACK, COLOR_BLACK);
@@ -68,12 +72,12 @@ impl EyesGui {
 
         pancurses::curs_set(0);
         pancurses::noecho();
-        // pancurses::raw();
 
         EyesGui {
             window,
             left_pane,
             right_pane,
+            help_pane,
             y_max: 0,
             x_max: 0,
             last_tick: 0,
@@ -97,7 +101,7 @@ impl EyesGui {
 
             let grid: WorldGrid = rx_grid.recv()?;
             self.render(grid);
-            thread::sleep(time::Duration::from_millis(100));
+            thread::sleep(time::Duration::from_millis(50));
         }
         Ok(())
     }
@@ -116,7 +120,8 @@ impl EyesGui {
 
         let l = &Locale::en;
         let rate = {
-            let ticks = grid.ticks - self.last_tick;
+            // use i64 and max to avoid anomalous behavior when ticks reset
+            let ticks = max(0, grid.ticks as i64 - self.last_tick as i64);
             let time = self.last_tick_time.elapsed().as_secs_f64();
             ((ticks as f64 / time) as u64).to_formatted_string(l)
         };
@@ -130,17 +135,23 @@ impl EyesGui {
         self.status(6, "grass:", &grid.grass_count().to_string());
         self.status(8, "speed:", &grid.speed.to_string());
         self.status(9, "grass rate:", &grid.grass_rate.to_string());
+
+        self.footer(" q: quit, h: help ");
     }
 
     pub fn get_cmd(&mut self) -> GuiCmd {
         let result = match self.window.getch() {
             Some(pancurses::Input::Character('q')) => GuiCmd::Quit,
-            Some(pancurses::Input::Character(' ')) => GuiCmd::SpeedMax,
+            Some(pancurses::Input::Character(' ')) => GuiCmd::Pause,
             Some(pancurses::Input::Character('r')) => GuiCmd::Reset,
             Some(pancurses::Input::KeyUp) => GuiCmd::SpeedUp,
             Some(pancurses::Input::KeyDown) => GuiCmd::SpeedDown,
             Some(pancurses::Input::KeyRight) => GuiCmd::GrassUp,
             Some(pancurses::Input::KeyLeft) => GuiCmd::GrassDown,
+            Some(pancurses::Input::Character('h')) => {
+                self.show_help();
+                GuiCmd::None
+            }
             _ => GuiCmd::None,
         };
         pancurses::flushinp();
@@ -184,15 +195,24 @@ impl EyesGui {
                         self.left_pane.printw("o");
                         self.left_pane.attroff(ColorPair(GREEN));
                     }
-                    Cell::Entity(_) => {
-                        self.left_pane.attron(ColorPair(RED));
-                        self.left_pane.printw("X");
-                        self.left_pane.attroff(ColorPair(RED));
+                    Cell::Entity(_, sigil) => {
+                        self.left_pane.attron(ColorPair(CREATURE));
+                        self.left_pane.addch(sigil);
+                        self.left_pane.attroff(ColorPair(CREATURE));
                     }
                 };
             }
         }
         self.left_pane.refresh();
+    }
+
+    fn footer(&mut self, text: &str) {
+        let (height, width) = self.right_pane.get_max_yx();
+        // center the text
+        let left = (width - text.len() as i32) / 2;
+        self.right_pane.mv(height - 1, left);
+        self.right_pane.addnstr(text, width as usize - 2);
+        self.right_pane.refresh();
     }
 
     fn status(&mut self, pos: i32, label: &str, value: &str) {
@@ -215,6 +235,31 @@ impl EyesGui {
             .addnstr(padded, (width - margin - borders) as usize);
 
         self.right_pane.refresh();
+    }
+
+    fn show_help(&mut self) {
+        let help = "
+  -------------- COMMANDS ---------------
+
+                q:   quit
+                r:   reset world
+            space:   pause the world
+          up/down:   speed up/down
+       left/right:   grass up/down
+                h:   show this help
+
+  ---------------------------------------
+
+  See this file for world config:
+  $HOME/.config/eyes2/default-config.toml
+
+  launch with -r to reset the config file
+  launch with --help for more options";
+        self.help_pane.mvaddstr(1, 3, help);
+        self.help_pane.refresh();
+        self.help_pane.draw_box(0, 0);
+        self.help_pane.getch();
+        self.y_max = 0; // force a resize which will redraw everything
     }
 }
 

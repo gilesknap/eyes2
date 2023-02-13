@@ -7,7 +7,6 @@ fn get_config() -> Settings {
     Settings {
         size: 40,
         grass_count: 10,
-        creature_count: 25,
         grass_rate: 5000,
         grass_energy: 1000,
         creature_move_energy: 100,
@@ -31,11 +30,11 @@ fn check_add_creature() {
 #[test]
 fn check_populate() {
     let config = get_config();
-    let mut world = World::new(config, 0);
+    let mut world = World::new(config.clone(), 0);
     world.populate();
 
     assert!(world.grid.grass_count() <= config.grass_count as usize);
-    assert!(world.creature_count() <= config.creature_count as u64);
+    // assert!(world.creature_count() <= config.creature_count as u64);
 
     let _creature_count = world.creature_count();
 
