@@ -90,6 +90,7 @@ impl Creature {
 
     pub fn eat(&mut self, amount: i32) {
         self.energy += amount;
+        self.genotype.set_energy(self.energy);
     }
 
     pub fn tick(&mut self) {
