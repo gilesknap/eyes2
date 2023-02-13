@@ -8,14 +8,14 @@ use direction::Direction;
 use fastrand::Rng as FastRng;
 
 #[derive(Clone, Debug)]
-pub struct RandomGenomeType {
+pub struct RandomGenotype {
     config: Settings,
     energy: i32,
     rng: FastRng,
     direction: Direction,
 }
 
-impl Genotype for RandomGenomeType {
+impl Genotype for RandomGenotype {
     fn tick(&mut self) -> GenotypeActions {
         if self.energy >= self.config.creature_reproduction_energy {
             return GenotypeActions::Reproduce(Box::new(self.reproduce()));
@@ -42,9 +42,9 @@ impl Genotype for RandomGenomeType {
     }
 }
 
-impl RandomGenomeType {
-    pub fn new(config: Settings) -> RandomGenomeType {
-        RandomGenomeType {
+impl RandomGenotype {
+    pub fn new(config: Settings) -> RandomGenotype {
+        RandomGenotype {
             config,
             energy: 0,
             rng: FastRng::new(),

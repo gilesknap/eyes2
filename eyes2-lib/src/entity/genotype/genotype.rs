@@ -1,8 +1,5 @@
 use direction::Direction;
 
-use super::genotypes::giles::GilesGenotype;
-use super::genotypes::noop::NoopGenotype;
-use super::genotypes::random::RandomGenomeType;
 use crate::Settings;
 // use crate::entity::Creature;
 // use crate::Settings;
@@ -43,9 +40,9 @@ pub enum GenotypeActions {
 // interface to the Genotype trait.
 pub fn new_genotype(which: &str, config: Settings) -> Result<Box<dyn Genotype>, BadGenomeError> {
     let genotype: Box<dyn Genotype> = match which {
-        "giles" => Box::new(GilesGenotype::new(config)),
-        "noop" => Box::new(NoopGenotype::new(config)),
-        "random" => Box::new(RandomGenomeType::new(config)),
+        "giles" => Box::new(super::genotypes::giles::GilesGenotype::new(config)),
+        "noop" => Box::new(super::genotypes::noop::NoopGenotype::new(config)),
+        "random" => Box::new(super::genotypes::random::RandomGenotype::new(config)),
         _ => return Err(BadGenomeError::InvalidGenome),
     };
     Ok(genotype)

@@ -15,13 +15,14 @@ use std::{
 use direction::Coord;
 use pancurses::{
     endwin, init_pair, initscr, start_color, ColorPair, COLOR_BLACK, COLOR_BLUE, COLOR_GREEN,
-    COLOR_RED,
+    COLOR_RED, COLOR_WHITE,
 };
 
 const RED: u8 = 1;
 const GREEN: u8 = 2;
 const BLACK: u8 = 3;
 const BLUE: u8 = 4;
+const CREATURE: u8 = 5;
 
 #[derive(Debug, Clone)]
 pub enum GuiCmd {
@@ -58,6 +59,7 @@ impl EyesGui {
 
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
+        init_pair(CREATURE as i16, COLOR_WHITE, COLOR_BLACK);
         init_pair(GREEN as i16, COLOR_GREEN, COLOR_BLACK);
         init_pair(BLUE as i16, COLOR_BLUE, COLOR_BLACK);
         init_pair(BLACK as i16, COLOR_BLACK, COLOR_BLACK);
@@ -194,9 +196,9 @@ impl EyesGui {
                         self.left_pane.attroff(ColorPair(GREEN));
                     }
                     Cell::Entity(_, sigil) => {
-                        self.left_pane.attron(ColorPair(RED));
+                        self.left_pane.attron(ColorPair(CREATURE));
                         self.left_pane.addch(sigil);
-                        self.left_pane.attroff(ColorPair(RED));
+                        self.left_pane.attroff(ColorPair(CREATURE));
                     }
                 };
             }

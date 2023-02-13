@@ -75,7 +75,11 @@ impl ::std::default::Default for Settings {
             speed: 9,
             grass_rate: 85,
 
-            creatures: vec![("random".to_string(), 10), ("noop".to_string(), 10)],
+            creatures: vec![
+                ("random".to_string(), 10),
+                ("noop".to_string(), 10),
+                ("giles".to_string(), 10),
+            ],
         }
     }
 }
