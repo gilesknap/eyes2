@@ -1,3 +1,9 @@
+use crate::utils::move_pos;
+use std::rc::Rc;
+use std::sync::mpsc;
+
+use super::genotype::genotype::GenotypeCallback;
+use super::Update;
 /// The representation of a creature in the world
 ///
 /// This module implements the generic behaviour of a creature and enforces
@@ -15,13 +21,16 @@
 ///
 /// The specific behaviour of an individual is determined by its genotype.
 ///
+/// genotypes must implement the Genotype trait and are registered in the
+/// new_genotype() function.
+///
+/// genotypes call back into the creature to perform actions such as moving
+/// 'looking' via the GenotypeCallback trait.
+///
 use super::{new_genotype, Genotype};
-use super::{Update, UpdateQueue};
 use crate::Settings;
-use direction::Coord;
+use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
-
-use crate::utils::{move_pos, random_direction};
 
 pub struct Creature {
     // the unique id of the creature used to identify it in the world
@@ -32,8 +41,8 @@ pub struct Creature {
     energy: i32,
     // global settings for the world which include generic creature settings
     config: Settings,
-    // each creature has its own random number generator
-    rng: FastRng,
+    // transmitter to send updates to the world
+    tx: Rc<mpsc::Sender<Update>>,
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
@@ -42,20 +51,20 @@ pub struct Creature {
 
 // The representation of a creature in the world
 impl Creature {
-    pub fn new(coord: Coord, config: Settings) -> Creature {
-        let rng = FastRng::new();
+    pub fn new(coord: Coord, config: Settings, tx: Rc<mpsc::Sender<Update>>) -> Creature {
         let (b, e) = config.creature_initial_energy;
-        let energy = rng.i32(b..e);
+        // TODO maybe pass a pre-created rng around to avoid creating a new one each time
+        let energy = FastRng::new().i32(b..e);
 
         // YAY! polymorphism in rust!
-        let genotype = new_genotype("random").expect("unknown genotype requested");
+        let genotype = new_genotype("random", config).expect("unknown genotype requested");
 
         Creature {
             id: 0,
             coord,
             energy,
-            rng,
             config,
+            tx,
             _herbivore: true,
             _genotype: genotype,
         }
@@ -84,27 +93,23 @@ impl Creature {
         self.energy += amount;
     }
 
-    pub fn tick(&mut self, queue: &mut UpdateQueue) {
+    pub fn tick(&mut self) {
         self.energy -= self.config.creature_idle_energy;
 
+        // check for death
         if self.energy <= 0 {
-            queue.push(Update::RemoveEntity(self.id, self.coord()));
-        } else if self.energy >= self.config.creature_reproduction_energy {
-            self.reproduce(queue);
-        } else if self.rng.f32() <= self.config.creature_move_rate {
-            let direction = random_direction(&self.rng);
-            let new_pos = move_pos(self.coord, direction, self.config.size);
-
-            self.energy -= self.config.creature_move_energy;
-            queue.push(Update::MoveEntity(self.id(), self.coord(), new_pos));
+            self.tx.send(Update::RemoveEntity(self.id, self.coord()));
+        } else {
+            // call the genotype specific tick method
+            self._genotype.tick();
         }
     }
 }
 
 // private instance methods
 impl Creature {
-    fn reproduce(&mut self, queue: &mut UpdateQueue) {
-        let mut child = Creature::new(self.coord, self.config);
+    fn reproduce(&mut self) {
+        let mut child = Creature::new(self.coord, self.config, self.tx.clone());
         self.energy /= 2;
         child.energy = self.energy;
         // child is spawned to the left unless we are against the left wall
@@ -113,6 +118,22 @@ impl Creature {
         } else {
             child.coord.x -= 1
         }
-        queue.push(Update::AddEntity(child));
+        self.tx
+            .send(Update::AddEntity(child))
+            .expect("creature reproduce failed");
     }
+}
+
+// The GenotypeCallback trait is implemented by the creature to allow the genotype
+// to call back into the creature to perform actions
+impl GenotypeCallback for Creature {
+    fn move_dir(&mut self, direction: Direction) {
+        let new_pos = move_pos(self.coord, direction, self.config.size);
+
+        self.energy -= self.config.creature_move_energy;
+        self.tx
+            .send(Update::MoveEntity(self.id(), self.coord(), new_pos));
+    }
+    fn reproduce(&mut self, child: Box<dyn Genotype>) {}
+    fn look(&mut self, direction: Direction) {}
 }
