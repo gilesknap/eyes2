@@ -32,6 +32,9 @@ impl Genotype for GilesGenotype {
     }
 
     fn tick(&mut self) -> GenotypeActions<Self> {
+        if self.config.grass_count == 0 {
+            return GenotypeActions::None;
+        }
         GenotypeActions::None
     }
     fn set_energy(&mut self, _energy: i32) {}
