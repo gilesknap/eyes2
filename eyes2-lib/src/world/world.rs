@@ -73,13 +73,21 @@ impl World {
             let y = self.rng.i32(0..self.config.size as i32 - 1);
             self.grid.add_grass(Coord { x, y });
         }
-        for _ in 0..self.config.creature_count as usize {
-            let x = self.rng.i32(0..self.config.size as i32);
-            let y = self.rng.i32(0..self.config.size as i32);
+        for creature in self.config.creatures.iter() {
+            for _ in 0..creature.1 {
+                let x = self.rng.i32(0..self.config.size as i32);
+                let y = self.rng.i32(0..self.config.size as i32);
 
-            let creature = Creature::new(Coord { x, y }, self.config.clone(), self.tx.clone());
-            self.tx.send(Update::AddEntity(creature)).unwrap();
+                let creature = Creature::new(
+                    creature.0.as_str(),
+                    Coord { x, y },
+                    self.config.clone(),
+                    self.tx.clone(),
+                );
+                self.tx.send(Update::AddEntity(creature)).unwrap();
+            }
         }
+
         self.apply_updates();
     }
 

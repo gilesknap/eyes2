@@ -1,3 +1,11 @@
+//! A reimplemented of the assembly code language for controlling herbivores
+//! as implemented in my original eyes project from 1999.
+//!
+//! The original code is here: https://github.com/gilesknap/eyes
+//! (its not that pretty - hopefully my coding has improved in the last 20 years!)
+//!
+//! TODO this is still work in progress
+//!
 use crate::Settings;
 
 use super::{Genotype, GenotypeActions};
@@ -27,6 +35,10 @@ impl Genotype for GilesGenotype {
 
     fn get_sigil(&self) -> char {
         'G'
+    }
+
+    fn get_name(&self) -> String {
+        "giles".to_string()
     }
 }
 

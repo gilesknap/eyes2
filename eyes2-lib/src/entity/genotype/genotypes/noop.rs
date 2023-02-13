@@ -15,11 +15,17 @@ impl Genotype for NoopGenotype {
         let _dummy = self.config.size;
         GenotypeActions::None
     }
+
     fn set_energy(&mut self, energy: i32) {
         self.energy = energy;
     }
+
     fn get_sigil(&self) -> char {
         'N'
+    }
+
+    fn get_name(&self) -> String {
+        "noop".to_string()
     }
 }
 

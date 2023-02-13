@@ -36,6 +36,10 @@ impl Genotype for RandomGenomeType {
     fn get_sigil(&self) -> char {
         'R'
     }
+
+    fn get_name(&self) -> String {
+        "random".to_string()
+    }
 }
 
 impl RandomGenomeType {

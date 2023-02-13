@@ -55,7 +55,7 @@ fn world_loop(mut settings: Settings) {
     let mut restarts = 0;
     // outer loop continues until user quits or resets the world
     'outer: loop {
-        let mut world = World::new(settings, restarts);
+        let mut world = World::new(settings.clone(), restarts);
 
         world.populate();
 
@@ -103,7 +103,6 @@ fn performance_test(settings: Settings) {
     let test_settings = Settings {
         size: 40,
         grass_count: 1000,
-        creature_count: 50,
         grass_rate: 50,
         creature_move_energy: 0,
         creature_idle_energy: 0,
@@ -111,6 +110,7 @@ fn performance_test(settings: Settings) {
         grass_energy: 0,
         speed: 10,
 
+        creatures: vec![("random".to_string(), 50)],
         ..settings
     };
 

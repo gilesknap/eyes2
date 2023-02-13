@@ -25,6 +25,7 @@ pub trait Genotype {
     fn get_sigil(&self) -> char {
         'D'
     }
+    fn get_name(&self) -> String;
 }
 
 // The genotype's tick method returns one of these actions. Creature

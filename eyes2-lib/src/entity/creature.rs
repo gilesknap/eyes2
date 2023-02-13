@@ -1,32 +1,33 @@
+//! The representation of a creature in the world
+//!
+//! This module implements the generic behaviour of a creature and enforces
+//! the rules of the world. The rules are:-
+//!
+//! 1. A creature can move one cell in any of the 8 directions (including diagonals)
+//! 2. A herbivore can eat grass if it is in the same cell as the grass
+//! 3. A carnivore can eat another creature if it is in the same cell as the other creature
+//! 4. A creature can reproduce if it has enough energy
+//! 5. A creature dies if it has no energy
+//! 6. A creature can request the value adjacent cells (i.e. the vision in 'eyes)
+//!
+//! The rules are implemented in the tick() method which is called once per tick
+//! of the world. Global settings control the energy costs and rewards of each action.
+//!
+//! The specific behaviour of an individual is determined by its genotype.
+//!
+//! genotypes must implement the Genotype trait and are registered in the
+//! new_genotype() function.
+//!
+//! genotypes call back into the creature to perform actions such as moving
+//! 'looking' via the GenotypeCallback trait.
+//!
 use crate::utils::move_pos;
 use std::rc::Rc;
 use std::sync::mpsc;
 
 use super::genotype::genotype::GenotypeActions;
 use super::Update;
-/// The representation of a creature in the world
-///
-/// This module implements the generic behaviour of a creature and enforces
-/// the rules of the world. The rules are:-
-///
-/// 1. A creature can move one cell in any of the 8 directions (including diagonals)
-/// 2. A herbivore can eat grass if it is in the same cell as the grass
-/// 3. A carnivore can eat another creature if it is in the same cell as the other creature
-/// 4. A creature can reproduce if it has enough energy
-/// 5. A creature dies if it has no energy
-/// 6. A creature can request the value adjacent cells (i.e. the vision in 'eyes)
-///
-/// The rules are implemented in the tick() method which is called once per tick
-/// of the world. Global settings control the energy costs and rewards of each action.
-///
-/// The specific behaviour of an individual is determined by its genotype.
-///
-/// genotypes must implement the Genotype trait and are registered in the
-/// new_genotype() function.
-///
-/// genotypes call back into the creature to perform actions such as moving
-/// 'looking' via the GenotypeCallback trait.
-///
+
 use super::{new_genotype, Genotype};
 use crate::Settings;
 use direction::{Coord, Direction};
@@ -53,16 +54,18 @@ pub struct Creature {
 
 // The representation of a creature in the world
 impl Creature {
-    pub fn new(coord: Coord, config: Settings, tx: Rc<mpsc::Sender<Update>>) -> Creature {
+    pub fn new(
+        genotype: &str,
+        coord: Coord,
+        config: Settings,
+        tx: Rc<mpsc::Sender<Update>>,
+    ) -> Creature {
         let (b, e) = config.creature_initial_energy;
 
         // TODO maybe pass a pre-created rng around to avoid creating a new one each time
         let rng = FastRng::new();
         let energy = rng.i32(b..e);
-        let genotypes = ["random", "giles", "noop"];
-
-        let genotype =
-            new_genotype(genotypes[rng.usize(0..3)], config).expect("unknown genotype requested");
+        let genotype = new_genotype(genotype, config.clone()).expect("unknown genotype requested");
         let sigil = genotype.get_sigil();
 
         Creature {
@@ -115,7 +118,7 @@ impl Creature {
         // call the genotype specific tick method
         match self.genotype.tick() {
             GenotypeActions::Move(direction) => self.move_dir(direction),
-            GenotypeActions::Reproduce(child) => self.reproduce(child),
+            GenotypeActions::Reproduce(genotype) => self.reproduce(genotype),
             GenotypeActions::Look(direction) => self.look(direction),
             GenotypeActions::None => {}
         }
@@ -128,9 +131,14 @@ impl Creature {
 
 // private instance methods
 impl Creature {
-    fn reproduce(&mut self, _child: Box<dyn Genotype>) {
+    fn reproduce(&mut self, genotype: Box<dyn Genotype>) {
         // TODO need to get child genotype into the new child
-        let mut child = Creature::new(self.coord, self.config, self.tx.clone());
+        let mut child = Creature::new(
+            genotype.get_name().as_str(),
+            self.coord,
+            self.config.clone(),
+            self.tx.clone(),
+        );
         self.energy /= 2;
         child.energy = self.energy;
         // child is spawned to the left unless we are against the left wall
