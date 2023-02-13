@@ -116,17 +116,19 @@ impl World {
                     let id = self.get_next_id();
                     creature.set_id(id);
                     let cell = self.grid.get_cell(coord);
+                    // Maybe a better way to do this but I wanted to try closures!
+                    let add_creature = || {
+                        self.creatures.insert(id, creature);
+                        self.grid.creature_count = self.creature_count();
+                    };
                     match cell {
-                        Cell::Empty => {
-                            self.creatures.insert(id, creature);
-                            self.grid.creature_count = self.creature_count();
-                        }
+                        Cell::Empty => add_creature(),
                         Cell::Grass => {
-                            self.creatures.insert(id, creature); // TODO how to out this repetition?
-                            self.grid.creature_count = self.creature_count();
+                            add_creature();
                             self.eat_grass(coord, id);
                         }
-                        _ => continue, // skip add if there is already a creature in the cell
+                        // skip add if there is already a creature in the cell
+                        Cell::Entity(_) => continue,
                     };
                     self.grid.set_cell(coord, Cell::Entity(id));
                 }

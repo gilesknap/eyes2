@@ -23,6 +23,9 @@ pub trait Genotype {
     fn set_energy(&mut self, energy: i32);
 }
 
+// The genotype's tick method returns one of these actions. The creature
+// will pass the request on to the world which will will verify the
+// action is valid and then update the world state accordingly.
 pub enum GenotypeActions {
     Reproduce(Box<dyn Genotype>),
     Move(Direction),
