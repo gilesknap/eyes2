@@ -113,11 +113,13 @@ fn performance_test(settings: Settings) {
         ..settings
     };
 
-    println!("{:#?}", test_settings);
-    println!("\nPerformance test with above settings ...");
-    println!("\ntypical rate on giles ws1 is 6.7 million ticks/s (49 creatures)\n");
-
     let window = pancurses::initscr();
+
+    window.printw(format!("{:#?}", test_settings));
+    window.printw("\n\nPerformance test with above settings ...");
+    window.printw("\n\ntypical rate on giles ws1 is 6.7 million ticks/s (49 creatures)\n");
+    window.printw("\n\n\npress any key to start");
+
     window.getch();
 
     world_loop(test_settings);
