@@ -22,7 +22,7 @@ struct Args {
 // a delay there is in the main loop. Playing with these values can
 // give a relatively smooth control of the speed of the simulation.
 // These two arrays represent that tradeoff.
-const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 10000, 100000];
+const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 1000, 1000];
 const SPEED_DELAY: [u64; 10] = [1000, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
@@ -113,11 +113,13 @@ fn performance_test(settings: Settings) {
         ..settings
     };
 
-    println!("{:#?}", test_settings);
-    println!("\nPerformance test with above settings ...");
-    println!("\ntypical rate on giles ws1 is 6.7 million ticks/s (49 creatures)\n");
-
     let window = pancurses::initscr();
+
+    window.printw(format!("{:#?}", test_settings));
+    window.printw("\n\nPerformance test with above settings ...");
+    window.printw("\n\ntypical rate on giles ws1 is 6.7 million ticks/s (49 creatures)\n");
+    window.printw("\n\n\npress any key to start");
+
     window.getch();
 
     world_loop(test_settings);

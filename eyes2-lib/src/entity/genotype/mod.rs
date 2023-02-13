@@ -1,3 +1,2 @@
 pub mod genotype;
-pub mod giles;
-pub mod random;
+pub mod genotypes;

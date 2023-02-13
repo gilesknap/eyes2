@@ -1,5 +1,5 @@
-use super::giles::GilesGenotype;
-use super::random::RandomGenotype;
+use super::genotypes::giles::GilesGenotype;
+use super::genotypes::random::RandomGenotype;
 
 use crate::entity::update::UpdateQueue;
 // use crate::entity::Creature;

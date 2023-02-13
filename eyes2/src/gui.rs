@@ -97,7 +97,7 @@ impl EyesGui {
 
             let grid: WorldGrid = rx_grid.recv()?;
             self.render(grid);
-            thread::sleep(time::Duration::from_millis(100));
+            thread::sleep(time::Duration::from_millis(50));
         }
         Ok(())
     }
@@ -116,7 +116,8 @@ impl EyesGui {
 
         let l = &Locale::en;
         let rate = {
-            let ticks = grid.ticks - self.last_tick;
+            // use i64 and max to avoid anomalous behavior when ticks reset
+            let ticks = max(0, grid.ticks as i64 - self.last_tick as i64);
             let time = self.last_tick_time.elapsed().as_secs_f64();
             ((ticks as f64 / time) as u64).to_formatted_string(l)
         };
