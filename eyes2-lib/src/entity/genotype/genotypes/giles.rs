@@ -22,7 +22,12 @@ impl Genotype for GilesGenotype {
     fn tick(&mut self) -> GenotypeActions {
         GenotypeActions::None
     }
+
     fn set_energy(&mut self, _energy: i32) {}
+
+    fn get_sigil(&self) -> char {
+        'G'
+    }
 }
 
 impl GilesGenotype {
@@ -39,7 +44,7 @@ impl GilesGenotype {
         }
     }
 
-    pub fn randomize() -> [u16; GENOME] {
+    fn randomize() -> [u16; GENOME] {
         let mut genome = [0; GENOME];
         for i in 0..genome.len() {
             genome[i] = fastrand::u16(..);
@@ -48,7 +53,7 @@ impl GilesGenotype {
     }
 
     // totally dummy instruction set for now
-    pub fn _tick(&mut self) {
+    fn _tick(&mut self) {
         self.ip = (self.ip + 1) % (GENOME as u16);
         let instruction = self.genome[self.ip as usize];
         match instruction {

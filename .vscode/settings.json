@@ -1,6 +1,7 @@
 {
     "rust-analyzer.inlayHints.typeHints.enable": false,
     "cSpell.words": [
+        "addch",
         "addnstr",
         "addstr",
         "attroff",

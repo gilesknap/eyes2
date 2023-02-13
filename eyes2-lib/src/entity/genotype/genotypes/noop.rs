@@ -18,6 +18,9 @@ impl Genotype for NoopGenotype {
     fn set_energy(&mut self, energy: i32) {
         self.energy = energy;
     }
+    fn get_sigil(&self) -> char {
+        'N'
+    }
 }
 
 impl NoopGenotype {

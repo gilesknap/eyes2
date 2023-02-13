@@ -22,10 +22,13 @@ pub trait Genotype {
     // change your internal energy level (this is for reference only as
     // the canonical energy level in in Creature itself)
     fn set_energy(&mut self, energy: i32);
+    fn get_sigil(&self) -> char {
+        'D'
+    }
 }
 
-// The genotype's tick method returns one of these actions. The creature
-// will pass the request on to the world which will will verify the
+// The genotype's tick method returns one of these actions. Creature
+// will pass the request on to the world which will verify the
 // action is valid and then update the world state accordingly.
 pub enum GenotypeActions {
     Reproduce(Box<dyn Genotype>),

@@ -47,6 +47,8 @@ pub struct Creature {
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
     genotype: Box<dyn Genotype>,
+    // the sigil used to represent the creature in the world
+    sigil: char,
 }
 
 // The representation of a creature in the world
@@ -55,8 +57,13 @@ impl Creature {
         let (b, e) = config.creature_initial_energy;
 
         // TODO maybe pass a pre-created rng around to avoid creating a new one each time
-        let energy = FastRng::new().i32(b..e);
-        let genotype = new_genotype("random", config).expect("unknown genotype requested");
+        let rng = FastRng::new();
+        let energy = rng.i32(b..e);
+        let genotypes = ["random", "giles", "noop"];
+
+        let genotype =
+            new_genotype(genotypes[rng.usize(0..3)], config).expect("unknown genotype requested");
+        let sigil = genotype.get_sigil();
 
         Creature {
             id: 0,
@@ -66,6 +73,7 @@ impl Creature {
             tx,
             _herbivore: true,
             genotype,
+            sigil: sigil,
         }
     }
 
@@ -111,6 +119,10 @@ impl Creature {
             GenotypeActions::Look(direction) => self.look(direction),
             GenotypeActions::None => {}
         }
+    }
+
+    pub fn get_sigil(&self) -> char {
+        self.sigil
     }
 }
 

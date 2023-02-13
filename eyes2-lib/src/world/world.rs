@@ -114,6 +114,7 @@ impl World {
                 Update::AddEntity(mut creature) => {
                     let coord = creature.coord();
                     let id = self.get_next_id();
+                    let sigil = creature.get_sigil();
                     creature.set_id(id);
                     let cell = self.grid.get_cell(coord);
                     // Maybe a better way to do this but I wanted to try closures!
@@ -128,9 +129,9 @@ impl World {
                             self.eat_grass(coord, id);
                         }
                         // skip add if there is already a creature in the cell
-                        Cell::Entity(_) => continue,
+                        Cell::Entity(_, _) => continue,
                     };
-                    self.grid.set_cell(coord, Cell::Entity(id));
+                    self.grid.set_cell(coord, Cell::Entity(id, sigil));
                 }
                 Update::RemoveEntity(id, coord) => {
                     self.validate_creature(id, coord);
@@ -145,11 +146,13 @@ impl World {
                         Cell::Empty => {}
                         Cell::Grass => self.eat_grass(new_coord, id),
                         // skip move if there is already a creature in the cell
-                        Cell::Entity(_) => continue,
+                        Cell::Entity(_, _) => continue,
                     }
-                    self.creatures.get_mut(&id).unwrap().move_to(new_coord);
+                    let creature = self.creatures.get_mut(&id).unwrap();
+                    creature.move_to(new_coord);
                     self.grid.set_cell(old_coord, Cell::Empty);
-                    self.grid.set_cell(new_coord, Cell::Entity(id));
+                    self.grid
+                        .set_cell(new_coord, Cell::Entity(id, creature.get_sigil()));
                 }
                 Update::Look(_, _) => {} // TODO implement look
             }
@@ -166,7 +169,7 @@ impl World {
         match cell {
             // TODO I'm going to treat these as panic for now. But maybe once we go multithread there may
             // be requests from creatures that have not yet realized they were deleted
-            Cell::Entity(match_id) => {
+            Cell::Entity(match_id, _) => {
                 if match_id != id {
                     panic!("creature id does not match world grid");
                 }

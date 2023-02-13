@@ -32,6 +32,10 @@ impl Genotype for RandomGenomeType {
     fn set_energy(&mut self, energy: i32) {
         self.energy = energy;
     }
+
+    fn get_sigil(&self) -> char {
+        'R'
+    }
 }
 
 impl RandomGenomeType {
