@@ -45,6 +45,7 @@ fn world_loop(mut settings: Settings) {
     // setup channels for gui and world thread communications
     let (tx_grid, rx_grid) = mpsc::channel();
     let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
+    let mut paused = false;
 
     // launch the gui thread
     thread::spawn(move || {
@@ -69,6 +70,7 @@ fn world_loop(mut settings: Settings) {
                     match next_cmd.unwrap() {
                         GuiCmd::Reset => break 'inner,
                         GuiCmd::Quit => break 'outer,
+                        GuiCmd::Pause => paused = !paused,
                         GuiCmd::SpeedUp => world.grid.increment_speed(true),
                         GuiCmd::SpeedDown => world.grid.increment_speed(false),
                         GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
@@ -84,8 +86,10 @@ fn world_loop(mut settings: Settings) {
                     ));
                 }
             }
-            world.grid.ticks += 1;
-            world.tick();
+            if !paused {
+                world.grid.ticks += 1;
+                world.tick();
+            }
 
             if world.creature_count() == 0 {
                 break 'inner;

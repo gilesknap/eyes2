@@ -41,6 +41,7 @@ pub struct EyesGui {
     window: pancurses::Window,
     left_pane: pancurses::Window,
     right_pane: pancurses::Window,
+    help_pane: pancurses::Window,
     y_max: i32,
     x_max: i32,
     last_tick: u64,
@@ -53,6 +54,7 @@ impl EyesGui {
         // choose some minimal initial sizes
         let left_pane = pancurses::newwin(1, 1, 0, 0);
         let right_pane = pancurses::newwin(1, 1, 0, 3);
+        let help_pane = pancurses::newwin(15, 50, 3, 3);
 
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
@@ -73,6 +75,7 @@ impl EyesGui {
             window,
             left_pane,
             right_pane,
+            help_pane,
             y_max: 0,
             x_max: 0,
             last_tick: 0,
@@ -130,17 +133,23 @@ impl EyesGui {
         self.status(6, "grass:", &grid.grass_count().to_string());
         self.status(8, "speed:", &grid.speed.to_string());
         self.status(9, "grass rate:", &grid.grass_rate.to_string());
+
+        self.footer(" q: quit, h: help ");
     }
 
     pub fn get_cmd(&mut self) -> GuiCmd {
         let result = match self.window.getch() {
             Some(pancurses::Input::Character('q')) => GuiCmd::Quit,
-            Some(pancurses::Input::Character(' ')) => GuiCmd::SpeedMax,
+            Some(pancurses::Input::Character(' ')) => GuiCmd::Pause,
             Some(pancurses::Input::Character('r')) => GuiCmd::Reset,
             Some(pancurses::Input::KeyUp) => GuiCmd::SpeedUp,
             Some(pancurses::Input::KeyDown) => GuiCmd::SpeedDown,
             Some(pancurses::Input::KeyRight) => GuiCmd::GrassUp,
             Some(pancurses::Input::KeyLeft) => GuiCmd::GrassDown,
+            Some(pancurses::Input::Character('h')) => {
+                self.show_help();
+                GuiCmd::None
+            }
             _ => GuiCmd::None,
         };
         pancurses::flushinp();
@@ -195,6 +204,15 @@ impl EyesGui {
         self.left_pane.refresh();
     }
 
+    fn footer(&mut self, text: &str) {
+        let (height, width) = self.right_pane.get_max_yx();
+        // center the text
+        let left = (width - text.len() as i32) / 2;
+        self.right_pane.mv(height - 1, left);
+        self.right_pane.addnstr(text, width as usize - 2);
+        self.right_pane.refresh();
+    }
+
     fn status(&mut self, pos: i32, label: &str, value: &str) {
         let margin = 14;
         let borders = 2;
@@ -215,6 +233,25 @@ impl EyesGui {
             .addnstr(padded, (width - margin - borders) as usize);
 
         self.right_pane.refresh();
+    }
+
+    fn show_help(&mut self) {
+        let help = "
+    ---------- COMMANDS -----------
+
+             q:   quit
+             r:   reset world
+         space:   pause the world
+       up/down:   speed up/down
+    left/right:   grass up/down
+
+             h:   show this help";
+        self.help_pane.mv(1, 1);
+        self.help_pane.addstr(help);
+        self.help_pane.refresh();
+        self.help_pane.draw_box(0, 0);
+        self.help_pane.getch();
+        self.y_max = 0; // force a resize which will redraw everything
     }
 }
 
