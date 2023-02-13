@@ -7,15 +7,15 @@ use crate::Settings;
 use fastrand::Rng as FastRng;
 
 #[derive(Clone, Debug)]
-pub struct RandomGenomeType {
+pub struct RandomGenotype {
     config: Settings,
     energy: i32,
     rng: FastRng,
 }
 
-impl Genotype for RandomGenomeType {
-    fn new(config: Settings) -> RandomGenomeType {
-        RandomGenomeType {
+impl Genotype for RandomGenotype {
+    fn new(config: Settings) -> RandomGenotype {
+        RandomGenotype {
             config,
             energy: 0,
             rng: FastRng::new(),
@@ -40,7 +40,7 @@ impl Genotype for RandomGenomeType {
     }
 }
 
-impl RandomGenomeType {
+impl RandomGenotype {
     pub fn reproduce(&mut self) -> Self {
         self.energy -= self.config.creature_reproduction_energy;
         self.clone()

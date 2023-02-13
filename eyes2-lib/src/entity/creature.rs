@@ -42,7 +42,7 @@ pub struct Creature<T: Genotype> {
     // global settings for the world which include generic creature settings
     config: Settings,
     // transmitter to send updates to the world
-    tx: Rc<mpsc::Sender<Update>>,
+    tx: Rc<mpsc::Sender<Update<T>>>,
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
@@ -54,7 +54,7 @@ impl<T> Creature<T>
 where
     T: Genotype,
 {
-    pub fn new(coord: Coord, config: Settings, tx: Rc<mpsc::Sender<Update>>) -> Creature<T> {
+    pub fn new(coord: Coord, config: Settings, tx: Rc<mpsc::Sender<Update<T>>>) -> Creature<T> {
         let (b, e) = config.creature_initial_energy;
 
         // TODO maybe pass a pre-created rng around to avoid creating a new one each time

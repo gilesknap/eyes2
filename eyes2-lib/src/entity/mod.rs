@@ -5,4 +5,6 @@ pub mod update;
 
 pub use self::creature::Creature;
 pub use self::genotype::genotype::Genotype;
+pub use self::genotype::genotypes::giles::GilesGenotype;
+pub use self::genotype::genotypes::random::RandomGenotype;
 pub use self::update::Update;

@@ -6,6 +6,13 @@ use gui::{EyesGui, GuiCmd};
 use pancurses;
 use std::{sync::mpsc, thread, time};
 
+use eyes2_lib::entity::RandomGenotype;
+// TODO for the moment using different genome types for the world requires
+// changing the below and recompiling.
+// In future I want to be able to hold a mixture of genome types in a world.
+// BUT: using Box<dyn Genotype> does work but has a BIG performance hit.
+type WorldType = World<RandomGenotype>;
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -55,7 +62,7 @@ fn world_loop(mut settings: Settings) {
     let mut restarts = 0;
     // outer loop continues until user quits or resets the world
     'outer: loop {
-        let mut world = World::new(settings, restarts);
+        let mut world = WorldType::new(settings, restarts);
 
         world.populate();
 

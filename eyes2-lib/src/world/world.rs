@@ -1,4 +1,5 @@
-use crate::entity::{genotype::genotypes::random::RandomGenomeType, Creature, Update};
+use crate::entity::Genotype;
+use crate::entity::{Creature, Update};
 use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
@@ -11,16 +12,16 @@ use super::grid::{Cell, WorldGrid};
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
 // using fields to give visibility to the rest of the world module
-pub struct World {
+pub struct World<T: Genotype> {
     // the grid of cells
     pub grid: WorldGrid,
     // the list of creatures in the world
-    creatures: HashMap<u64, Creature<RandomGenomeType>>,
+    creatures: HashMap<u64, Creature<T>>,
     // receiver for updates from the creatures
-    rx: mpsc::Receiver<Update>,
+    rx: mpsc::Receiver<Update<T>>,
     // sender for updates to the world to be applied at the end of the tick
     // this is wrapped in an Rc so that we can share it between multiple creatures
-    tx: Rc<mpsc::Sender<Update>>,
+    tx: Rc<mpsc::Sender<Update<T>>>,
     // the settings for the world
     config: Settings,
     // track when we will next call grass tick
@@ -32,19 +33,22 @@ pub struct World {
 }
 
 // public static methods
-impl World {
-    pub fn new(config: Settings, restarts: u64) -> World {
+impl<T> World<T>
+where
+    T: Genotype,
+{
+    pub fn new(config: Settings, restarts: u64) -> World<T> {
         // create a square 2d vector of empty cells
         let grid = WorldGrid::new(config.size, config.grass_rate, config.speed, restarts);
         // create a channel for passing updates to the world from the creatures
-        let (tx_update, rx_update) = mpsc::channel::<Update>();
+        let (tx_update, rx_update) = mpsc::channel::<Update<T>>();
 
         // the grid is wrapped in a RefCell so that we can mutate it
         // this in turn is wrapped in an Rc so that we can share it
         // between multiple owners
         let world = World {
             grid,
-            creatures: HashMap::<u64, Creature<RandomGenomeType>>::new(),
+            creatures: HashMap::<u64, Creature<T>>::new(),
             rx: rx_update,
             tx: Rc::new(tx_update),
             config,
@@ -58,7 +62,10 @@ impl World {
 }
 
 // public instance methods
-impl World {
+impl<T> World<T>
+where
+    T: Genotype,
+{
     pub fn get_size(&self) -> u16 {
         self.config.size
     }
@@ -90,7 +97,10 @@ impl World {
 }
 
 /// internal implementation details of the World struct
-impl World {
+impl<T> World<T>
+where
+    T: Genotype,
+{
     fn do_tick(&mut self) {
         for creature in self.creatures.values_mut() {
             creature.tick();
@@ -174,10 +184,7 @@ impl World {
             _ => panic!("no creature in world at grid coordinate"),
         };
     }
-}
 
-// grass methods
-impl World {
     fn ticks_per_grass(&self) -> u64 {
         // ticks per grass growth is between 100 to 1,000,000 in inverse
         // logarithmic proportion to grass_rate parameter
