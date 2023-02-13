@@ -3,7 +3,6 @@ use std::rc::Rc;
 use std::sync::mpsc;
 
 use super::genotype::genotype::GenotypeActions;
-use super::Update;
 /// The representation of a creature in the world
 ///
 /// This module implements the generic behaviour of a creature and enforces
@@ -27,12 +26,13 @@ use super::Update;
 /// genotypes call back into the creature to perform actions such as moving
 /// 'looking' via the GenotypeCallback trait.
 ///
-use super::{new_genotype, Genotype};
+use super::Genotype;
+use super::Update;
 use crate::Settings;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 
-pub struct Creature {
+pub struct Creature<T: Genotype> {
     // the unique id of the creature used to identify it in the world
     id: u64,
     // the position of the creature in the world for reverse lookup
@@ -46,17 +46,20 @@ pub struct Creature {
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
-    genotype: Box<dyn Genotype>,
+    genotype: T,
 }
 
 // The representation of a creature in the world
-impl Creature {
-    pub fn new(coord: Coord, config: Settings, tx: Rc<mpsc::Sender<Update>>) -> Creature {
+impl<T> Creature<T>
+where
+    T: Genotype,
+{
+    pub fn new(coord: Coord, config: Settings, tx: Rc<mpsc::Sender<Update>>) -> Creature<T> {
         let (b, e) = config.creature_initial_energy;
 
         // TODO maybe pass a pre-created rng around to avoid creating a new one each time
         let energy = FastRng::new().i32(b..e);
-        let genotype = new_genotype("random", config).expect("unknown genotype requested");
+        let genotype: T = T::new(config);
 
         Creature {
             id: 0,
@@ -95,6 +98,7 @@ impl Creature {
 
     pub fn tick(&mut self) {
         self.energy -= self.config.creature_idle_energy;
+        self.genotype.set_energy(self.energy);
 
         // check for death
         if self.energy <= 0 {
@@ -115,8 +119,11 @@ impl Creature {
 }
 
 // private instance methods
-impl Creature {
-    fn reproduce(&mut self, _child: Box<dyn Genotype>) {
+impl<T> Creature<T>
+where
+    T: Genotype,
+{
+    fn reproduce(&mut self, _child: T) {
         // TODO need to get child genotype into the new child
         let mut child = Creature::new(self.coord, self.config, self.tx.clone());
         self.energy /= 2;

@@ -1,4 +1,4 @@
-use crate::entity::{Creature, Update};
+use crate::entity::{genotype::genotypes::random::RandomGenomeType, Creature, Update};
 use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
@@ -15,7 +15,7 @@ pub struct World {
     // the grid of cells
     pub grid: WorldGrid,
     // the list of creatures in the world
-    creatures: HashMap<u64, Creature>,
+    creatures: HashMap<u64, Creature<RandomGenomeType>>,
     // receiver for updates from the creatures
     rx: mpsc::Receiver<Update>,
     // sender for updates to the world to be applied at the end of the tick
@@ -44,7 +44,7 @@ impl World {
         // between multiple owners
         let world = World {
             grid,
-            creatures: HashMap::<u64, Creature>::new(),
+            creatures: HashMap::<u64, Creature<RandomGenomeType>>::new(),
             rx: rx_update,
             tx: Rc::new(tx_update),
             config,

@@ -14,9 +14,17 @@ pub struct RandomGenomeType {
 }
 
 impl Genotype for RandomGenomeType {
-    fn tick(&mut self) -> GenotypeActions {
+    fn new(config: Settings) -> RandomGenomeType {
+        RandomGenomeType {
+            config,
+            energy: 0,
+            rng: FastRng::new(),
+        }
+    }
+
+    fn tick(&mut self) -> GenotypeActions<Self> {
         if self.energy >= self.config.creature_reproduction_energy {
-            return GenotypeActions::Reproduce(Box::new(self.reproduce()));
+            return GenotypeActions::Reproduce(self.reproduce());
         }
 
         if self.rng.f32() <= self.config.creature_move_rate {
@@ -33,14 +41,6 @@ impl Genotype for RandomGenomeType {
 }
 
 impl RandomGenomeType {
-    pub fn new(config: Settings) -> RandomGenomeType {
-        RandomGenomeType {
-            config,
-            energy: 0,
-            rng: FastRng::new(),
-        }
-    }
-
     pub fn reproduce(&mut self) -> Self {
         self.energy -= self.config.creature_reproduction_energy;
         self.clone()

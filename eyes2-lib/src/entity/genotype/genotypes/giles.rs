@@ -1,33 +1,27 @@
+use crate::Settings;
+
 use super::{Genotype, GenotypeActions};
 
 const _GENOME: usize = 1000;
 
 #[derive(Debug)]
 pub struct GilesGenotype {
-    pub energy: i32, // energy level
+    config: Settings,
+    // TODO I figure following should be private internal structure and we need a constructor
+    // to create a new GilesGenotype
 
-                     // TODO I figure following should be private internal structure and we need a constructor
-                     // to create a new GilesGenotype
-
-                     // ip: u16,               // instruction pointer
-                     // a: u16,                // accumulator
-                     // i: [u16; 5],           // registers
-                     // breed_rate: u32,       // rate at which the creature breeds
-                     // mutation_rate: u32,    // rate at which the creature mutates
-                     // genome: [u16; GENOME], // the genome i.e. the instructions to be executed
+    // ip: u16,               // instruction pointer
+    // a: u16,                // accumulator
+    // i: [u16; 5],           // registers
+    // breed_rate: u32,       // rate at which the creature breeds
+    // mutation_rate: u32,    // rate at which the creature mutates
+    // genome: [u16; GENOME], // the genome i.e. the instructions to be executed
 }
 
 impl Genotype for GilesGenotype {
-    fn tick(&mut self) -> GenotypeActions {
-        GenotypeActions::None
-    }
-    fn set_energy(&mut self, _energy: i32) {}
-}
-
-impl GilesGenotype {
-    pub fn _new(energy: i32) -> GilesGenotype {
+    fn new(config: Settings) -> GilesGenotype {
         GilesGenotype {
-            energy,
+            config,
             // ip: 0,
             // a: 0,
             // i: [0; 5],
@@ -37,6 +31,13 @@ impl GilesGenotype {
         }
     }
 
+    fn tick(&mut self) -> GenotypeActions<Self> {
+        GenotypeActions::None
+    }
+    fn set_energy(&mut self, _energy: i32) {}
+}
+
+impl GilesGenotype {
     pub fn _randomize() -> [u16; _GENOME] {
         let mut genome = [0; _GENOME];
         for i in 0..genome.len() {
