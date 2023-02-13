@@ -54,7 +54,7 @@ impl EyesGui {
         // choose some minimal initial sizes
         let left_pane = pancurses::newwin(1, 1, 0, 0);
         let right_pane = pancurses::newwin(1, 1, 0, 3);
-        let help_pane = pancurses::newwin(15, 50, 3, 3);
+        let help_pane = pancurses::newwin(20, 44, 3, 10);
 
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
@@ -237,17 +237,23 @@ impl EyesGui {
 
     fn show_help(&mut self) {
         let help = "
-    ---------- COMMANDS -----------
+  -------------- COMMANDS ---------------
 
-             q:   quit
-             r:   reset world
-         space:   pause the world
-       up/down:   speed up/down
-    left/right:   grass up/down
+                q:   quit
+                r:   reset world
+            space:   pause the world
+          up/down:   speed up/down
+       left/right:   grass up/down
+                h:   show this help
 
-             h:   show this help";
-        self.help_pane.mv(1, 1);
-        self.help_pane.addstr(help);
+  ---------------------------------------
+
+  See this file for world config:
+  $HOME/.config/eyes2/default-config.toml
+
+  launch with -r to reset the config file
+  launch with --help for more options";
+        self.help_pane.mvaddstr(1, 3, help);
         self.help_pane.refresh();
         self.help_pane.draw_box(0, 0);
         self.help_pane.getch();

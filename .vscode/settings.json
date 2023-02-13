@@ -15,6 +15,7 @@
         "getch",
         "indexmap",
         "initscr",
+        "mvaddstr",
         "mvderwin",
         "mvwin",
         "newwin",

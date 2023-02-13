@@ -12,7 +12,7 @@ struct Args {
     /// run a performance test
     #[arg(short, long)]
     performance: bool,
-    // reset settings to defaults
+    /// reset settings to defaults
     #[arg(short, long)]
     reset: bool,
 }
