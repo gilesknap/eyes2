@@ -68,7 +68,6 @@ impl EyesGui {
 
         pancurses::curs_set(0);
         pancurses::noecho();
-        // pancurses::raw();
 
         EyesGui {
             window,

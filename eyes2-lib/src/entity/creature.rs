@@ -1,3 +1,20 @@
+/// The representation of a creature in the world
+///
+/// This module implements the generic behaviour of a creature and enforces
+/// the rules of the world. The rules are:-
+///
+/// 1. A creature can move one cell in any of the 8 directions (including diagonals)
+/// 2. A herbivore can eat grass if it is in the same cell as the grass
+/// 3. A carnivore can eat another creature if it is in the same cell as the other creature
+/// 4. A creature can reproduce if it has enough energy
+/// 5. A creature dies if it has no energy
+/// 6. A creature can request the value adjacent cells (i.e. the vision in 'eyes)
+///
+/// The rules are implemented in the tick() method which is called once per tick
+/// of the world. Global settings control the energy costs and rewards of each action.
+///
+/// The specific behaviour of an individual is determined by its genotype.
+///
 use super::{new_genotype, Genotype};
 use super::{Update, UpdateQueue};
 use crate::Settings;
@@ -7,13 +24,20 @@ use fastrand::Rng as FastRng;
 use crate::utils::{move_pos, random_direction};
 
 pub struct Creature {
+    // the unique id of the creature used to identify it in the world
     id: u64,
+    // the position of the creature in the world for reverse lookup
     coord: Coord,
+    // the amount of energy the creature has
     energy: i32,
+    // global settings for the world which include generic creature settings
     config: Settings,
+    // each creature has its own random number generator
     rng: FastRng,
+    // the world rules are different for herbivores and carnivores
     _herbivore: bool,
-    _genotype: Option<Box<dyn Genotype>>,
+    // the genotype of the creature which determines its behaviour
+    _genotype: Box<dyn Genotype>,
 }
 
 // The representation of a creature in the world
@@ -24,7 +48,7 @@ impl Creature {
         let energy = rng.i32(b..e);
 
         // YAY! polymorphism in rust!
-        let genotype = new_genotype("random");
+        let genotype = new_genotype("random").expect("unknown genotype requested");
 
         Creature {
             id: 0,
@@ -33,7 +57,7 @@ impl Creature {
             rng,
             config,
             _herbivore: true,
-            _genotype: Some(genotype),
+            _genotype: genotype,
         }
     }
 
