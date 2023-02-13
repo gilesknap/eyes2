@@ -1,4 +1,4 @@
-use crate::entity::{genotype::genotype::GenotypeActions, Genotype};
+use super::{Genotype, GenotypeActions};
 
 const _GENOME: usize = 1000;
 

@@ -1,8 +1,7 @@
 //! Implement the Random genotype, which is a creature that moves randomly and reproduces
 //! when it has enough energy.
 
-use crate::entity::genotype::genotype::GenotypeActions;
-use crate::entity::Genotype;
+use super::{Genotype, GenotypeActions};
 use crate::utils::random_direction;
 use crate::Settings;
 use fastrand::Rng as FastRng;
