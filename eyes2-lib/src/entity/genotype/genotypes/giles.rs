@@ -1,4 +1,4 @@
-use crate::entity::Genotype;
+use crate::entity::{genotype::genotype::GenotypeActions, Genotype};
 
 const _GENOME: usize = 1000;
 
@@ -18,7 +18,9 @@ pub struct GilesGenotype {
 }
 
 impl Genotype for GilesGenotype {
-    fn tick(&mut self) {}
+    fn tick(&mut self) -> GenotypeActions {
+        GenotypeActions::None
+    }
     fn set_energy(&mut self, _energy: i32) {}
 }
 

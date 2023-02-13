@@ -149,6 +149,7 @@ impl World {
                     self.grid.set_cell(old_coord, Cell::Empty);
                     self.grid.set_cell(new_coord, Cell::Entity(id));
                 }
+                Update::Look(_, _) => {} // TODO implement look
             }
         }
     }

@@ -1,7 +1,7 @@
 use direction::Direction;
 
 use super::genotypes::giles::GilesGenotype;
-use super::genotypes::random::RandomGenotype;
+use super::genotypes::random::RandomGenomeType;
 use crate::Settings;
 // use crate::entity::Creature;
 // use crate::Settings;
@@ -16,19 +16,18 @@ pub enum BadGenomeError {
 // genome (with mutations as appropriate) will be passed to the
 // descendant creatures.
 pub trait Genotype {
-    // // constructor
-    // fn new(creature: Creature, config: Settings) -> Self;
-
     // execute the next instruction of your Genomic code
-    fn tick(&mut self);
+    fn tick(&mut self) -> GenotypeActions;
+    // change your internal energy level (this is for reference only as
+    // the canonical energy level in in Creature itself)
     fn set_energy(&mut self, energy: i32);
 }
 
-pub trait GenotypeCallback {
-    // request a move in the given direction
-    fn move_dir(&mut self, direction: Direction);
-    fn reproduce(&mut self, child: Box<dyn Genotype>);
-    fn look(&mut self, direction: Direction);
+pub enum GenotypeActions {
+    Reproduce(Box<dyn Genotype>),
+    Move(Direction),
+    Look(Direction),
+    None,
 }
 
 // For each new Genotype defined the developer must add an arm to this
@@ -37,7 +36,7 @@ pub trait GenotypeCallback {
 pub fn new_genotype(which: &str, config: Settings) -> Result<Box<dyn Genotype>, BadGenomeError> {
     let genotype: Box<dyn Genotype> = match which {
         "giles" => Box::new(GilesGenotype { energy: 0 }),
-        "random" => Box::new(RandomGenotype::new(config)),
+        "random" => Box::new(RandomGenomeType::new(config)),
         _ => return Err(BadGenomeError::InvalidGenome),
     };
     Ok(genotype)
