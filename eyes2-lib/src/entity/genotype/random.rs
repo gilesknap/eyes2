@@ -13,13 +13,13 @@ pub struct RandomGenotype {
 }
 
 impl Genotype for RandomGenotype {
-    fn tick(&mut self, queue: &mut UpdateQueue) {
+    fn tick(&mut self, _queue: &mut UpdateQueue) {
         self.energy -= 1;
     }
 }
 
 impl RandomGenotype {
-    pub fn new(energy: i32) -> RandomGenotype {
+    pub fn _new(energy: i32) -> RandomGenotype {
         RandomGenotype { energy }
     }
 }

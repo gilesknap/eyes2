@@ -1,5 +1,4 @@
-use super::genotype::random::RandomGenotype;
-use super::Genotype;
+use super::{new_genotype, Genotype};
 use super::{Update, UpdateQueue};
 use crate::Settings;
 use direction::Coord;
@@ -14,7 +13,7 @@ pub struct Creature {
     config: Settings,
     rng: FastRng,
     _herbivore: bool,
-    genotype: Option<Box<dyn Genotype>>,
+    _genotype: Option<Box<dyn Genotype>>,
 }
 
 // The representation of a creature in the world
@@ -24,6 +23,9 @@ impl Creature {
         let (b, e) = config.creature_initial_energy;
         let energy = rng.i32(b..e);
 
+        // YAY! polymorphism in rust!
+        let genotype = new_genotype("random");
+
         Creature {
             id: 0,
             coord,
@@ -31,7 +33,7 @@ impl Creature {
             rng,
             config,
             _herbivore: true,
-            genotype: Some(Box::new(RandomGenotype { energy })),
+            _genotype: Some(genotype),
         }
     }
 
