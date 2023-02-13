@@ -7,6 +7,11 @@ This is my learn rust project and is a re-imagining of something I made over
 The idea is to provide a 'world' which is a 2d grid of cells each of which
 can contain empty space, a creature or some grass.
 
+
+https://user-images.githubusercontent.com/964827/218594561-a8dfc5e1-45ce-4b0d-98cc-6b754de4c00e.mp4
+
+
+
 ## World Rules
 
 The creatures have a certain amount of energy and can request interactions
