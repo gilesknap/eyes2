@@ -118,8 +118,8 @@ impl World {
 
     /// process the updates to the world that have been queued in the previous tick
     fn apply_updates(&mut self) {
-        // Note: concise syntax for processing a receive queue (using match on LHS let)!
-        // TODO: don't get
+        // TODO: This is nice and concise but it is ignoring the possibility of
+        // TryRecvError::Disconnected. So would not notice if the sender was dropped.
         while let Ok(update) = self.rx.try_recv() {
             match update {
                 Update::AddEntity(mut creature) => {
