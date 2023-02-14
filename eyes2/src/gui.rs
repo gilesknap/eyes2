@@ -31,6 +31,7 @@ pub enum GuiCmd {
     Reset,
     Pause,
     Resume,
+    Save,
     SpeedUp,
     SpeedDown,
     SpeedMax,

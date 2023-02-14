@@ -52,17 +52,14 @@ impl WorldGrid {
         }
     }
 
-    #[inline(always)]
     pub fn get_size(&self) -> u16 {
         self.size
     }
 
-    #[inline(always)]
     pub fn grass_count(&self) -> usize {
         self.grass_count as usize
     }
 
-    #[inline(always)]
     pub fn creature_count(&self) -> usize {
         self.creature_count as usize
     }
@@ -86,14 +83,12 @@ impl WorldGrid {
     }
 
     /// read a cell from the grid - used for rendering the world
-    #[inline(always)]
     pub fn get_cell(&self, position: direction::Coord) -> Cell {
         // TODO Currently using Copy to return this - maybe should switch to
         // using a Box? Then could remove the Copy trait from Cell
         self.grid[(position.x + position.y * self.size as i32) as usize]
     }
 
-    #[inline(always)]
     pub fn set_cell(&mut self, position: direction::Coord, value: Cell) {
         self.grid[(position.x + position.y * self.size as i32) as usize] = value;
     }

@@ -93,7 +93,8 @@ impl World {
         self.apply_updates();
     }
 
-    #[inline(always)]
+    pub fn save(&self) {}
+
     pub fn tick(&mut self) {
         self.do_tick();
     }

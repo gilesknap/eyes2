@@ -45,7 +45,6 @@ fn world_loop(mut settings: Settings) {
     // setup channels for gui and world thread communications
     let (tx_grid, rx_grid) = mpsc::channel();
     let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
-    let mut paused = false;
 
     // launch the gui thread
     thread::spawn(move || {
@@ -54,6 +53,8 @@ fn world_loop(mut settings: Settings) {
     });
 
     let mut restarts = 0;
+    let mut paused = false;
+
     // outer loop continues until user quits or resets the world
     'outer: loop {
         let mut world = World::new(settings.clone(), restarts);
@@ -75,6 +76,7 @@ fn world_loop(mut settings: Settings) {
                         GuiCmd::SpeedDown => world.grid.increment_speed(false),
                         GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
                         GuiCmd::GrassDown => world.grid.increment_grass_rate(false),
+                        GuiCmd::Save => world.save(),
                         _ => {}
                     }
                     tx_grid.send(world.grid.clone()).unwrap();
@@ -126,6 +128,7 @@ fn performance_test(settings: Settings) {
     window.printw("\n\n\npress any key to start");
 
     window.getch();
+    pancurses::endwin();
 
     world_loop(test_settings);
 }
