@@ -82,10 +82,8 @@ impl WorldGrid {
         self.speed = self.speed.clamp(1, 10)
     }
 
-    /// read a cell from the grid - used for rendering the world
     pub fn get_cell(&self, position: direction::Coord) -> Cell {
-        // TODO Currently using Copy to return this - maybe should switch to
-        // using a Box? Then could remove the Copy trait from Cell
+        // Note this is a Copy return but its just a little enum, right?
         self.grid[(position.x + position.y * self.size as i32) as usize]
     }
 

@@ -23,7 +23,7 @@ struct Args {
 // give a relatively smooth control of the speed of the simulation.
 // These two arrays represent that tradeoff.
 const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 1000, 1000];
-const SPEED_DELAY: [u64; 10] = [1000, 10, 2, 1, 1, 1, 1, 1, 1, 0];
+const SPEED_DELAY: [u64; 10] = [300, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
     let args = Args::parse();
@@ -82,11 +82,9 @@ fn world_loop(mut settings: Settings) {
                     tx_grid.send(world.grid.clone()).unwrap();
                 }
 
-                if world.grid.speed < 10 {
-                    thread::sleep(time::Duration::from_millis(
-                        SPEED_DELAY[world.grid.speed as usize - 1],
-                    ));
-                }
+                thread::sleep(time::Duration::from_millis(
+                    SPEED_DELAY[world.grid.speed as usize - 1],
+                ));
             }
             if !paused {
                 world.grid.ticks += 1;
