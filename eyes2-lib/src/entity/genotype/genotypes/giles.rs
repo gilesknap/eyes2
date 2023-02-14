@@ -36,10 +36,6 @@ impl Genotype for GilesGenotype {
     fn get_sigil(&self) -> char {
         'G'
     }
-
-    fn get_name(&self) -> String {
-        "giles".to_string()
-    }
 }
 
 impl GilesGenotype {

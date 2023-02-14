@@ -68,9 +68,8 @@ That's it. Now you can start to make your own custom genetic code.
 
 # Still to do
 
-- Save and Restore of worlds and creature state
+- Save and Restore of worlds and
 - Creature Vision
-- Passing of Genome to descendant
 - Implementation of the original RISC Genotype
 - Get some competing Genotype contributions and have some creature wars
 - Multi Threaded processing for the creatures for even more performance

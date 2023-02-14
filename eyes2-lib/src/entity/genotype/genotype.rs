@@ -1,6 +1,6 @@
 use direction::Direction;
 
-use crate::Settings;
+use crate::{Cell, Settings};
 // use crate::entity::Creature;
 // use crate::Settings;
 
@@ -16,13 +16,20 @@ pub enum BadGenomeError {
 pub trait Genotype {
     // execute the next instruction of your Genomic code
     fn tick(&mut self) -> GenotypeActions;
+
     // change your internal energy level (this is for reference only as
     // the canonical energy level in in Creature itself)
     fn set_energy(&mut self, energy: i32);
+
+    // return the sigil used to represent this creature in the world
     fn get_sigil(&self) -> char {
         'D'
     }
-    fn get_name(&self) -> String;
+
+    // A callback from the world to return the view of the world from
+    // the last Look(Direction) action. The value is a 1D array of 4
+    // Cells. With the nearest cell the first in the array.
+    fn eyesight(&self, _direction: Direction, _value: [Cell; 4]) {}
 }
 
 // The genotype's tick method returns one of these actions. Creature

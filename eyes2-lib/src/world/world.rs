@@ -1,4 +1,4 @@
-use crate::entity::{Creature, Update};
+use crate::entity::{new_genotype, Creature, Update};
 use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
@@ -78,8 +78,10 @@ impl World {
                 let x = self.rng.i32(0..self.config.size as i32);
                 let y = self.rng.i32(0..self.config.size as i32);
 
+                let genotype = new_genotype(creature.0.as_str(), self.config.clone());
+
                 let creature = Creature::new(
-                    creature.0.as_str(),
+                    Box::new(genotype).unwrap(),
                     Coord { x, y },
                     self.config.clone(),
                     self.tx.clone(),
@@ -117,6 +119,7 @@ impl World {
     /// process the updates to the world that have been queued in the previous tick
     fn apply_updates(&mut self) {
         // Note: concise syntax for processing a receive queue (using match on LHS let)!
+        // TODO: don't get
         while let Ok(update) = self.rx.try_recv() {
             match update {
                 Update::AddEntity(mut creature) => {

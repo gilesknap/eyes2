@@ -28,7 +28,7 @@ use std::sync::mpsc;
 use super::genotype::genotype::GenotypeActions;
 use super::Update;
 
-use super::{new_genotype, Genotype};
+use super::Genotype;
 use crate::Settings;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
@@ -55,7 +55,7 @@ pub struct Creature {
 // The representation of a creature in the world
 impl Creature {
     pub fn new(
-        genotype: &str,
+        genotype: Box<dyn Genotype>,
         coord: Coord,
         config: Settings,
         tx: Rc<mpsc::Sender<Update>>,
@@ -65,7 +65,6 @@ impl Creature {
         // TODO maybe pass a pre-created rng around to avoid creating a new one each time
         let rng = FastRng::new();
         let energy = rng.i32(b..e);
-        let genotype = new_genotype(genotype, config.clone()).expect("unknown genotype requested");
         let sigil = genotype.get_sigil();
 
         Creature {
@@ -133,12 +132,7 @@ impl Creature {
 impl Creature {
     fn reproduce(&mut self, genotype: Box<dyn Genotype>) {
         // TODO need to get child genotype into the new child
-        let mut child = Creature::new(
-            genotype.get_name().as_str(),
-            self.coord,
-            self.config.clone(),
-            self.tx.clone(),
-        );
+        let mut child = Creature::new(genotype, self.coord, self.config.clone(), self.tx.clone());
         self.energy /= 2;
         child.energy = self.energy;
         // child is spawned to the left unless we are against the left wall

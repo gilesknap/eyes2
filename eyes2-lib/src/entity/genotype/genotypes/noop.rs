@@ -23,10 +23,6 @@ impl Genotype for NoopGenotype {
     fn get_sigil(&self) -> char {
         'N'
     }
-
-    fn get_name(&self) -> String {
-        "noop".to_string()
-    }
 }
 
 impl NoopGenotype {
