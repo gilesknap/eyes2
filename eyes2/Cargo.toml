@@ -1,5 +1,4 @@
 [package]
-author = "giles"
 name = "eyes2"
 version = "0.1.0"
 edition = "2021"
@@ -13,3 +12,5 @@ num-format = "0.4.4"
 pancurses = "0.17.0"
 clap = { version = "4.1.4", features = ["derive"] }
 crossterm = "0.25"
+serde = "1.0.152"
+serde_yaml = "0.9"

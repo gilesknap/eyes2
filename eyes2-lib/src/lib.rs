@@ -7,6 +7,8 @@ pub mod entity;
 pub mod world;
 // standalone utility functions
 pub mod utils;
+// load and save worlds and creatures
+pub mod store;
 
 // these are the public API structures
 pub use crate::settings::Settings;

@@ -1,7 +1,7 @@
 pub mod gui;
 
 use clap::Parser;
-use eyes2_lib::{Settings, World};
+use eyes2_lib::{store::save_world, Settings, World};
 use gui::{EyesGui, GuiCmd};
 use pancurses;
 use std::{sync::mpsc, thread, time};
@@ -76,7 +76,7 @@ fn world_loop(mut settings: Settings) {
                         GuiCmd::SpeedDown => world.grid.increment_speed(false),
                         GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
                         GuiCmd::GrassDown => world.grid.increment_grass_rate(false),
-                        GuiCmd::Save => world.save(),
+                        GuiCmd::Save => save_world(&world),
                         _ => {}
                     }
                     tx_grid.send(world.grid.clone()).unwrap();

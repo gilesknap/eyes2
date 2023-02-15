@@ -145,6 +145,7 @@ impl EyesGui {
             Some(pancurses::Input::Character('q')) => GuiCmd::Quit,
             Some(pancurses::Input::Character(' ')) => GuiCmd::Pause,
             Some(pancurses::Input::Character('r')) => GuiCmd::Reset,
+            Some(pancurses::Input::Character('s')) => GuiCmd::Save,
             Some(pancurses::Input::KeyUp) => GuiCmd::SpeedUp,
             Some(pancurses::Input::KeyDown) => GuiCmd::SpeedDown,
             Some(pancurses::Input::KeyRight) => GuiCmd::GrassUp,

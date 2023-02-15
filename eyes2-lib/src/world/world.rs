@@ -3,6 +3,7 @@ use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::mpsc;
@@ -11,6 +12,7 @@ use super::grid::{Cell, WorldGrid};
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
 // using fields to give visibility to the rest of the world module
+
 pub struct World {
     // the grid of cells
     pub grid: WorldGrid,
@@ -28,6 +30,13 @@ pub struct World {
     // a random number generator
     rng: fastrand::Rng,
     // next unique id to assign to an Entity
+    next_id: u64,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorldData {
+    creatures: HashMap<u64, Creature>,
+    config: Settings,
+    grid: WorldGrid,
     next_id: u64,
 }
 
@@ -54,6 +63,14 @@ impl World {
         };
 
         world
+    }
+
+    pub fn serialize(&self) -> WorldData {
+        WorldData {
+            config: self.config.clone(),
+            grid: self.grid.clone(),
+            next_id: self.next_id,
+        }
     }
 }
 
@@ -92,8 +109,6 @@ impl World {
 
         self.apply_updates();
     }
-
-    pub fn save(&self) {}
 
     pub fn tick(&mut self) {
         self.do_tick();

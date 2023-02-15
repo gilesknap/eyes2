@@ -6,9 +6,8 @@
 //!
 //! TODO this is still work in progress
 //!
-use crate::Settings;
-
 use super::{Genotype, GenotypeActions};
+use crate::Settings;
 
 const GENOME: usize = 1000;
 

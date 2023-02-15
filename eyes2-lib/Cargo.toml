@@ -6,7 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-direction = { version = "0.18.1"}
+# direction = { version = "0.18.1"}
+direction = { version = "0.18.1", features = ["serialize"]}
 fastrand = "1.8.0"
 serde = { version = "1.0.152", features = ["derive"] }
 confy = "0.5.1"
+serde_yaml = "0.9.17"
+# serde_json = "1.0.93"

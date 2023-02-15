@@ -25,6 +25,7 @@
         "printw",
         "rngs",
         "subwin",
-        "Termion"
+        "Termion",
+        "traitobject"
     ]
 }
