@@ -1,17 +1,19 @@
+#![feature(test)]
+extern crate test;
+
 pub mod gui;
 
 use clap::Parser;
-use eyes2_lib::{store::save_world, Settings, World};
+use eyes2_lib::{store::save_world, Settings, World, WorldGrid};
 use gui::{EyesGui, GuiCmd};
-use pancurses;
-use std::{sync::mpsc, thread, time};
+use std::{
+    sync::mpsc::{self, Receiver, Sender},
+    thread, time,
+};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// run a performance test
-    #[arg(short, long)]
-    performance: bool,
     /// reset settings to defaults
     #[arg(short, long)]
     reset: bool,
@@ -27,18 +29,8 @@ const SPEED_DELAY: [u64; 10] = [300, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
     let args = Args::parse();
-
-    let settings = if args.reset {
-        Settings::reset()
-    } else {
-        Settings::load()
-    };
-
-    if args.performance {
-        performance_test(settings);
-    } else {
-        world_loop(settings);
-    }
+    let settings = get_gettings(args.reset);
+    world_loop(settings);
 }
 
 fn world_loop(mut settings: Settings) {
@@ -63,33 +55,12 @@ fn world_loop(mut settings: Settings) {
 
         // inner loop runs until all creatures die
         'inner: loop {
-            if (world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1]) == 0 {
-                // Gui loop sends a command or GuiCmd::None every 100ms
-                let next_cmd = rx_gui_cmd.try_recv();
-
-                if next_cmd.is_ok() {
-                    match next_cmd.unwrap() {
-                        GuiCmd::Reset => break 'inner,
-                        GuiCmd::Quit => break 'outer,
-                        GuiCmd::Pause => paused = !paused,
-                        GuiCmd::SpeedUp => world.grid.increment_speed(true),
-                        GuiCmd::SpeedDown => world.grid.increment_speed(false),
-                        GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
-                        GuiCmd::GrassDown => world.grid.increment_grass_rate(false),
-                        GuiCmd::Save => save_world(&world),
-                        _ => {}
-                    }
-                    tx_grid.send(world.grid.clone()).unwrap();
-                }
-
-                thread::sleep(time::Duration::from_millis(
-                    SPEED_DELAY[world.grid.speed as usize - 1],
-                ));
-            }
-            if !paused {
-                world.grid.ticks += 1;
-                world.tick();
-            }
+            let tick_result = do_tick(&mut world, &tx_grid, &rx_gui_cmd, &mut paused);
+            match tick_result {
+                Err(TickActions::Reset) => break 'inner,
+                Err(TickActions::Quit) => break 'outer,
+                Ok(()) => {}
+            };
 
             if world.creature_count() == 0 {
                 break 'inner;
@@ -102,31 +73,98 @@ fn world_loop(mut settings: Settings) {
     }
 }
 
-fn performance_test(settings: Settings) {
-    // for performance testing, we use 1 creature which survives indefinitely
-    let test_settings = Settings {
-        size: 40,
-        grass_count: 1000,
-        grass_rate: 50,
-        creature_move_energy: 0,
-        creature_idle_energy: 0,
-        creature_move_rate: 0.005,
-        grass_energy: 0,
-        speed: 10,
+enum TickActions {
+    Reset,
+    Quit,
+}
 
-        creatures: vec![("random".to_string(), 50)],
-        ..settings
-    };
+fn do_tick(
+    world: &mut World,
+    tx_grid: &Sender<WorldGrid>,
+    rx_gui_cmd: &Receiver<GuiCmd>,
+    paused: &mut bool,
+) -> Result<(), TickActions> {
+    if (world.grid.ticks % SPEED_TICKS[world.grid.speed as usize - 1]) == 0 {
+        // Gui loop sends a command or GuiCmd::None every 100ms
+        let next_cmd = rx_gui_cmd.try_recv();
 
-    let window = pancurses::initscr();
+        if next_cmd.is_ok() {
+            match next_cmd.unwrap() {
+                GuiCmd::Reset => return Err(TickActions::Reset),
+                GuiCmd::Quit => return Err(TickActions::Quit),
+                GuiCmd::Pause => *paused = !*paused,
+                GuiCmd::SpeedUp => world.grid.increment_speed(true),
+                GuiCmd::SpeedDown => world.grid.increment_speed(false),
+                GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
+                GuiCmd::GrassDown => world.grid.increment_grass_rate(false),
+                GuiCmd::Save => save_world(&world),
+                _ => {}
+            };
+            tx_grid.send(world.grid.clone()).unwrap();
+        }
 
-    window.printw(format!("{:#?}", test_settings));
-    window.printw("\n\nPerformance test with above settings ...");
-    window.printw("\n\ntypical rate on giles ws1 is 6.7 million ticks/s (49 creatures)\n");
-    window.printw("\n\n\npress any key to start");
+        thread::sleep(time::Duration::from_millis(
+            SPEED_DELAY[world.grid.speed as usize - 1],
+        ));
+    }
+    if !*paused {
+        world.grid.ticks += 1;
+        world.tick();
+    }
+    Ok(())
+}
 
-    window.getch();
-    pancurses::endwin();
+fn get_gettings(reset: bool) -> Settings {
+    match reset {
+        true => Settings::reset(),
+        false => Settings::load(),
+    }
+}
 
-    world_loop(test_settings);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::{black_box, Bencher};
+
+    #[bench]
+    fn performance_test(bencher: &mut Bencher) {
+        // for performance testing, we use 1 creature which survives indefinitely
+        let settings = Settings {
+            size: 40,
+            grass_count: 1000,
+            grass_rate: 50,
+            creature_move_energy: 0,
+            creature_idle_energy: 0,
+            creature_move_rate: 0.005,
+            grass_energy: 0,
+            speed: 10,
+            creatures: vec![("random".to_string(), 50)],
+            ..Settings::default()
+        };
+
+        let window = pancurses::initscr();
+
+        window.printw(format!("{:#?}", settings));
+        window.printw("\n\nPerformance test with above settings ...");
+        pancurses::endwin();
+
+        // setup channels for gui and world thread communications
+        let (tx_grid, rx_grid) = mpsc::channel();
+        let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
+
+        // launch the gui thread
+        thread::spawn(move || {
+            let mut gui = EyesGui::new();
+            gui.gui_loop(rx_grid, tx_gui_cmd).ok()
+        });
+
+        let restarts = 0;
+        let mut paused = false;
+
+        let mut world = World::new(settings.clone(), restarts);
+
+        world.populate();
+
+        bencher.iter(|| black_box(do_tick(&mut world, &tx_grid, &rx_gui_cmd, &mut paused)));
+    }
 }
