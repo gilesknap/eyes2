@@ -9,6 +9,7 @@ use std::rc::Rc;
 use std::sync::mpsc;
 
 use super::grid::{Cell, WorldGrid};
+use serde::ser::{SerializeStruct, Serializer};
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
 // using fields to give visibility to the rest of the world module
@@ -30,13 +31,6 @@ pub struct World {
     // a random number generator
     rng: fastrand::Rng,
     // next unique id to assign to an Entity
-    next_id: u64,
-}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorldData {
-    creatures: HashMap<u64, Creature>,
-    config: Settings,
-    grid: WorldGrid,
     next_id: u64,
 }
 
@@ -63,14 +57,6 @@ impl World {
         };
 
         world
-    }
-
-    pub fn serialize(&self) -> WorldData {
-        WorldData {
-            config: self.config.clone(),
-            grid: self.grid.clone(),
-            next_id: self.next_id,
-        }
     }
 }
 
@@ -204,10 +190,7 @@ impl World {
             _ => panic!("no creature in world at grid coordinate"),
         };
     }
-}
 
-// grass methods
-impl World {
     fn ticks_per_grass(&self) -> u64 {
         // ticks per grass growth is between 100 to 1,000,000 in inverse
         // logarithmic proportion to grass_rate parameter
@@ -245,5 +228,16 @@ impl World {
             .get_mut(&id)
             .unwrap()
             .eat(self.config.grass_energy);
+    }
+}
+
+impl Serialize for World {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("World", 1)?;
+        s.serialize_field("next_id", &self.next_id)?;
+        s.end()
     }
 }
