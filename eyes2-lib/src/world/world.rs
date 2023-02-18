@@ -3,7 +3,7 @@ use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::mpsc;
@@ -97,13 +97,7 @@ impl World {
     }
 
     pub fn tick(&mut self) {
-        self.do_tick();
-    }
-}
-
-/// internal implementation details of the World struct
-impl World {
-    fn do_tick(&mut self) {
+        self.grid.ticks += 1;
         for creature in self.creatures.values_mut() {
             creature.tick();
         }
@@ -117,7 +111,10 @@ impl World {
         self.apply_updates();
         self.grid.ticks += 1;
     }
+}
 
+/// internal implementation details of the World struct
+impl World {
     /// process the updates to the world that have been queued in the previous tick
     fn apply_updates(&mut self) {
         // TODO: This is nice and concise but it is ignoring the possibility of

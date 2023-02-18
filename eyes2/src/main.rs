@@ -17,6 +17,9 @@ struct Args {
     /// reset settings to defaults
     #[arg(short, long)]
     reset: bool,
+    /// use performance test settings (with GUI - for comparison with bench test)
+    #[arg(short, long)]
+    performance: bool,
 }
 
 // Simulation speed control arrays.
@@ -24,12 +27,16 @@ struct Args {
 // a delay there is in the main loop. Playing with these values can
 // give a relatively smooth control of the speed of the simulation.
 // These two arrays represent that tradeoff.
-const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 1000, 1000, 1000];
+const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 500, 1000, 1000];
 const SPEED_DELAY: [u64; 10] = [300, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
     let args = Args::parse();
-    let settings = get_gettings(args.reset);
+    let settings = if args.performance {
+        get_performance_settings()
+    } else {
+        get_settings(args.reset)
+    };
     world_loop(settings);
 }
 
@@ -108,16 +115,33 @@ fn do_tick(
         ));
     }
     if !*paused {
-        world.grid.ticks += 1;
         world.tick();
     }
     Ok(())
 }
 
-fn get_gettings(reset: bool) -> Settings {
+fn get_settings(reset: bool) -> Settings {
     match reset {
         true => Settings::reset(),
         false => Settings::load(),
+    }
+}
+
+fn get_performance_settings() -> Settings {
+    // for performance testing, we use 50 'random' creatures which survive indefinitely
+    // because there are no energy costs. Plus a typical amount of grass which also
+    // eats some processing time.
+    Settings {
+        size: 40,
+        grass_count: 1000,
+        grass_rate: 85,
+        creature_move_energy: 0,
+        creature_idle_energy: 0,
+        creature_move_rate: 0.001,
+        grass_energy: 0,
+        speed: 10,
+        creatures: vec![("random".to_string(), 50)],
+        ..Settings::default()
     }
 }
 
@@ -128,43 +152,20 @@ mod tests {
 
     #[bench]
     fn performance_test(bencher: &mut Bencher) {
-        // for performance testing, we use 1 creature which survives indefinitely
-        let settings = Settings {
-            size: 40,
-            grass_count: 1000,
-            grass_rate: 50,
-            creature_move_energy: 0,
-            creature_idle_energy: 0,
-            creature_move_rate: 0.005,
-            grass_energy: 0,
-            speed: 10,
-            creatures: vec![("random".to_string(), 50)],
-            ..Settings::default()
-        };
+        let settings = get_performance_settings();
 
-        let window = pancurses::initscr();
-
-        window.printw(format!("{:#?}", settings));
-        window.printw("\n\nPerformance test with above settings ...");
-        pancurses::endwin();
-
-        // setup channels for gui and world thread communications
-        let (tx_grid, rx_grid) = mpsc::channel();
-        let (tx_gui_cmd, rx_gui_cmd) = mpsc::channel::<GuiCmd>();
-
-        // launch the gui thread
-        thread::spawn(move || {
-            let mut gui = EyesGui::new();
-            gui.gui_loop(rx_grid, tx_gui_cmd).ok()
-        });
-
-        let restarts = 0;
-        let mut paused = false;
-
-        let mut world = World::new(settings.clone(), restarts);
+        let mut world = World::new(settings, 0);
 
         world.populate();
 
-        bencher.iter(|| black_box(do_tick(&mut world, &tx_grid, &rx_gui_cmd, &mut paused)));
+        let world_ref = &mut world;
+
+        bencher.iter(|| {
+            black_box({
+                for _ in 0..10000 {
+                    world_ref.tick()
+                }
+            });
+        });
     }
 }
