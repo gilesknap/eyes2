@@ -1,7 +1,7 @@
-use crate::settings::Settings;
+#[cfg(test)]
+use super::*;
 
-// use all items from the parent module
-pub use super::World;
+use crate::settings::Settings;
 
 fn get_config() -> Settings {
     Settings {
@@ -20,11 +20,18 @@ fn get_config() -> Settings {
 fn check_add_creature() {
     let mut _world = World::new(get_config(), 0);
 
-    // world
-    //     .creatures
-    //     .add_new_entity(Coord { x: 0, y: 0 })
-    //     .unwrap();
-    // assert_eq!(world.creature_count(), 1);
+    assert_eq!(_world.creature_count(), 0);
+
+    let _genotype = new_genotype("noop", _world.config.clone());
+    let _creature = Creature::new(
+        Box::new(_genotype).unwrap(),
+        Coord { x: 1, y: 1 },
+        _world.config.clone(),
+        _world.tx.clone(),
+    );
+    _world.creatures.insert(1, _creature);
+
+    assert_eq!(_world.creature_count(), 1);
 }
 
 #[test]
@@ -34,15 +41,9 @@ fn check_populate() {
     world.populate();
 
     assert!(world.grid.grass_count() <= config.grass_count as usize);
-    // assert!(world.creature_count() <= config.creature_count as u64);
 
     let _creature_count = world.creature_count();
+    world.creatures.remove(&1);
 
-    // TODO I want to access private members of the world impl here
-    // but I can't figure out how to do it (without writing the tests in the main
-    // module)
-
-    // world.creatures.remove(&1);
-
-    // assert_eq!(world.creature_count(), creature_count - 1 as u64);
+    assert_eq!(world.creature_count(), _creature_count - 1 as u64);
 }

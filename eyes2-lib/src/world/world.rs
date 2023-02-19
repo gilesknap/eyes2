@@ -238,3 +238,6 @@ impl Serialize for World {
         s.end()
     }
 }
+
+#[path = "world_test.rs"]
+mod test;

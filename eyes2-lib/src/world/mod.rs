@@ -4,6 +4,3 @@ pub use self::world::World;
 
 pub mod grid;
 pub mod world;
-
-#[cfg(test)]
-mod tests;
