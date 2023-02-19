@@ -24,6 +24,7 @@
         "pancurses",
         "printw",
         "rngs",
+        "serde",
         "subwin",
         "Termion",
         "traitobject"

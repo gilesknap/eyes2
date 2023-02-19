@@ -23,14 +23,15 @@ impl Serialize for World {
 
         // serialize the grid by type of cell - don't record empty cells
         let mut grasses: Vec<Coord> = Vec::new();
-        let mut creatures: Vec<(Coord, u64)> = Vec::new();
+        let mut creatures: Vec<(Coord, &Creature)> = Vec::new();
         for x in 0..self.config.size as i32 {
             for y in 0..self.config.size as i32 {
                 let coord = Coord { x, y };
                 let cell = self.grid.get_cell(coord);
                 match cell {
                     Cell::Entity(id, _) => {
-                        creatures.push((coord, id));
+                        let creature = self.creatures.get(&id).unwrap().clone();
+                        creatures.push((coord, creature));
                     }
                     Cell::Grass => {
                         grasses.push(coord);

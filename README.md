@@ -58,7 +58,6 @@ loading in future.
 
 - in src/entity/genotype/genotypes take a copy of random.rs, rename it
   and replace RandomGenotype to YourNewGenotype or similar
-- Choose an id string for the type and update get_name with it.
 - add pub mod your_new_module to src/entity/genotype/genotypes/mod.rs
 - add an extra arm to the match in src/entity/genotype/genotype::new_genotype
 - maybe add some of your new type into the default settings in
@@ -70,6 +69,10 @@ That's it. Now you can start to make your own custom genetic code.
 
 - Save and Restore of worlds and
 - Creature Vision
+- Carnivores
+- Barriers (thanks Michael Abbott) - add some barriers that stop creature
+  movement - introducing extra environmental challenges (or advantages perhaps).
+  Provide the means to edit the location of barriers in the world.
 - Implementation of the original RISC Genotype
 - Get some competing Genotype contributions and have some creature wars
 - Multi Threaded processing for the creatures for even more performance
