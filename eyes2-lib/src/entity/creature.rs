@@ -27,13 +27,12 @@ use std::rc::Rc;
 use std::sync::mpsc;
 
 use super::genotype::genotype::GenotypeActions;
-use super::Update;
-
 use super::Genotype;
+use super::Update;
 use crate::Settings;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
-use serde::Serialize;
+use serde_derive::Serialize;
 
 // TODO the following imply we can derive erased-serde::Serialize but I seem
 // to only be able to derive serde::Serialize. What gives?
@@ -53,6 +52,7 @@ pub struct Creature {
     // global settings for the world which include generic creature settings
     config: Settings,
     // transmitter to send updates to the world
+    #[serde(skip)]
     tx: Rc<mpsc::Sender<Update>>,
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,

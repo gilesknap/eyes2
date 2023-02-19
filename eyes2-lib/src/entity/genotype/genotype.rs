@@ -1,8 +1,6 @@
 use direction::Direction;
 
 use crate::{Cell, Settings};
-// use crate::entity::Creature;
-// use crate::Settings;
 
 #[derive(Debug)]
 pub enum BadGenomeError {
@@ -31,6 +29,7 @@ pub trait Genotype: erased_serde::Serialize {
     // Cells. With the nearest cell the first in the array.
     fn eyesight(&self, _direction: Direction, _value: [Cell; 4]) {}
 }
+erased_serde::serialize_trait_object!(Genotype);
 
 // The genotype's tick method returns one of these actions. Creature
 // will pass the request on to the world which will verify the

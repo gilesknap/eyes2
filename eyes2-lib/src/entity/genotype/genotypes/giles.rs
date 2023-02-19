@@ -11,7 +11,7 @@ use serde::Serialize;
 use super::{Genotype, GenotypeActions};
 use crate::Settings;
 
-const GENOME: usize = 1000;
+const _GENOME: usize = 1000;
 
 #[derive(Serialize)]
 #[allow(dead_code)] // TODO remove this when we have a real instruction set
@@ -53,8 +53,8 @@ impl GilesGenotype {
         }
     }
 
-    fn randomize() -> [u16; GENOME] {
-        let mut genome = [0; GENOME];
+    fn _randomize() -> [u16; _GENOME] {
+        let mut genome = [0; _GENOME];
         for i in 0..genome.len() {
             genome[i] = fastrand::u16(..);
         }
@@ -63,7 +63,7 @@ impl GilesGenotype {
 
     // totally dummy instruction set for now
     fn _tick(&mut self) {
-        self.ip = (self.ip + 1) % (GENOME as u16);
+        self.ip = (self.ip + 1) % (_GENOME as u16);
         // let instruction = self.genome[self.ip as usize];
         // match instruction {
         //     // TODO this is just placeholder
