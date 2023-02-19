@@ -240,4 +240,5 @@ impl Serialize for World {
 }
 
 #[path = "world_test.rs"]
+#[cfg(test)]
 mod test;
