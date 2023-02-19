@@ -10,3 +10,7 @@ Cargo.lock
 **/*.rs.bk
 
 .VSCodeCounter
+
+# flamegraph performance analysis
+flamegraph.svg
+perf.data*
