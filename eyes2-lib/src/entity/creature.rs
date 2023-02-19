@@ -21,6 +21,7 @@
 //! genotypes call back into the creature to perform actions such as moving
 //! 'looking' via the GenotypeCallback trait.
 //!
+
 use crate::utils::move_pos;
 use std::rc::Rc;
 use std::sync::mpsc;
@@ -32,7 +33,16 @@ use super::Genotype;
 use crate::Settings;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
+use serde::Serialize;
 
+// TODO the following imply we can derive erased-serde::Serialize but I seem
+// to only be able to derive serde::Serialize. What gives?
+// https://users.rust-lang.org/t/is-it-possible-to-derive-serialize-from-erased-serde/51858
+// https://stackoverflow.com/a/50026869/8613945
+//
+//
+
+#[derive(Serialize)]
 pub struct Creature {
     // the unique id of the creature used to identify it in the world
     id: u64,

@@ -13,7 +13,7 @@ pub enum BadGenomeError {
 // expected that the Genotype will be defined by a genome, and that the
 // genome (with mutations as appropriate) will be passed to the
 // descendant creatures.
-pub trait Genotype {
+pub trait Genotype: erased_serde::Serialize {
     // execute the next instruction of your Genomic code
     fn tick(&mut self) -> GenotypeActions;
 

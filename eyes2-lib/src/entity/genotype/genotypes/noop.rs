@@ -1,10 +1,12 @@
+use serde::Serialize;
+
 use crate::Settings;
 
 use super::{Genotype, GenotypeActions};
 
 const _GENOME: usize = 1000;
 
-#[derive(Debug)]
+#[derive(Serialize)]
 pub struct NoopGenotype {
     config: Settings,
     energy: i32,

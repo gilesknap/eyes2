@@ -6,11 +6,13 @@ use crate::utils::random_direction;
 use crate::Settings;
 use direction::Direction;
 use fastrand::Rng as FastRng;
+use serde::Serialize;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Serialize)]
 pub struct RandomGenotype {
     config: Settings,
     energy: i32,
+    #[serde(skip)]
     rng: FastRng,
     direction: Direction,
 }

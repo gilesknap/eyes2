@@ -6,23 +6,25 @@
 //!
 //! TODO this is still work in progress
 //!
+use serde::Serialize;
+
 use super::{Genotype, GenotypeActions};
 use crate::Settings;
 
 const GENOME: usize = 1000;
 
-#[derive(Debug)]
+#[derive(Serialize)]
 #[allow(dead_code)] // TODO remove this when we have a real instruction set
 pub struct GilesGenotype {
     config: Settings,
     // energy level
     energy: i32,
-    ip: u16,               // instruction pointer
-    a: u16,                // accumulator
-    i: [u16; 5],           // registers
-    breed_rate: u32,       // rate at which the creature breeds
-    mutation_rate: u32,    // rate at which the creature mutates
-    genome: [u16; GENOME], // the genome i.e. the instructions to be executed
+    ip: u16, // instruction pointer
+    a: u16,  // accumulator
+    // i: [u16; 5],           // registers
+    breed_rate: u32, // rate at which the creature breeds
+    mutation_rate: u32, // rate at which the creature mutates
+                     // genome: [u16; GENOME], // the genome i.e. the instructions to be executed
 }
 
 impl Genotype for GilesGenotype {
@@ -44,10 +46,10 @@ impl GilesGenotype {
             energy: 0,
             ip: 0,
             a: 0,
-            i: [0; 5],
+            // i: [0; 5],
             breed_rate: 0,
             mutation_rate: 0,
-            genome: GilesGenotype::randomize(),
+            // genome: GilesGenotype::randomize(),
         }
     }
 
@@ -62,13 +64,13 @@ impl GilesGenotype {
     // totally dummy instruction set for now
     fn _tick(&mut self) {
         self.ip = (self.ip + 1) % (GENOME as u16);
-        let instruction = self.genome[self.ip as usize];
-        match instruction {
-            // TODO this is just placeholder
-            0 => self.a = self.i[0],
-            1 => self.a = self.breed_rate as u16,
-            2 => self.a = self.mutation_rate as u16,
-            _ => (),
-        }
+        // let instruction = self.genome[self.ip as usize];
+        // match instruction {
+        //     // TODO this is just placeholder
+        //     // 0 => self.a = self.i[0],
+        //     1 => self.a = self.breed_rate as u16,
+        //     2 => self.a = self.mutation_rate as u16,
+        //     _ => (),
+        // }
     }
 }

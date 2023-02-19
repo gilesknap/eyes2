@@ -3,13 +3,11 @@ use crate::settings::Settings;
 use crate::utils;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
-use serde::Serialize;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::mpsc;
 
 use super::grid::{Cell, WorldGrid};
-use serde::ser::{SerializeStruct, Serializer};
 
 // a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
 // using fields to give visibility to the rest of the world module
@@ -228,17 +226,9 @@ impl World {
     }
 }
 
-impl Serialize for World {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("World", 1)?;
-        s.serialize_field("next_id", &self.next_id)?;
-        s.end()
-    }
-}
-
 #[path = "world_test.rs"]
 #[cfg(test)]
 mod test;
+
+#[path = "store.rs"]
+pub mod store;
