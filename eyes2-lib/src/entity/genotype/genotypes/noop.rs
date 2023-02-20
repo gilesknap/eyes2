@@ -8,6 +8,7 @@ const _GENOME: usize = 1000;
 
 #[derive(Serialize)]
 pub struct NoopGenotype {
+    #[serde(skip)]
     config: Settings,
     energy: i32,
 }

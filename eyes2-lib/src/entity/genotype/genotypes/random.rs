@@ -10,6 +10,7 @@ use serde::Serialize;
 
 #[derive(Clone, Serialize)]
 pub struct RandomGenotype {
+    #[serde(skip)]
     config: Settings,
     energy: i32,
     #[serde(skip)]

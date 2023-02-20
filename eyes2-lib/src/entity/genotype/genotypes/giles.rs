@@ -16,6 +16,7 @@ const _GENOME: usize = 1000;
 #[derive(Serialize)]
 #[allow(dead_code)] // TODO remove this when we have a real instruction set
 pub struct GilesGenotype {
+    #[serde(skip)]
     config: Settings,
     // energy level
     energy: i32,

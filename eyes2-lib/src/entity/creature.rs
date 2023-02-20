@@ -46,6 +46,7 @@ pub struct Creature {
     // the unique id of the creature used to identify it in the world
     id: u64,
     // the position of the creature in the world for reverse lookup
+    #[serde(skip)]
     coord: Coord,
     // the amount of energy the creature has
     energy: i32,
