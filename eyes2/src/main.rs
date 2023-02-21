@@ -3,6 +3,7 @@ extern crate test;
 
 pub mod gui;
 
+use chrono::Utc;
 use clap::Parser;
 use eyes2_lib::{save_world, world::world::store::load_world, Settings, World, WorldGrid};
 use gui::{EyesGui, GuiCmd};
@@ -27,7 +28,7 @@ struct Args {
 // a delay there is in the main loop. Playing with these values can
 // give a relatively smooth control of the speed of the simulation.
 // These two arrays represent that tradeoff.
-const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 500, 1000, 1000];
+const SPEED_TICKS: [u64; 10] = [1, 1, 1, 1, 10, 50, 100, 500, 1000, 100000];
 const SPEED_DELAY: [u64; 10] = [300, 10, 2, 1, 1, 1, 1, 1, 1, 0];
 
 fn main() {
@@ -57,6 +58,8 @@ fn world_loop(mut settings: Settings) {
     // outer loop continues until user quits or resets the world
     'outer: loop {
         let mut world = World::new(settings.clone(), restarts);
+
+        world.grid.start_time = Utc::now();
 
         world.populate();
 

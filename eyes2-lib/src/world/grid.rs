@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 use direction;
 
 // the representation of the world cells plus some metadata
@@ -20,6 +22,8 @@ pub struct WorldGrid {
     pub ticks: u64,
     // number of world restarts
     pub restarts: u64,
+    // start time of current restart
+    pub start_time: DateTime<Utc>,
 }
 
 // represent the contents of a single cell in the world
@@ -49,6 +53,7 @@ impl WorldGrid {
             creature_count: 0,
             ticks: 0,
             restarts,
+            start_time: Utc::now(),
         }
     }
 

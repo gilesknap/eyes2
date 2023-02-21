@@ -1,6 +1,7 @@
 //! The GUI for the evolution simulation. Renders the current state of the world
 //! and handles user input.
 //!
+use chrono::Utc;
 use eyes2_lib::{Cell, WorldGrid};
 
 use num_format::{Locale, ToFormattedString};
@@ -50,6 +51,8 @@ pub struct EyesGui {
     last_tick: u64,
     last_tick_time: Instant,
 }
+
+const DATE_FMT: &'static str = "%y-%m-%d %H:%M:%S";
 
 impl EyesGui {
     pub fn new() -> EyesGui {
@@ -129,14 +132,26 @@ impl EyesGui {
         };
         self.last_tick = grid.ticks;
         self.last_tick_time = time::Instant::now();
+        let dur = Utc::now() - grid.start_time;
 
-        self.status(1, "ticks:", &grid.ticks.to_formatted_string(l));
-        self.status(2, "ticks/s:", &rate);
-        self.status(3, "restarts:", &grid.restarts.to_formatted_string(l));
-        self.status(5, "creatures:", &grid.creature_count.to_string());
-        self.status(6, "grass:", &grid.grass_count().to_string());
-        self.status(8, "speed:", &grid.speed.to_string());
-        self.status(9, "grass rate:", &grid.grass_rate.to_string());
+        let mut y = 1;
+        self.status(y, "ticks:", &grid.ticks.to_formatted_string(l));
+        y += 1;
+        self.status(y, "ticks/s:", &rate);
+        y += 1;
+        self.status(y, "restarts:", &grid.restarts.to_formatted_string(l));
+        y += 1;
+        self.status(y, "started:", &grid.start_time.format(DATE_FMT).to_string());
+        y += 1;
+        self.status(y, "runtime:", &dur.num_seconds().to_formatted_string(l));
+        y += 2;
+        self.status(y, "creatures:", &grid.creature_count.to_string());
+        y += 1;
+        self.status(y, "grass:", &grid.grass_count().to_string());
+        y += 2;
+        self.status(y, "speed:", &grid.speed.to_string());
+        y += 1;
+        self.status(y, "grass rate:", &grid.grass_rate.to_string());
 
         self.footer(" q: quit, h: help ");
     }
