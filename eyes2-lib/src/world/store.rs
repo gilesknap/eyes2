@@ -9,13 +9,21 @@ pub fn save_world(world: &World) {
     serde_yaml::to_writer(file, world).unwrap();
 }
 
+pub fn load_world() {
+    let file = File::open("world.yaml").unwrap();
+    let _data: serde_yaml::Value = serde_yaml::from_reader(file).unwrap();
+    // TODO could use the above and then convert to a World
+    // But I would prefer to use deserialize in reverse to the approach
+    // for Serialize below.
+}
+
 impl Serialize for World {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         let mut s = serializer.serialize_struct("World", 1)?;
-        s.serialize_field("size", &self.get_size())?;
+        s.serialize_field("config", &self.config)?;
         s.serialize_field("next_id", &self.next_id)?;
         s.serialize_field("grass_rate", &self.grid.grass_rate)?;
         s.serialize_field("speed", &self.grid.speed)?;
@@ -41,7 +49,9 @@ impl Serialize for World {
             }
         }
 
+        s.serialize_field("creature_count", &creatures.len())?;
         s.serialize_field("creatures", &creatures)?;
+        s.serialize_field("grass_count", &grasses.len())?;
         s.serialize_field("grasses", &grasses)?;
 
         s.end()

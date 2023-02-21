@@ -4,7 +4,7 @@ extern crate test;
 pub mod gui;
 
 use clap::Parser;
-use eyes2_lib::{save_world, Settings, World, WorldGrid};
+use eyes2_lib::{save_world, world::world::store::load_world, Settings, World, WorldGrid};
 use gui::{EyesGui, GuiCmd};
 use std::{
     sync::mpsc::{self, Receiver, Sender},
@@ -105,6 +105,7 @@ fn do_tick(
                 GuiCmd::GrassUp => world.grid.increment_grass_rate(true),
                 GuiCmd::GrassDown => world.grid.increment_grass_rate(false),
                 GuiCmd::Save => save_world(&world),
+                GuiCmd::Load => load_world(),
                 _ => {}
             };
             tx_grid.send(world.grid.clone()).unwrap();
