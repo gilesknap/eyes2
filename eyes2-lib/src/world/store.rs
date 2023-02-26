@@ -1,3 +1,5 @@
+//! Save and load the world to/from a YAML file
+
 use super::*;
 use ::direction::Coord;
 use serde::de;
@@ -103,20 +105,41 @@ impl<'de> Deserialize<'de> for World {
             where
                 V: MapAccess<'de>,
             {
-                let mut config = None;
+                let mut config: Option<Settings> = None;
+                let mut next_id: Option<u64> = None;
+                let mut grass_rate: Option<u64> = None;
+                let mut speed: Option<u64> = None;
+                let mut ticks: Option<u64> = None;
+                let mut creature_count: Option<u64> = None;
+                let mut _creatures: Option<Vec<(Coord, &Creature)>> = None;
+                let mut _grass_count: Option<u64> = None;
+                let mut _grasses = None;
+
                 while let Some(key) = map.next_key()? {
                     match key {
-                        Field::Config => {
-                            if config.is_some() {
-                                return Err(de::Error::duplicate_field("config"));
-                            }
-                            config = Some(map.next_value()?);
-                        }
-                        _ => {}
+                        Field::Config => config = Some(map.next_value()?),
+                        Field::NextId => next_id = Some(map.next_value()?),
+                        Field::GrassRate => grass_rate = Some(map.next_value()?),
+                        Field::Speed => speed = Some(map.next_value()?),
+                        Field::Ticks => ticks = Some(map.next_value()?),
+                        Field::CreatureCount => creature_count = Some(map.next_value()?),
+                        Field::Creatures => {}
+                        Field::GrassCount => _grass_count = Some(map.next_value()?),
+                        Field::Grasses => _grasses = Some(map.next_value()?),
                     }
                 }
-                let config = config.ok_or_else(|| de::Error::missing_field("secs"))?;
-                Ok(World::new(config, 0))
+                let config = config.ok_or_else(|| de::Error::missing_field("config"))?;
+                let next_id = next_id.ok_or_else(|| de::Error::missing_field("nextid"))?;
+                let grass_rate = grass_rate.ok_or_else(|| de::Error::missing_field("grassrate"))?;
+                let speed = speed.ok_or_else(|| de::Error::missing_field("speed"))?;
+                let ticks = ticks.ok_or_else(|| de::Error::missing_field("ticks"))?;
+                let _creature_count =
+                    creature_count.ok_or_else(|| de::Error::missing_field("creaturecount"))?;
+
+                let grid = WorldGrid::new(config.size, grass_rate, speed, ticks);
+                let world = World::load(config, grid, next_id);
+
+                Ok(world)
             }
         }
 

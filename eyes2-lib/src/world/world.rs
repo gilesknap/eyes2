@@ -40,9 +40,6 @@ impl World {
         // create a channel for passing updates to the world from the creatures
         let (tx_update, rx_update) = mpsc::channel::<Update>();
 
-        // the grid is wrapped in a RefCell so that we can mutate it
-        // this in turn is wrapped in an Rc so that we can share it
-        // between multiple owners
         let world = World {
             grid,
             creatures: HashMap::<u64, Creature>::new(),
@@ -52,6 +49,24 @@ impl World {
             next_grass_tick: 0,
             rng: FastRng::new(),
             next_id: 0,
+        };
+
+        world
+    }
+
+    pub fn load(config: Settings, grid: WorldGrid, next_id: u64) -> World {
+        // create a channel for passing updates to the world from the creatures
+        let (tx_update, rx_update) = mpsc::channel::<Update>();
+
+        let world = World {
+            grid,
+            creatures: HashMap::<u64, Creature>::new(),
+            rx: rx_update,
+            tx: Rc::new(tx_update),
+            config,
+            next_grass_tick: 0,
+            rng: FastRng::new(),
+            next_id,
         };
 
         world

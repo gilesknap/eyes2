@@ -32,6 +32,7 @@ use super::Update;
 use crate::Settings;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
+use serde::Deserialize;
 use serde::Serialize;
 
 // TODO the following imply we can derive erased-serde::Serialize but I seem
@@ -41,7 +42,7 @@ use serde::Serialize;
 //
 //
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Creature {
     // the unique id of the creature used to identify it in the world
     id: u64,
@@ -53,12 +54,13 @@ pub struct Creature {
     // global settings for the world which include generic creature settings
     #[serde(skip)]
     config: Settings,
-    // transmitter to send updates to the world
+    // transmitter to send updates to the world (optional to support deserialisation)
     #[serde(skip)]
-    tx: Rc<mpsc::Sender<Update>>,
+    tx: Option<Rc<mpsc::Sender<Update>>>,
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
+    #[serde(skip)]
     genotype: Box<dyn Genotype>,
     // the sigil used to represent the creature in the world
     sigil: char,
@@ -84,7 +86,7 @@ impl Creature {
             coord,
             energy,
             config,
-            tx,
+            tx: Some(tx),
             _herbivore: true,
             genotype,
             sigil: sigil,
@@ -118,10 +120,13 @@ impl Creature {
     pub fn tick(&mut self) {
         self.energy -= self.config.creature_idle_energy;
 
+        let coord = self.coord();
         // check for death
         if self.energy <= 0 {
             self.tx
-                .send(Update::RemoveEntity(self.id, self.coord()))
+                .as_mut()
+                .unwrap()
+                .send(Update::RemoveEntity(self.id, coord))
                 .expect("failed to send remove entity");
             return;
         }
@@ -144,7 +149,12 @@ impl Creature {
 impl Creature {
     fn reproduce(&mut self, genotype: Box<dyn Genotype>) {
         // TODO need to get child genotype into the new child
-        let mut child = Creature::new(genotype, self.coord, self.config.clone(), self.tx.clone());
+        let mut child = Creature::new(
+            genotype,
+            self.coord,
+            self.config.clone(),
+            self.tx.as_mut().unwrap().clone(),
+        );
         self.energy /= 2;
         child.energy = self.energy;
         // child is spawned to the left unless we are against the left wall
@@ -154,6 +164,8 @@ impl Creature {
             child.coord.x -= 1
         }
         self.tx
+            .as_mut()
+            .unwrap()
             .send(Update::AddEntity(child))
             .expect("creature reproduce failed");
     }
@@ -161,9 +173,12 @@ impl Creature {
     fn move_dir(&mut self, direction: Direction) {
         let new_pos = move_pos(self.coord, direction, self.config.size);
 
+        let (id, coord) = (self.id(), self.coord());
         self.energy -= self.config.creature_move_energy;
         self.tx
-            .send(Update::MoveEntity(self.id(), self.coord(), new_pos))
+            .as_mut()
+            .unwrap()
+            .send(Update::MoveEntity(id, coord, new_pos))
             .expect("failed to send move entity");
     }
 
