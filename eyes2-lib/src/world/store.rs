@@ -1,7 +1,9 @@
 //! Save and load the world to/from a YAML file
 
 use super::*;
-use ::direction::Coord;
+use crate::entity::Creature;
+use crate::settings::Settings;
+use direction::Coord;
 use serde::de;
 use serde::de::{Deserializer, MapAccess, Visitor};
 use serde::ser::{SerializeStruct, Serializer};

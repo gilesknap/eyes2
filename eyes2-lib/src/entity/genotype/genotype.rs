@@ -13,7 +13,8 @@ pub enum BadGenomeError {
 // expected that the Genotype will be defined by a genome, and that the
 // genome (with mutations as appropriate) will be passed to the
 // descendant creatures.
-pub trait Genotype: erased_serde::Serialize {
+#[typetag::serde(tag = "type")]
+pub trait Genotype {
     // execute the next instruction of your Genomic code
     fn tick(&mut self) -> GenotypeActions;
 
@@ -31,7 +32,6 @@ pub trait Genotype: erased_serde::Serialize {
     // Cells. With the nearest cell the first in the array.
     fn eyesight(&self, _direction: Direction, _value: [Cell; 4]) {}
 }
-erased_serde::serialize_trait_object!(Genotype);
 
 impl Default for Box<dyn Genotype> {
     fn default() -> Self {

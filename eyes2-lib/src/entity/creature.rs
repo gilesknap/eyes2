@@ -60,7 +60,6 @@ pub struct Creature {
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
-    #[serde(skip)]
     genotype: Box<dyn Genotype>,
     // the sigil used to represent the creature in the world
     sigil: char,

@@ -27,6 +27,7 @@
         "serde",
         "subwin",
         "Termion",
-        "traitobject"
+        "traitobject",
+        "typetag"
     ]
 }

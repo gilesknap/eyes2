@@ -6,14 +6,14 @@
 //!
 //! TODO this is still work in progress
 //!
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::{Genotype, GenotypeActions};
 use crate::Settings;
 
 const _GENOME: usize = 1000;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 #[allow(dead_code)] // TODO remove this when we have a real instruction set
 pub struct GilesGenotype {
     #[serde(skip)]
@@ -28,6 +28,7 @@ pub struct GilesGenotype {
                      // genome: [u16; GENOME], // the genome i.e. the instructions to be executed
 }
 
+#[typetag::serde(name = "giles_genotype")]
 impl Genotype for GilesGenotype {
     fn tick(&mut self) -> GenotypeActions {
         GenotypeActions::None

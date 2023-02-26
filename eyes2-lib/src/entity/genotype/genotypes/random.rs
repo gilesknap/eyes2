@@ -6,9 +6,9 @@ use crate::utils::random_direction;
 use crate::Settings;
 use direction::Direction;
 use fastrand::Rng as FastRng;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct RandomGenotype {
     #[serde(skip)]
     config: Settings,
@@ -18,6 +18,7 @@ pub struct RandomGenotype {
     direction: Direction,
 }
 
+#[typetag::serde(name = "noop_genotype")]
 impl Genotype for RandomGenotype {
     fn tick(&mut self) -> GenotypeActions {
         if self.energy >= self.config.creature_reproduction_energy {
