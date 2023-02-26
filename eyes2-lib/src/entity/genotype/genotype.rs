@@ -1,4 +1,5 @@
 use direction::Direction;
+use dyn_clone::{clone_trait_object, DynClone};
 
 use crate::{Cell, Settings};
 
@@ -14,7 +15,7 @@ pub enum BadGenomeError {
 // genome (with mutations as appropriate) will be passed to the
 // descendant creatures.
 #[typetag::serde(tag = "type")]
-pub trait Genotype {
+pub trait Genotype: DynClone {
     // execute the next instruction of your Genomic code
     fn tick(&mut self) -> GenotypeActions;
 
@@ -32,6 +33,7 @@ pub trait Genotype {
     // Cells. With the nearest cell the first in the array.
     fn eyesight(&self, _direction: Direction, _value: [Cell; 4]) {}
 }
+clone_trait_object!(Genotype);
 
 impl Default for Box<dyn Genotype> {
     fn default() -> Self {

@@ -6,7 +6,7 @@ use super::{Genotype, GenotypeActions};
 
 const _GENOME: usize = 1000;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct NoopGenotype {
     #[serde(skip)]
     config: Settings,

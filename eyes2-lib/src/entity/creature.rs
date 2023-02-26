@@ -42,7 +42,7 @@ use serde::Serialize;
 //
 //
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Creature {
     // the unique id of the creature used to identify it in the world
     id: u64,

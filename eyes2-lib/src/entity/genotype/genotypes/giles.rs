@@ -13,7 +13,7 @@ use crate::Settings;
 
 const _GENOME: usize = 1000;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[allow(dead_code)] // TODO remove this when we have a real instruction set
 pub struct GilesGenotype {
     #[serde(skip)]

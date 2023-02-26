@@ -11,6 +11,12 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
 
+#[derive(Deserialize, Serialize)]
+struct CreatureCoord {
+    coord: Coord,
+    creature: Creature,
+}
+
 pub fn save_world(world: &World) {
     let file = File::create("world.yaml").unwrap();
     serde_yaml::to_writer(file, world).unwrap();
@@ -36,15 +42,16 @@ impl Serialize for World {
 
         // serialize the grid by type of cell - don't record empty cells
         let mut grasses: Vec<Coord> = Vec::new();
-        let mut creatures: Vec<(Coord, &Creature)> = Vec::new();
+        let mut creatures: Vec<CreatureCoord> = Vec::new();
         for x in 0..self.config.size as i32 {
             for y in 0..self.config.size as i32 {
                 let coord = Coord { x, y };
                 let cell = self.grid.get_cell(coord);
                 match cell {
                     Cell::Entity(id, _) => {
-                        let creature = self.creatures.get(&id).unwrap().clone();
-                        creatures.push((coord, creature));
+                        let creature = self.creatures.get(&id).unwrap();
+                        let c: Creature = creature.clone();
+                        creatures.push(CreatureCoord { coord, creature: c });
                     }
                     Cell::Grass => {
                         grasses.push(coord);
@@ -113,7 +120,7 @@ impl<'de> Deserialize<'de> for World {
                 let mut speed: Option<u64> = None;
                 let mut ticks: Option<u64> = None;
                 let mut creature_count: Option<u64> = None;
-                let mut _creatures: Option<Vec<(Coord, &Creature)>> = None;
+                let mut creatures: Option<CreatureCoord> = None;
                 let mut _grass_count: Option<u64> = None;
                 let mut _grasses = None;
 
@@ -125,7 +132,7 @@ impl<'de> Deserialize<'de> for World {
                         Field::Speed => speed = Some(map.next_value()?),
                         Field::Ticks => ticks = Some(map.next_value()?),
                         Field::CreatureCount => creature_count = Some(map.next_value()?),
-                        Field::Creatures => {}
+                        Field::Creatures => creatures = Some(map.next_value()?),
                         Field::GrassCount => _grass_count = Some(map.next_value()?),
                         Field::Grasses => _grasses = Some(map.next_value()?),
                     }
