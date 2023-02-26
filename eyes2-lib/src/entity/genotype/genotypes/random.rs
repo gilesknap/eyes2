@@ -1,14 +1,14 @@
 //! Implement the Random genotype, which is a creature that moves randomly and reproduces
 //! when it has enough energy.
 
-use super::{Genotype, GenotypeActions};
+use super::super::super::{Genotype, GenotypeActions};
 use crate::utils::random_direction;
 use crate::Settings;
 use direction::Direction;
 use fastrand::Rng as FastRng;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RandomGenotype {
     #[serde(skip)]
     config: Settings,

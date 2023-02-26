@@ -6,14 +6,15 @@
 //!
 //! TODO this is still work in progress
 //!
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use super::{Genotype, GenotypeActions};
+// TODO maybe I need to sort out the module hierarchy and re-export ????
+use super::super::super::{Genotype, GenotypeActions};
 use crate::Settings;
 
 const _GENOME: usize = 1000;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 #[allow(dead_code)] // TODO remove this when we have a real instruction set
 pub struct GilesGenotype {
     #[serde(skip)]

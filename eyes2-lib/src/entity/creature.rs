@@ -26,9 +26,8 @@ use crate::utils::move_pos;
 use std::rc::Rc;
 use std::sync::mpsc;
 
-use super::genotype::genotype::GenotypeActions;
-use super::Genotype;
 use super::Update;
+use super::{Genotype, GenotypeActions, Genotypes};
 use crate::Settings;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
@@ -60,8 +59,7 @@ pub struct Creature {
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
-    #[serde(skip)]
-    genotype: Box<dyn Genotype>,
+    genotype: Genotypes,
     // the sigil used to represent the creature in the world
     sigil: char,
 }
@@ -69,7 +67,7 @@ pub struct Creature {
 // The representation of a creature in the world
 impl Creature {
     pub fn new(
-        genotype: Box<dyn Genotype>,
+        genotype: Genotypes,
         coord: Coord,
         config: Settings,
         tx: Rc<mpsc::Sender<Update>>,
@@ -114,7 +112,7 @@ impl Creature {
 
     pub fn eat(&mut self, amount: i32) {
         self.energy += amount;
-        self.genotype.set_energy(self.energy);
+        (self.genotype as dyn Genotype).set_energy(self.energy);
     }
 
     pub fn tick(&mut self) {
