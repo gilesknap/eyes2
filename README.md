@@ -67,7 +67,7 @@ That's it. Now you can start to make your own custom genetic code.
 
 # Still to do
 
-- Save and Restore of worlds and
+- Save and Restore of worlds and individual creatures
 - Creature Vision
 - Carnivores
 - Barriers (thanks Michael Abbott) - add some barriers that stop creature

@@ -111,6 +111,13 @@ impl Creature {
         }
     }
 
+    pub fn set_tx(&mut self, tx: Rc<mpsc::Sender<Update>>) {
+        // tx is immutable once set
+        if self.tx.is_none() {
+            self.tx = Some(tx);
+        }
+    }
+
     pub fn eat(&mut self, amount: i32) {
         self.energy += amount;
         self.genotype.set_energy(self.energy);

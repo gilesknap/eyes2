@@ -132,13 +132,14 @@ impl World {
     fn apply_updates(&mut self) {
         // TODO: This is nice and concise but it is ignoring the possibility of
         // TryRecvError::Disconnected. So would not notice if the sender was dropped.
-        while let Ok(update) = self.rx.try_recv() {
+         while let Ok(update) = self.rx.try_recv() {
             match update {
                 Update::AddEntity(mut creature) => {
                     let coord = creature.coord();
-                    let id = self.get_next_id();
+                    let mut id = self.get_next_id();
                     let sigil = creature.get_sigil();
                     creature.set_id(id);
+                    id = creature.id();
                     let cell = self.grid.get_cell(coord);
                     // Maybe a better way to do this but I wanted to try closures!
                     let add_creature = || {

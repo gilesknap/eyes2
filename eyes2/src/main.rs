@@ -109,7 +109,7 @@ fn do_tick(
                 GuiCmd::GrassDown => world.grid.increment_grass_rate(false),
                 GuiCmd::Save => save_world(&world),
                 GuiCmd::Load => {
-                    let _world = load_world();
+                    *world = load_world();
                 }
                 _ => {}
             };

@@ -18,7 +18,7 @@ pub struct RandomGenotype {
     direction: Direction,
 }
 
-#[typetag::serde(name = "noop_genotype")]
+#[typetag::serde(name = "random_genotype")]
 impl Genotype for RandomGenotype {
     fn tick(&mut self) -> GenotypeActions {
         if self.energy >= self.config.creature_reproduction_energy {

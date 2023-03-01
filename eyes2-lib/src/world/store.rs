@@ -49,9 +49,8 @@ impl Serialize for World {
                 let cell = self.grid.get_cell(coord);
                 match cell {
                     Cell::Entity(id, _) => {
-                        let creature = self.creatures.get(&id).unwrap();
-                        let c: Creature = creature.clone();
-                        creatures.push(CreatureCoord { coord, creature: c });
+                        let creature = self.creatures.get(&id).unwrap().clone();
+                        creatures.push(CreatureCoord { coord, creature });
                     }
                     Cell::Grass => {
                         grasses.push(coord);
@@ -89,6 +88,8 @@ impl<'de> Deserialize<'de> for World {
             Grasses,
         }
 
+        // TODO consolidate FIELDS and enum Field and share with serialize
+        // TODO also these lowercased CamelCase names are not great for the yaml file
         const FIELDS: &'static [&'static str] = &[
             "config",
             "nextid",
@@ -120,9 +121,9 @@ impl<'de> Deserialize<'de> for World {
                 let mut speed: Option<u64> = None;
                 let mut ticks: Option<u64> = None;
                 let mut creature_count: Option<u64> = None;
-                let mut creatures: Option<CreatureCoord> = None;
+                let mut creatures: Option<Vec<CreatureCoord>> = None;
                 let mut _grass_count: Option<u64> = None;
-                let mut _grasses = None;
+                let mut _grasses: Option<Vec<Coord>> = None;
 
                 while let Some(key) = map.next_key()? {
                     match key {
@@ -146,7 +147,17 @@ impl<'de> Deserialize<'de> for World {
                     creature_count.ok_or_else(|| de::Error::missing_field("creaturecount"))?;
 
                 let grid = WorldGrid::new(config.size, grass_rate, speed, ticks);
-                let world = World::load(config, grid, next_id);
+                let mut world = World::load(config, grid, next_id);
+                for creature_coord in creatures.unwrap() {
+                    let mut creature = creature_coord.creature.clone();
+                    creature.move_to(creature_coord.coord);
+                    creature.set_tx(world.tx.clone());
+                    world.tx.send(Update::AddEntity(creature)).unwrap();
+                }
+                for grass_coord in _grasses.unwrap() {
+                    world.grid.add_grass(grass_coord);
+                }
+                world.apply_updates();
 
                 Ok(world)
             }
