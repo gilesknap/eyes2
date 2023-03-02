@@ -11,6 +11,17 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
 
+
+const FIELDS: &'static [&'static str] = &[
+    "config",
+    "next_id",
+    "grass_rate",
+    "speed",
+    "ticks",
+    "creatures",
+    "grasses",
+];
+
 #[derive(Deserialize, Serialize)]
 struct CreatureCoord {
     coord: Coord,
@@ -34,9 +45,10 @@ impl Serialize for World {
         S: Serializer,
     {
         let mut s = serializer.serialize_struct("World", 1)?;
-        s.serialize_field("config", &self.config)?;
-        s.serialize_field("nextid", &self.next_id)?;
-        s.serialize_field("grassrate", &self.grid.grass_rate)?;
+        let field_num = 0;
+        s.serialize_field(FIELDS[field_num], &self.config)?;
+        s.serialize_field("next_id", &self.next_id)?;
+        s.serialize_field("grass_rate", &self.grid.grass_rate)?;
         s.serialize_field("speed", &self.grid.speed)?;
         s.serialize_field("ticks", &self.grid.ticks)?;
 
@@ -60,9 +72,7 @@ impl Serialize for World {
             }
         }
 
-        s.serialize_field("creaturecount", &creatures.len())?;
         s.serialize_field("creatures", &creatures)?;
-        s.serialize_field("grasscount", &grasses.len())?;
         s.serialize_field("grasses", &grasses)?;
 
         s.end()
@@ -75,32 +85,16 @@ impl<'de> Deserialize<'de> for World {
         D: Deserializer<'de>,
     {
         #[derive(Deserialize)]
-        #[serde(field_identifier, rename_all = "lowercase")]
+        #[serde(field_identifier, rename_all = "snake_case")]
         enum Field {
             Config,
             NextId,
             GrassRate,
             Speed,
             Ticks,
-            CreatureCount,
             Creatures,
-            GrassCount,
             Grasses,
         }
-
-        // TODO consolidate FIELDS and enum Field and share with serialize
-        // TODO also these lowercased CamelCase names are not great for the yaml file
-        const FIELDS: &'static [&'static str] = &[
-            "config",
-            "nextid",
-            "grassrate",
-            "speed",
-            "ticks",
-            "creaturecount",
-            "creatures",
-            "grasscount",
-            "grasses",
-        ];
 
         struct WorldVisitor;
 
@@ -120,9 +114,7 @@ impl<'de> Deserialize<'de> for World {
                 let mut grass_rate: Option<u64> = None;
                 let mut speed: Option<u64> = None;
                 let mut ticks: Option<u64> = None;
-                let mut creature_count: Option<u64> = None;
                 let mut creatures: Option<Vec<CreatureCoord>> = None;
-                let mut _grass_count: Option<u64> = None;
                 let mut _grasses: Option<Vec<Coord>> = None;
 
                 while let Some(key) = map.next_key()? {
@@ -132,9 +124,7 @@ impl<'de> Deserialize<'de> for World {
                         Field::GrassRate => grass_rate = Some(map.next_value()?),
                         Field::Speed => speed = Some(map.next_value()?),
                         Field::Ticks => ticks = Some(map.next_value()?),
-                        Field::CreatureCount => creature_count = Some(map.next_value()?),
                         Field::Creatures => creatures = Some(map.next_value()?),
-                        Field::GrassCount => _grass_count = Some(map.next_value()?),
                         Field::Grasses => _grasses = Some(map.next_value()?),
                     }
                 }
@@ -143,8 +133,6 @@ impl<'de> Deserialize<'de> for World {
                 let grass_rate = grass_rate.ok_or_else(|| de::Error::missing_field("grassrate"))?;
                 let speed = speed.ok_or_else(|| de::Error::missing_field("speed"))?;
                 let ticks = ticks.ok_or_else(|| de::Error::missing_field("ticks"))?;
-                let _creature_count =
-                    creature_count.ok_or_else(|| de::Error::missing_field("creaturecount"))?;
 
                 let grid = WorldGrid::new(config.size, grass_rate, speed, ticks);
                 let mut world = World::load(config, grid, next_id);
