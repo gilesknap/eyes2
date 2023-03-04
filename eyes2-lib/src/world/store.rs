@@ -19,10 +19,6 @@ const FIELDS: &'static [&'static str] = &[
     "grasses",
 ];
 
-struct WorldSer<'a> {
-    world: &'a World,
-}
-
 #[derive(Deserialize, Serialize)]
 struct CreatureSer {
     coord: Coord,
@@ -31,8 +27,7 @@ struct CreatureSer {
 
 pub fn save_world(world: &World) {
     let file = File::create("world.yaml").unwrap();
-    let world = WorldSer { world };
-    serde_yaml::to_writer(file, &world).unwrap();
+    serde_yaml::to_writer(file, world).unwrap();
 }
 
 pub fn load_world() -> World {
@@ -41,7 +36,7 @@ pub fn load_world() -> World {
     world
 }
 
-impl Serialize for WorldSer<'_> {
+impl Serialize for World {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -52,13 +47,13 @@ impl Serialize for WorldSer<'_> {
         // two vectors of coordinates, one for grass, one for creatures
         let mut grasses: Vec<Coord> = Vec::new();
         let mut creatures: Vec<CreatureSer> = Vec::new();
-        for x in 0..self.world.config.size as i32 {
-            for y in 0..self.world.config.size as i32 {
+        for x in 0..self.config.size as i32 {
+            for y in 0..self.config.size as i32 {
                 let coord = Coord { x, y };
-                let cell = self.world.grid.get_cell(coord);
+                let cell = self.grid.get_cell(coord);
                 match cell {
                     Cell::Entity(id, _) => {
-                        let creature = self.world.creatures.get(&id).unwrap().clone();
+                        let creature = self.creatures.get(&id).unwrap().clone();
                         creatures.push(CreatureSer { coord, creature });
                     }
                     Cell::Grass => {
@@ -69,8 +64,8 @@ impl Serialize for WorldSer<'_> {
             }
         }
 
-        s.serialize_field(FIELDS[0], &self.world.grid)?;
-        s.serialize_field(FIELDS[1], &self.world.config)?;
+        s.serialize_field(FIELDS[0], &self.grid)?;
+        s.serialize_field(FIELDS[1], &self.config)?;
         s.serialize_field(FIELDS[2], &creatures)?;
         s.serialize_field(FIELDS[3], &grasses)?;
 
