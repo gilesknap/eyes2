@@ -145,7 +145,13 @@ impl EyesGui {
         y += 1;
         self.status(y, "runtime:", &dur.num_seconds().to_formatted_string(l));
         y += 2;
-        self.status(y, "creatures:", &grid.creature_count.to_string());
+        self.status(y, "living:", &grid.creature_count.to_string());
+        y += 1;
+        self.status(
+            y,
+            "deceased:",
+            &(grid.next_id - grid.creature_count).to_formatted_string(l),
+        );
         y += 1;
         self.status(y, "grass:", &grid.grass_count().to_string());
         y += 2;
