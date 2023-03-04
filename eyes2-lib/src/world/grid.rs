@@ -25,7 +25,6 @@ pub struct WorldGrid {
     // number of world restarts
     pub restarts: u64,
     // start time of current restart
-    #[serde(skip)]
     pub start_time: DateTime<Utc>,
     // next unique id to assign to an Entity
     pub next_id: u64,
