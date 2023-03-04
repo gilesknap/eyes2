@@ -3,8 +3,6 @@ use dyn_clone::{clone_trait_object, DynClone};
 
 use crate::{Cell, Settings};
 
-use super::genotypes::random::RandomGenotype;
-
 #[derive(Debug)]
 pub enum BadGenomeError {
     InvalidGenome,
@@ -34,12 +32,6 @@ pub trait Genotype: DynClone {
     fn eyesight(&self, _direction: Direction, _value: [Cell; 4]) {}
 }
 clone_trait_object!(Genotype);
-
-impl Default for Box<dyn Genotype> {
-    fn default() -> Self {
-        Box::new(RandomGenotype::new(Settings::default()))
-    }
-}
 
 // The genotype's tick method returns one of these actions. Creature
 // will pass the request on to the world which will verify the

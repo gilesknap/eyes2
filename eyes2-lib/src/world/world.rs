@@ -28,8 +28,6 @@ pub struct World {
     next_grass_tick: u64,
     // a random number generator
     rng: fastrand::Rng,
-    // next unique id to assign to an Entity
-    next_id: u64,
 }
 
 // public static methods
@@ -48,13 +46,12 @@ impl World {
             config,
             next_grass_tick: 0,
             rng: FastRng::new(),
-            next_id: 0,
         };
 
         world
     }
 
-    pub fn load(config: Settings, grid: WorldGrid, next_id: u64) -> World {
+    pub fn load(config: Settings, grid: WorldGrid) -> World {
         // create a channel for passing updates to the world from the creatures
         let (tx_update, rx_update) = mpsc::channel::<Update>();
 
@@ -66,7 +63,6 @@ impl World {
             config,
             next_grass_tick: 0,
             rng: FastRng::new(),
-            next_id,
         };
 
         world
@@ -184,8 +180,8 @@ impl World {
     }
 
     fn get_next_id(&mut self) -> u64 {
-        self.next_id += 1;
-        self.next_id
+        self.grid.next_id += 1;
+        self.grid.next_id
     }
 
     fn validate_creature(&self, id: u64, coord: Coord) {

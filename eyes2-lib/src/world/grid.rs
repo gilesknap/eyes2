@@ -1,12 +1,14 @@
 use chrono::{DateTime, Utc};
 
 use direction;
+use serde::{Serialize, Deserialize};
 
 // the representation of the world cells plus some metadata
 // used to pass information to the renderer thread
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize,  Deserialize)]
 pub struct WorldGrid {
     // the grid of cells
+    #[serde(skip)]
     grid: Vec<Cell>,
     // the dimensions of the (square) grid
     size: u16,
@@ -23,7 +25,10 @@ pub struct WorldGrid {
     // number of world restarts
     pub restarts: u64,
     // start time of current restart
+    #[serde(skip)]
     pub start_time: DateTime<Utc>,
+    // next unique id to assign to an Entity
+    pub next_id: u64,
 }
 
 // represent the contents of a single cell in the world
@@ -54,7 +59,13 @@ impl WorldGrid {
             ticks: 0,
             restarts,
             start_time: Utc::now(),
+            next_id: 0,
         }
+    }
+
+    // restore correct size of the grid after loading from a file
+    pub fn expand (&mut self, size: u16) {
+        self.grid = vec![Cell::Empty; size.pow(2) as usize];
     }
 
     pub fn get_size(&self) -> u16 {
