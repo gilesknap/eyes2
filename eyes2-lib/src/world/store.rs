@@ -11,13 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
 
-
-const FIELDS: &'static [&'static str] = &[
-    "grid",
-    "config",
-    "creatures",
-    "grasses",
-];
+const FIELDS: &'static [&'static str] = &["grid", "config", "creatures", "grasses"];
 
 #[derive(Deserialize, Serialize)]
 struct CreatureSer {
@@ -117,7 +111,7 @@ impl<'de> Deserialize<'de> for World {
                 let mut grid = grid.ok_or_else(|| de::Error::missing_field("grid"))?;
                 grid.expand(config.size);
 
-                let mut world: World  = World::load(config, grid);
+                let mut world: World = World::load(config, grid);
                 for creature_coord in creatures.unwrap() {
                     let mut creature = creature_coord.creature.clone();
                     creature.move_to(creature_coord.coord);

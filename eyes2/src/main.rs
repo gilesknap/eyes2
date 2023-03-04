@@ -2,11 +2,14 @@
 extern crate test;
 
 pub mod gui;
+use std::panic;
 
 use chrono::Utc;
 use clap::Parser;
 use eyes2_lib::{save_world, world::world::store::load_world, Settings, World, WorldGrid};
 use gui::{EyesGui, GuiCmd};
+use pancurses::endwin;
+use panic_message;
 use std::{
     sync::mpsc::{self, Receiver, Sender},
     thread, time,
@@ -38,7 +41,18 @@ fn main() {
     } else {
         get_settings(args.reset)
     };
-    world_loop(settings);
+
+    // catch any panics so that we can clean up curses before exiting
+    let result = panic::catch_unwind(|| {
+        world_loop(settings);
+    });
+
+    if result.is_err() {
+        endwin();
+        let error = result.unwrap_err();
+        let msg = panic_message::panic_message(&error);
+        println!("\n\nError: {:?}\n", msg);
+    }
 }
 
 fn world_loop(mut settings: Settings) {
