@@ -54,6 +54,14 @@ pub struct EyesGui {
 
 const DATE_FMT: &'static str = "%y-%m-%d %H:%M:%S";
 
+// tying out a macro here! Just a simple incrementor to save a few lines of code
+macro_rules! inc {
+    ($e:expr) => {{
+        $e += 1;
+        $e
+    }};
+}
+
 impl EyesGui {
     pub fn new() -> EyesGui {
         let window = initscr();
@@ -132,32 +140,23 @@ impl EyesGui {
         };
         self.last_tick = grid.ticks;
         self.last_tick_time = time::Instant::now();
-        let dur = Utc::now() - grid.start_time;
 
-        let mut y = 1;
-        self.status(y, "ticks:", &grid.ticks.to_formatted_string(l));
-        y += 1;
-        self.status(y, "ticks/s:", &rate);
-        y += 1;
-        self.status(y, "restarts:", &grid.restarts.to_formatted_string(l));
-        y += 1;
-        self.status(y, "started:", &grid.start_time.format(DATE_FMT).to_string());
-        y += 1;
-        self.status(y, "runtime:", &dur.num_seconds().to_formatted_string(l));
-        y += 2;
-        self.status(y, "living:", &grid.creature_count.to_string());
-        y += 1;
-        self.status(
-            y,
-            "deceased:",
-            &(grid.next_id - grid.creature_count).to_formatted_string(l),
-        );
-        y += 1;
-        self.status(y, "grass:", &grid.grass_count().to_string());
-        y += 2;
-        self.status(y, "speed:", &grid.speed.to_string());
-        y += 1;
-        self.status(y, "grass rate:", &grid.grass_rate.to_string());
+        let dur = (Utc::now() - grid.start_time).num_seconds();
+        let deceased = grid.next_id - grid.creature_count;
+        let start_time = grid.start_time.format(DATE_FMT).to_string();
+        let mut y = 0;
+        self.status(inc!(y), "ticks:", &grid.ticks.to_formatted_string(l));
+        self.status(inc!(y), "ticks/s:", &rate);
+        self.status(inc!(y), "restarts:", &grid.restarts.to_formatted_string(l));
+        self.status(inc!(y), "started:", &start_time);
+        self.status(inc!(y), "runtime:", &dur.to_formatted_string(l));
+        self.status(inc!(y), "living:", &grid.creature_count.to_string());
+        inc!(y);
+        self.status(inc!(y), "deceased:", &deceased.to_formatted_string(l));
+        self.status(inc!(y), "grass:", &grid.grass_count().to_string());
+        inc!(y);
+        self.status(inc!(y), "speed:", &grid.speed.to_string());
+        self.status(inc!(y), "grass rate:", &grid.grass_rate.to_string());
 
         self.footer(" q: quit, h: help ");
     }
