@@ -1,11 +1,11 @@
 use chrono::{DateTime, Utc};
 
 use direction;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 // the representation of the world cells plus some metadata
 // used to pass information to the renderer thread
-#[derive(Clone, Debug, Serialize,  Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WorldGrid {
     // the grid of cells
     #[serde(skip)]
@@ -35,12 +35,12 @@ pub struct WorldGrid {
 pub enum Cell {
     // the cell is empty
     Empty,
-
     // the cell is occupied by a Creature (with a unique number)
     Entity(u64, char),
-
     // the cell is occupied by a block of grass
     Grass,
+    // the cell us occupied by an impenetrable wall
+    Wall,
 }
 
 impl WorldGrid {
@@ -63,7 +63,7 @@ impl WorldGrid {
     }
 
     // restore correct size of the grid after loading from a file
-    pub fn expand (&mut self, size: u16) {
+    pub fn expand(&mut self, size: u16) {
         self.grid = vec![Cell::Empty; size.pow(2) as usize];
     }
 
@@ -99,7 +99,12 @@ impl WorldGrid {
 
     pub fn get_cell(&self, position: direction::Coord) -> Cell {
         // Note this is a Copy return but its just a little enum, right?
-        self.grid[(position.x + position.y * self.size as i32) as usize]
+        if self.check_coord(position) {
+            self.grid[(position.x + position.y * self.size as i32) as usize]
+        } else {
+            // out of bounds, return a wall
+            Cell::Wall
+        }
     }
 
     pub fn set_cell(&mut self, position: direction::Coord, value: Cell) {
@@ -118,5 +123,9 @@ impl WorldGrid {
             self.set_cell(coord, Cell::Empty);
             self.grass_count -= 1;
         }
+    }
+
+    fn check_coord(&self, coord: direction::Coord) -> bool {
+        coord.x >= 0 && coord.x < self.size as i32 && coord.y >= 0 && coord.y < self.size as i32
     }
 }

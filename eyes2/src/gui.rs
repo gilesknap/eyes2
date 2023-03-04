@@ -24,6 +24,7 @@ const GREEN: u8 = 2;
 const BLACK: u8 = 3;
 const BLUE: u8 = 4;
 const CREATURE: u8 = 5;
+const WALL: u8 = 6;
 
 #[derive(Debug, Clone)]
 pub enum GuiCmd {
@@ -72,6 +73,7 @@ impl EyesGui {
 
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
+        init_pair(WALL as i16, COLOR_BLACK, COLOR_BLUE);
         init_pair(CREATURE as i16, COLOR_WHITE, COLOR_BLACK);
         init_pair(GREEN as i16, COLOR_GREEN, COLOR_BLACK);
         init_pair(BLUE as i16, COLOR_BLUE, COLOR_BLACK);
@@ -223,6 +225,11 @@ impl EyesGui {
                         self.left_pane.attron(ColorPair(CREATURE));
                         self.left_pane.addch(sigil);
                         self.left_pane.attroff(ColorPair(CREATURE));
+                    }
+                    Cell::Wall => {
+                        self.left_pane.attron(ColorPair(WALL));
+                        self.left_pane.addch(' ');
+                        self.left_pane.attroff(ColorPair(WALL));
                     }
                 };
             }

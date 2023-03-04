@@ -63,7 +63,7 @@ impl Settings {
 impl ::std::default::Default for Settings {
     fn default() -> Settings {
         Settings {
-            size: 47,
+            size: 40,
             grass_count: 1000,
             grass_energy: 1000,
             creature_initial_energy: (10000, 20000),

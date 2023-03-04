@@ -1,6 +1,6 @@
 use crate::entity::{new_genotype, Creature, Update};
 use crate::settings::Settings;
-use crate::utils;
+use crate::utils::{self, move_pos};
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 use std::collections::HashMap;
@@ -9,9 +9,7 @@ use std::sync::mpsc;
 
 use super::grid::{Cell, WorldGrid};
 
-// a world is a 2D grid of Cell plus a HashMap of creatures and grass blocks
-// using fields to give visibility to the rest of the world module
-
+// a world is a 2D WorldGrid of Cell plus a HashMap of creatures and grass blocks
 pub struct World {
     // the grid of cells
     pub grid: WorldGrid,
@@ -115,7 +113,7 @@ impl World {
         // limit calls to grass tick relative to grass_rate
         if self.grid.ticks >= self.next_grass_tick {
             self.grow_grass();
-            self.next_grass_tick += self.ticks_per_grass();
+            self.next_grass_tick = self.grid.ticks + self.ticks_per_grass();
         }
 
         self.apply_updates();
@@ -151,6 +149,7 @@ impl World {
                         }
                         // skip add if there is already a creature in the cell
                         Cell::Entity(_, _) => continue,
+                        Cell::Wall => continue,
                     };
                     self.grid.set_cell(coord, Cell::Entity(id, sigil));
                 }
@@ -167,7 +166,9 @@ impl World {
                         Cell::Empty => {}
                         Cell::Grass => self.eat_grass(new_coord, id),
                         // skip move if there is already a creature in the cell
+                        // TODO this needs to change for carnivores
                         Cell::Entity(_, _) => continue,
+                        Cell::Wall => continue,
                     }
                     let creature = self.creatures.get_mut(&id).unwrap();
                     creature.move_to(new_coord);
@@ -175,7 +176,17 @@ impl World {
                     self.grid
                         .set_cell(new_coord, Cell::Entity(id, creature.get_sigil()));
                 }
-                Update::Look(_, _) => {} // TODO implement look
+                Update::Look(id, dir) => {
+                    let size = self.get_size();
+                    let creature = self.creatures.get_mut(&id).unwrap();
+                    let mut coord = creature.coord();
+                    let mut cells: [Cell; 4] = [Cell::Empty; 4];
+                    for pos in 0..4 {
+                        coord = move_pos(coord, dir, size);
+                        cells[pos] = self.grid.get_cell(coord);
+                    }
+                    creature.vision(dir, cells);
+                }
             }
         }
     }

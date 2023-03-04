@@ -23,6 +23,7 @@
 //!
 
 use crate::utils::move_pos;
+use crate::Cell;
 use std::rc::Rc;
 use std::sync::mpsc;
 
@@ -153,6 +154,10 @@ impl Creature {
     pub fn get_sigil(&self) -> char {
         self.sigil
     }
+
+    pub fn vision(&mut self, direction: Direction, cells: [Cell; 4]) {
+        self.genotype.vision(direction, cells);
+    }
 }
 
 // private instance methods
@@ -192,7 +197,12 @@ impl Creature {
             .expect("failed to send move entity");
     }
 
-    fn look(&mut self, _direction: Direction) {
-        // TODO
+    fn look(&mut self, direction: Direction) {
+        let id = self.id();
+        self.tx
+            .as_mut()
+            .unwrap()
+            .send(Update::Look(id, direction))
+            .expect("failed to send move entity");
     }
 }

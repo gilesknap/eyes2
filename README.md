@@ -67,14 +67,14 @@ That's it. Now you can start to make your own custom genetic code.
 
 # Still to do
 
-- Save and Restore of worlds and individual creatures
+- DONE Save and Restore of worlds and individual creatures
 - Creature Vision
-- Carnivores
 - Barriers (thanks Michael Abbott) - add some barriers that stop creature
   movement - introducing extra environmental challenges (or advantages perhaps).
   Provide the means to edit the location of barriers in the world.
 - Implementation of the original RISC Genotype
 - Get some competing Genotype contributions and have some creature wars
+- Carnivores
 - Multi Threaded processing for the creatures for even more performance
   (may be hard as we currently loop over all and call one tick - this
   model would need to change)

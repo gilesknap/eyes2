@@ -29,7 +29,7 @@ pub trait Genotype: DynClone {
     // A callback from the world to return the view of the world from
     // the last Look(Direction) action. The value is a 1D array of 4
     // Cells. With the nearest cell the first in the array.
-    fn eyesight(&self, _direction: Direction, _value: [Cell; 4]) {}
+    fn vision(&self, _direction: Direction, _value: [Cell; 4]) {}
 }
 clone_trait_object!(Genotype);
 
