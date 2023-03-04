@@ -118,6 +118,10 @@ impl Creature {
         }
     }
 
+    pub fn set_config(&mut self, config: Settings) {
+        self.config = config;
+    }
+
     pub fn eat(&mut self, amount: i32) {
         self.energy += amount;
         self.genotype.set_energy(self.energy);

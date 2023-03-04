@@ -111,11 +111,12 @@ impl<'de> Deserialize<'de> for World {
                 let mut grid = grid.ok_or_else(|| de::Error::missing_field("grid"))?;
                 grid.expand(config.size);
 
-                let mut world: World = World::load(config, grid);
+                let mut world: World = World::load(config.clone(), grid);
                 for creature_coord in creatures.unwrap() {
                     let mut creature = creature_coord.creature.clone();
                     creature.move_to(creature_coord.coord);
                     creature.set_tx(world.tx.clone());
+                    creature.set_config(config.clone());
                     world.tx.send(Update::AddEntity(creature)).unwrap();
                 }
                 for grass_coord in grasses.unwrap() {

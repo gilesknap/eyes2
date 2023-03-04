@@ -54,6 +54,7 @@ impl World {
     pub fn load(config: Settings, grid: WorldGrid) -> World {
         // create a channel for passing updates to the world from the creatures
         let (tx_update, rx_update) = mpsc::channel::<Update>();
+        let next_grass_tick = grid.ticks + grid.grass_rate;
 
         let world = World {
             grid,
@@ -61,7 +62,7 @@ impl World {
             rx: rx_update,
             tx: Rc::new(tx_update),
             config,
-            next_grass_tick: 0,
+            next_grass_tick,
             rng: FastRng::new(),
         };
 
@@ -128,7 +129,7 @@ impl World {
     fn apply_updates(&mut self) {
         // TODO: This is nice and concise but it is ignoring the possibility of
         // TryRecvError::Disconnected. So would not notice if the sender was dropped.
-         while let Ok(update) = self.rx.try_recv() {
+        while let Ok(update) = self.rx.try_recv() {
             match update {
                 Update::AddEntity(mut creature) => {
                     let coord = creature.coord();
