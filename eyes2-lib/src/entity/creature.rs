@@ -36,12 +36,7 @@ use fastrand::Rng as FastRng;
 use serde::Deserialize;
 use serde::Serialize;
 
-// TODO the following imply we can derive erased-serde::Serialize but I seem
-// to only be able to derive serde::Serialize. What gives?
-// https://users.rust-lang.org/t/is-it-possible-to-derive-serialize-from-erased-serde/51858
-// https://stackoverflow.com/a/50026869/8613945
-//
-//
+pub type Vision = Vec<(Direction, Cell)>;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Creature {
@@ -146,7 +141,7 @@ impl Creature {
         match self.genotype.tick() {
             GenotypeActions::Move(direction) => self.move_dir(direction),
             GenotypeActions::Reproduce(genotype) => self.reproduce(genotype),
-            GenotypeActions::Look(direction) => self.look(direction),
+            GenotypeActions::Look => self.look(),
             GenotypeActions::None => {}
         }
     }
@@ -155,8 +150,8 @@ impl Creature {
         self.sigil
     }
 
-    pub fn vision(&mut self, direction: Direction, cells: [Cell; 4]) {
-        self.genotype.vision(direction, cells);
+    pub fn vision(&mut self, vision: Vision) {
+        self.genotype.vision(vision);
     }
 }
 
@@ -197,12 +192,12 @@ impl Creature {
             .expect("failed to send move entity");
     }
 
-    fn look(&mut self, direction: Direction) {
+    fn look(&mut self) {
         let id = self.id();
         self.tx
             .as_mut()
             .unwrap()
-            .send(Update::Look(id, direction))
+            .send(Update::Look(id))
             .expect("failed to send move entity");
     }
 }

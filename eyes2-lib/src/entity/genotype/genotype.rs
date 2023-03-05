@@ -1,7 +1,7 @@
 use direction::Direction;
 use dyn_clone::{clone_trait_object, DynClone};
 
-use crate::{Cell, Settings};
+use crate::{entity::Vision, Settings};
 
 #[derive(Debug)]
 pub enum BadGenomeError {
@@ -29,7 +29,7 @@ pub trait Genotype: DynClone {
     // A callback from the world to return the view of the world from
     // the last Look(Direction) action. The value is a 1D array of 4
     // Cells. With the nearest cell the first in the array.
-    fn vision(&self, _direction: Direction, _value: [Cell; 4]) {}
+    fn vision(&mut self, _vision: Vision) {}
 }
 clone_trait_object!(Genotype);
 
@@ -39,7 +39,7 @@ clone_trait_object!(Genotype);
 pub enum GenotypeActions {
     Reproduce(Box<dyn Genotype>),
     Move(Direction),
-    Look(Direction),
+    Look,
     None,
 }
 
@@ -51,6 +51,7 @@ pub fn new_genotype(which: &str, config: Settings) -> Result<Box<dyn Genotype>, 
         "giles" => Box::new(super::genotypes::giles::GilesGenotype::new(config)),
         "noop" => Box::new(super::genotypes::noop::NoopGenotype::new(config)),
         "random" => Box::new(super::genotypes::random::RandomGenotype::new(config)),
+        "looker" => Box::new(super::genotypes::looker::LookerGenotype::new(config)),
         _ => return Err(BadGenomeError::InvalidGenome),
     };
     Ok(genotype)

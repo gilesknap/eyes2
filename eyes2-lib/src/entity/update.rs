@@ -1,7 +1,7 @@
 /// Specification of the communication protocol between the Creatures
 /// and the World.
 use super::creature::Creature;
-use direction::{Coord, Direction};
+use direction::Coord;
 
 /// a queue of updates to the world to be applied at the end of the tick
 pub type UpdateQueue = Vec<Update>;
@@ -12,5 +12,5 @@ pub enum Update {
     AddEntity(Creature),
     MoveEntity(u64, Coord, Coord),
     RemoveEntity(u64, Coord),
-    Look(u64, Direction),
+    Look(u64),
 }

@@ -79,6 +79,7 @@ impl ::std::default::Default for Settings {
                 ("random".to_string(), 10),
                 ("noop".to_string(), 10),
                 ("giles".to_string(), 10),
+                ("looker".to_string(), 10),
             ],
         }
     }
