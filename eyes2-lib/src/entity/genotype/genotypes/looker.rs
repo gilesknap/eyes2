@@ -16,7 +16,7 @@ pub struct LookerGenotype {
     energy: i32,
     direction: Direction,
     next_action: LookerAction,
-    next_move_ticks: u64,
+    next_tick: u64,
     ticks_per_move: u64,
     reproduction_scale: i32,
 }
@@ -38,31 +38,33 @@ impl Genotype for LookerGenotype {
             return GenotypeActions::Reproduce(Box::new(self.reproduce()));
         }
 
-        match self.next_action {
-            LookerAction::Move => {
-                self.next_action = LookerAction::Look;
-                match self.next_move_ticks {
-                    0 => {
-                        self.next_move_ticks = self.ticks_per_move;
+        match self.next_tick {
+            0 => {
+                self.next_tick = self.ticks_per_move;
+
+                match self.next_action {
+                    LookerAction::Move => {
+                        self.next_action = LookerAction::Look;
                         return GenotypeActions::Move(self.direction);
                     }
-                    _ => {
-                        self.next_move_ticks -= 1;
+                    LookerAction::Look => {
+                        self.next_action = LookerAction::Move;
+                        return GenotypeActions::Look;
                     }
                 }
             }
-            LookerAction::Look => {
-                self.next_action = LookerAction::Move;
-                return GenotypeActions::Look;
+            _ => {
+                self.next_tick -= 1;
             }
         }
+
         GenotypeActions::None
     }
 
     fn vision(&mut self, vision: Vision) {
         match get_vision_in_direction(vision, &self.direction) {
             // grass ahead, keep going immediately
-            Cell::Grass => self.next_move_ticks = 0,
+            Cell::Grass => self.next_tick = 0,
             // obstacle ahead, turn around
             Cell::Wall | Cell::Entity(_, _) => self.direction = self.direction.opposite(),
             // otherwise, look for grass to the left or right
@@ -70,7 +72,7 @@ impl Genotype for LookerGenotype {
                 for turn in [&self.direction.left90(), &self.direction.right90()].iter() {
                     if let Cell::Grass = get_vision_in_direction(vision, turn) {
                         self.direction = *turn.clone();
-                        self.next_move_ticks = 0;
+                        self.next_tick = 0;
                     }
                 }
             }
@@ -93,7 +95,7 @@ impl LookerGenotype {
             energy: 0,
             direction: Direction::North,
             next_action: LookerAction::Look,
-            next_move_ticks: MOVE_TICKS,
+            next_tick: MOVE_TICKS,
             ticks_per_move: MOVE_TICKS,
             reproduction_scale: REPRODUCTION_SCALE,
         }
