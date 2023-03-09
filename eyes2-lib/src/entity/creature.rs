@@ -23,11 +23,11 @@
 //!
 
 use crate::utils::move_pos;
-use crate::Cell;
 use std::rc::Rc;
 use std::sync::mpsc;
 
 use super::genotype::genotype::GenotypeActions;
+use super::vision::Vision;
 use super::Genotype;
 use super::Update;
 use crate::Settings;
@@ -35,8 +35,6 @@ use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 use serde::Deserialize;
 use serde::Serialize;
-
-pub type Vision = Vec<(Direction, Cell)>;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Creature {

@@ -1,7 +1,7 @@
-use crate::entity::{new_genotype, Creature, Update, Vision};
+use crate::entity::{look_world, new_genotype, Creature, Update};
 use crate::settings::Settings;
 use crate::utils;
-use direction::{Coord, Direction, Directions};
+use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -179,14 +179,7 @@ impl World {
                 Update::Look(id) => {
                     let creature = self.creatures.get_mut(&id).unwrap();
                     let coord = creature.coord();
-                    let mut vision: Vision = Vec::new();
-                    // Gather the contents of all adjacent cells
-                    for dir in Directions::into_iter(Directions) {
-                        match self.grid.get_cell(coord + dir.coord()) {
-                            Cell::Empty => {}
-                            cell => vision.push((dir, cell)),
-                        }
-                    }
+                    let vision = look_world(coord, &self.grid);
                     // Send the list of adjacent cells back to the requesting creature
                     creature.vision(vision);
                 }

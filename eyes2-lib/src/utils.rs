@@ -27,9 +27,9 @@ pub fn rotate_direction(dir: Direction) -> Direction {
     }
 }
 
-pub fn random_direction(rng: &FastRng) -> Direction {
+pub fn int_to_dir(dir: i32) -> Direction {
     // TODO is this the fastest way to do this?
-    match rng.u8(0..8) {
+    match dir {
         0 => Direction::North,
         1 => Direction::NorthEast,
         2 => Direction::East,
@@ -40,4 +40,8 @@ pub fn random_direction(rng: &FastRng) -> Direction {
         7 => Direction::NorthWest,
         _ => unreachable!(),
     }
+}
+
+pub fn random_direction(rng: &FastRng) -> Direction {
+    int_to_dir(rng.u8(0..8) as i32)
 }
