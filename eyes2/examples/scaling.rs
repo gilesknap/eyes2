@@ -104,6 +104,10 @@ fn main() {
     let size: u16 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(160);
     let creatures: u16 = args.get(2).and_then(|s| s.parse().ok()).unwrap_or(6000);
     let ticks: u64 = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(3000);
+    if ticks == 0 {
+        eprintln!("ticks must be > 0");
+        std::process::exit(2);
+    }
 
     let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
 

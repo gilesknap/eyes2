@@ -43,6 +43,9 @@ fn check_populate() {
     assert!(world.grid.grass_count() <= config.grass_count as usize);
 
     let _creature_count = world.creature_count();
+    // guard the indexing below so a populate() that adds nothing fails with a
+    // clear message rather than an index-out-of-bounds panic
+    assert!(_creature_count > 0, "populate() added no creatures");
     // remove the first creature in the store by its id
     let first_id = world.creatures[0].id();
     world.remove_creature(first_id);
