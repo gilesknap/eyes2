@@ -37,6 +37,10 @@ impl Genotype for RandomGenotype {
         self.energy = energy;
     }
 
+    fn set_config(&mut self, config: Settings) {
+        self.config = config;
+    }
+
     fn get_sigil(&self) -> char {
         'R'
     }

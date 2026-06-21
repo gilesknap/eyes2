@@ -111,6 +111,9 @@ impl Creature {
     }
 
     pub fn set_config(&mut self, config: Settings) {
+        // keep the genotype's copy of the settings in step (it is skipped during
+        // serialization, so this restores it after a world is loaded)
+        self.genotype.set_config(config.clone());
         self.config = config;
     }
 

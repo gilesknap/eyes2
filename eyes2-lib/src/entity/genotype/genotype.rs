@@ -53,6 +53,12 @@ pub trait Genotype: DynClone + Send {
     // the canonical energy level in in Creature itself)
     fn set_energy(&mut self, energy: i32);
 
+    // update the global settings held by the genotype. This is called by the
+    // world after deserialization so that a loaded genotype uses the loaded
+    // world's settings rather than the defaults filled in by `#[serde(skip)]`.
+    // Genotypes that do not read the config can ignore this.
+    fn set_config(&mut self, _config: Settings) {}
+
     // return the sigil used to represent this creature in the world
     fn get_sigil(&self) -> char {
         'D'

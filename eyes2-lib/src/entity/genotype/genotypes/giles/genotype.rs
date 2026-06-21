@@ -106,6 +106,10 @@ impl Genotype for GilesGenotype {
         self.energy = energy;
     }
 
+    fn set_config(&mut self, config: Settings) {
+        self.config = config;
+    }
+
     fn get_sigil(&self) -> char {
         'G'
     }
@@ -450,6 +454,18 @@ mod tests {
         // mutation rate must stay within bounds so evolution never freezes
         assert!(g.mutation_rate >= MIN_MUTATION_RATE);
         assert!(g.mutation_rate <= MAX_MUTATION_RATE);
+    }
+
+    #[test]
+    fn set_config_restores_settings() {
+        // config is #[serde(skip)] so it must be restorable after a load
+        let mut g = test_genotype();
+        let mut settings = Settings::default();
+        settings.size = 123;
+        settings.creature_reproduction_energy = 42;
+        g.set_config(settings);
+        assert_eq!(g.config.size, 123);
+        assert_eq!(g.config.creature_reproduction_energy, 42);
     }
 
     #[test]
