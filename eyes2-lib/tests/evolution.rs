@@ -46,7 +46,7 @@ fn run_experiment(label: &str, mut settings: Settings, ticks: u64, samples: u64)
     let mut world = World::new(settings, 0);
     world.populate();
 
-    let report_every = (ticks / samples).max(1);
+    let report_every = (ticks / samples.max(1)).max(1);
 
     println!(
         "\n=== {label} (grass_rate={}) ===",
