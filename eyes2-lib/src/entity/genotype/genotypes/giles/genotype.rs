@@ -25,45 +25,13 @@
 //! the world and refresh it after every move. The eight vision variables
 //! (`V1`..`V8`) read from that cache.
 
-use super::{Genotype, GenotypeActions};
+use super::super::{Genotype, GenotypeActions};
+use super::asm;
+use super::isa::*;
 use crate::utils::int_to_dir;
 use crate::{entity::Vision, Cell, Settings};
 use direction::Direction;
 use serde::{Deserialize, Serialize};
-
-/// number of bytes in a genome (matches the original `CODE_SIZE`)
-const CODE_SIZE: usize = 1000;
-
-/// number of distinct instructions in the VM
-const NUMBER_OF_INSTRUCTIONS: u8 = 12;
-/// total number of readable variables (vision + state + registers)
-const NUMBER_OF_VARS: u8 = 18;
-/// number of writable I/O registers (`I1`..`I5`)
-const NUMBER_OF_IO_VARS: usize = 5;
-
-// the instruction set, values must match the byte interpreted by the VM
-const LOADC: u8 = 0; // load a constant into the accumulator
-const LOADV: u8 = 1; // load a variable into the accumulator
-const ANDV: u8 = 2; // bitwise AND the accumulator with a variable
-const ORV: u8 = 3; // bitwise OR the accumulator with a variable
-const JZ: u8 = 4; // jump if the accumulator is zero
-const JNZ: u8 = 5; // jump if the accumulator is non-zero
-const MOVV: u8 = 6; // move in the direction held in a variable
-const MOVC: u8 = 7; // move in a constant direction
-const NOP: u8 = 8; // do nothing
-const SAVEV: u8 = 9; // save the accumulator into an I/O register
-const ADDV: u8 = 10; // add a variable to the accumulator
-const SUBV: u8 = 11; // subtract a variable from the accumulator
-
-// the readable variable indices (V1..V8 are the eight vision directions)
-const VAR_V1: u8 = 0; // first vision direction
-const VAR_V8: u8 = 7; // last vision direction
-const VAR_E: u8 = 8; // energy
-const VAR_X: u8 = 9; // x position (internal dead-reckoning)
-const VAR_Y: u8 = 10; // y position (internal dead-reckoning)
-const VAR_B: u8 = 11; // breed threshold
-const VAR_M: u8 = 12; // mutation rate
-const VAR_I1: u8 = 13; // first I/O register
 
 // bounds the evolving breed threshold and mutation rate are clamped to so that
 // the population can never freeze (mutation_rate of 0) or breed for free
@@ -163,6 +131,16 @@ impl GilesGenotype {
             // look before we leap
             pending_look: true,
         }
+    }
+
+    /// The raw genome bytes that drive this creature.
+    pub fn genome(&self) -> &[u8] {
+        &self.code
+    }
+
+    /// Disassemble this creature's genome into a human readable listing.
+    pub fn disassemble(&self) -> String {
+        asm::disassemble_to_string(&self.code)
     }
 
     /// Produce a child genotype, mutating its genome with probability

@@ -1,5 +1,5 @@
 pub mod creature;
-mod genotype;
+pub mod genotype;
 pub mod update;
 pub mod vision;
 
