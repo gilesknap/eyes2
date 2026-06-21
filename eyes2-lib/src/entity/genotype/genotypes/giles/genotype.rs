@@ -25,7 +25,7 @@
 //! the world and refresh it after every move. The eight vision variables
 //! (`V1`..`V8`) read from that cache.
 
-use super::super::{Genotype, GenotypeActions};
+use super::super::{Genotype, GenotypeActions, GenotypeInspect, InspectLine};
 use super::asm;
 use super::isa::*;
 use crate::utils::int_to_dir;
@@ -108,6 +108,42 @@ impl Genotype for GilesGenotype {
 
     fn get_sigil(&self) -> char {
         'G'
+    }
+
+    fn inspect(&self) -> Option<GenotypeInspect> {
+        let lines = asm::disassemble(&self.code);
+        // the instruction about to execute is the last one at or before ip
+        let active = lines.iter().rposition(|line| line.addr <= self.ip);
+
+        let listing = lines
+            .iter()
+            .map(|line| InspectLine {
+                addr: line.addr,
+                text: match &line.operand {
+                    Some(operand) => format!("{:<6}{}", line.mnemonic, operand),
+                    None => line.mnemonic.to_string(),
+                },
+            })
+            .collect();
+
+        let mut state = vec![
+            ("IP".to_string(), format!("{:#06x}", self.ip)),
+            ("R".to_string(), format!("{:#06x}", self.r)),
+        ];
+        for (i, value) in self.vars.iter().enumerate() {
+            state.push((format!("I{}", i + 1), format!("{:#06x}", value)));
+        }
+        state.push(("energy".to_string(), self.energy.to_string()));
+        state.push(("breed".to_string(), self.breed_after.to_string()));
+        state.push(("mutate%".to_string(), self.mutation_rate.to_string()));
+        state.push(("pos".to_string(), format!("{},{}", self.x, self.y)));
+
+        Some(GenotypeInspect {
+            kind: "giles",
+            state,
+            listing,
+            active,
+        })
     }
 }
 

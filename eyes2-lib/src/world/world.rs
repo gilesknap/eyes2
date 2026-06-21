@@ -39,6 +39,8 @@ pub struct World {
     // creatures. Below it the rayon fork/join cost outweighs the work and a
     // plain serial loop is much faster - see DESIGN_MULTITHREAD.md.
     parallel_threshold: usize,
+    // the id of the creature currently being inspected in the TUI, if any
+    selected: Option<u64>,
 }
 
 // Default creature count at/above which the per-tick "think" phase is run in
@@ -62,6 +64,7 @@ impl World {
             next_grass_tick: 0,
             rng: FastRng::new(),
             parallel_threshold: DEFAULT_PARALLEL_THRESHOLD,
+            selected: None,
         }
     }
 
@@ -78,6 +81,7 @@ impl World {
             next_grass_tick,
             rng: FastRng::new(),
             parallel_threshold: DEFAULT_PARALLEL_THRESHOLD,
+            selected: None,
         }
     }
 }
@@ -97,6 +101,42 @@ impl World {
     /// or `0` to always go parallel. Mainly useful for benchmarking.
     pub fn set_parallel_threshold(&mut self, threshold: usize) {
         self.parallel_threshold = threshold;
+    }
+
+    /// Toggle the TUI inspector: select the first creature if none is selected,
+    /// otherwise clear the selection.
+    pub fn toggle_inspect(&mut self) {
+        self.selected = match self.selected {
+            Some(_) => None,
+            None => self.sorted_ids().first().copied(),
+        };
+        self.refresh_inspection();
+    }
+
+    /// Select the next creature (by id) for inspection, wrapping around.
+    pub fn select_next(&mut self) {
+        self.step_selection(1);
+    }
+
+    /// Select the previous creature (by id) for inspection, wrapping around.
+    pub fn select_prev(&mut self) {
+        self.step_selection(-1);
+    }
+
+    /// Rebuild the inspection snapshot for the selected creature (if any) and
+    /// store it on the grid so it is sent to the GUI. If the selected creature
+    /// has died, advance to the next surviving one.
+    pub fn refresh_inspection(&mut self) {
+        if let Some(id) = self.selected {
+            if !self.id_index.contains_key(&id) {
+                // the inspected creature died; fall back to the first survivor
+                self.selected = self.sorted_ids().first().copied();
+            }
+        }
+        self.grid.inspect = self
+            .selected
+            .and_then(|id| self.id_index.get(&id))
+            .map(|&index| self.creatures[index].inspect());
     }
 
     pub fn populate(&mut self) {
@@ -309,6 +349,31 @@ impl World {
     fn get_next_id(&mut self) -> u64 {
         self.grid.next_id += 1;
         self.grid.next_id
+    }
+
+    /// the live creature ids in ascending order, for stable inspector cycling
+    fn sorted_ids(&self) -> Vec<u64> {
+        let mut ids: Vec<u64> = self.id_index.keys().copied().collect();
+        ids.sort_unstable();
+        ids
+    }
+
+    /// move the inspector selection by `delta` positions through the sorted ids
+    fn step_selection(&mut self, delta: isize) {
+        let ids = self.sorted_ids();
+        if ids.is_empty() {
+            self.selected = None;
+            self.refresh_inspection();
+            return;
+        }
+        let current = self
+            .selected
+            .and_then(|id| ids.iter().position(|&i| i == id))
+            .unwrap_or(0) as isize;
+        let len = ids.len() as isize;
+        let next = (current + delta).rem_euclid(len) as usize;
+        self.selected = Some(ids[next]);
+        self.refresh_inspection();
     }
 
     fn validate_creature(&self, id: u64, coord: Coord) {

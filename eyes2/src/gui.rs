@@ -2,7 +2,7 @@
 //! and handles user input.
 //!
 use chrono::Utc;
-use eyes2_lib::{Cell, WorldGrid};
+use eyes2_lib::{Cell, CreatureInspect, WorldGrid};
 
 use num_format::{Locale, ToFormattedString};
 use std::error::Error;
@@ -40,6 +40,11 @@ pub enum GuiCmd {
     SpeedMax,
     GrassUp,
     GrassDown,
+    // inspector controls
+    Inspect,
+    SelectNext,
+    SelectPrev,
+    Step,
 }
 
 pub struct EyesGui {
@@ -47,10 +52,13 @@ pub struct EyesGui {
     left_pane: pancurses::Window,
     right_pane: pancurses::Window,
     help_pane: pancurses::Window,
+    inspect_pane: pancurses::Window,
     y_max: i32,
     x_max: i32,
     last_tick: u64,
     last_tick_time: Instant,
+    // whether the inspector overlay is currently shown
+    inspecting: bool,
 }
 
 const DATE_FMT: &'static str = "%y-%m-%d %H:%M:%S";
@@ -70,6 +78,7 @@ impl EyesGui {
         let left_pane = pancurses::newwin(1, 1, 0, 0);
         let right_pane = pancurses::newwin(1, 1, 0, 3);
         let help_pane = pancurses::newwin(20, 44, 3, 10);
+        let inspect_pane = pancurses::newwin(30, 48, 1, 2);
 
         start_color();
         init_pair(RED as i16, COLOR_RED, COLOR_BLACK);
@@ -93,10 +102,12 @@ impl EyesGui {
             left_pane,
             right_pane,
             help_pane,
+            inspect_pane,
             y_max: 0,
             x_max: 0,
             last_tick: 0,
             last_tick_time: time::Instant::now(),
+            inspecting: false,
         }
     }
 
@@ -160,7 +171,24 @@ impl EyesGui {
         self.status(inc!(y), "speed:", &grid.speed.to_string());
         self.status(inc!(y), "grass rate:", &grid.grass_rate.to_string());
 
-        self.footer(" q: quit, h: help ");
+        self.footer(" q: quit, h: help, i: inspect ");
+
+        // draw (or clear) the inspector overlay on top of everything else
+        match &grid.inspect {
+            Some(inspect) => {
+                self.render_inspect(inspect);
+                self.inspecting = true;
+            }
+            None => {
+                if self.inspecting {
+                    self.inspect_pane.erase();
+                    self.inspect_pane.refresh();
+                    self.inspecting = false;
+                    // force a full redraw to repaint the world under the overlay
+                    self.y_max = 0;
+                }
+            }
+        }
     }
 
     pub fn get_cmd(&mut self) -> GuiCmd {
@@ -174,6 +202,10 @@ impl EyesGui {
             Some(pancurses::Input::KeyDown) => GuiCmd::SpeedDown,
             Some(pancurses::Input::KeyRight) => GuiCmd::GrassUp,
             Some(pancurses::Input::KeyLeft) => GuiCmd::GrassDown,
+            Some(pancurses::Input::Character('i')) => GuiCmd::Inspect,
+            Some(pancurses::Input::Character('n')) => GuiCmd::SelectNext,
+            Some(pancurses::Input::Character('p')) => GuiCmd::SelectPrev,
+            Some(pancurses::Input::Character('.')) => GuiCmd::Step,
             Some(pancurses::Input::Character('h')) => {
                 self.show_help();
                 GuiCmd::None
@@ -268,6 +300,73 @@ impl EyesGui {
         self.right_pane.refresh();
     }
 
+    fn render_inspect(&mut self, inspect: &CreatureInspect) {
+        let win = &self.inspect_pane;
+        win.erase();
+        win.draw_box(0, 0);
+
+        let (height, _width) = win.get_max_yx();
+        let mut row = 1;
+
+        win.mvaddstr(
+            row,
+            2,
+            format!("INSPECT  {} #{}", inspect.sigil, inspect.id),
+        );
+        row += 1;
+        win.mvaddstr(
+            row,
+            2,
+            format!(
+                "pos {},{}   energy {}",
+                inspect.coord.0, inspect.coord.1, inspect.energy
+            ),
+        );
+        row += 2;
+
+        match &inspect.genotype {
+            None => {
+                win.mvaddstr(row, 2, "(no inspectable genotype)");
+            }
+            Some(genotype) => {
+                // register / state values
+                for (label, value) in &genotype.state {
+                    if row >= height - 2 {
+                        break;
+                    }
+                    win.mvaddstr(row, 2, format!("{:<9}{}", label, value));
+                    row += 1;
+                }
+                row += 1;
+                if row < height - 2 {
+                    win.mvaddstr(row, 2, "---- code ----");
+                    row += 1;
+                }
+
+                // a window of the disassembly centred on the active instruction
+                let visible = (height - 1 - row).max(0) as usize;
+                if visible > 0 && !genotype.listing.is_empty() {
+                    let active = genotype.active.unwrap_or(0);
+                    let start = active.saturating_sub(visible / 2);
+                    for (i, line) in genotype
+                        .listing
+                        .iter()
+                        .enumerate()
+                        .skip(start)
+                        .take(visible)
+                    {
+                        let marker = if Some(i) == genotype.active { '>' } else { ' ' };
+                        win.mvaddstr(row, 2, format!("{} {:04x}  {}", marker, line.addr, line.text));
+                        row += 1;
+                    }
+                }
+            }
+        }
+
+        win.mvaddstr(height - 1, 2, " n/p:sel .:step i:close ");
+        win.refresh();
+    }
+
     fn show_help(&mut self) {
         let help = "
   -------------- COMMANDS ---------------
@@ -277,6 +376,9 @@ impl EyesGui {
             space:   pause the world
           up/down:   speed up/down
        left/right:   grass up/down
+                i:   inspect creatures
+              n/p:   next/prev creature
+                .:   single-step (when inspecting)
                 h:   show this help
 
   ---------------------------------------

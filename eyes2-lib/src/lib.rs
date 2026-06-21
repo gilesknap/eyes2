@@ -9,6 +9,7 @@ pub mod world;
 pub mod utils;
 
 // these are the public API structures
+pub use crate::entity::{CreatureInspect, GenotypeInspect, InspectLine};
 pub use crate::settings::Settings;
 pub use crate::world::{save_world, Cell, World, WorldGrid};
 

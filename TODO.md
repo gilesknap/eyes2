@@ -27,9 +27,13 @@ to create the framework for evolving creatures:
 - NIRVANA: implement multi host architecture and deploy with kubernetes
     - I think I won't do this. Distributing across processes for the trivial work a creature does
       will not scale
-- STRETCH provide a debug architecture
-  - needs to implement a GUI for representing the state of the creature
-  - e.g. assembler / disassembler and debugger
+- DONE provide a debug architecture
+  - DONE a GUI for representing the state of the creature (the TUI inspector,
+    press `i` - shows the selected creature's registers and disassembled code,
+    `n`/`p` to cycle creatures, `.` to single-step)
+  - DONE assembler / disassembler (eyes2_lib::giles::asm)
+  - the disassembler doubles as the "debugger" code view; full breakpoint style
+    debugging is not implemented
 
 Stage 2
 -------

@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 
+use crate::entity::creature::CreatureInspect;
 use direction;
 use serde::{Deserialize, Serialize};
 
@@ -28,6 +29,10 @@ pub struct WorldGrid {
     pub start_time: DateTime<Utc>,
     // next unique id to assign to an Entity
     pub next_id: u64,
+    // a snapshot of the currently inspected creature, for the TUI inspector
+    // (not persisted - rebuilt from the live world each tick)
+    #[serde(skip)]
+    pub inspect: Option<CreatureInspect>,
 }
 
 // represent the contents of a single cell in the world
@@ -59,6 +64,7 @@ impl WorldGrid {
             restarts,
             start_time: Utc::now(),
             next_id: 0,
+            inspect: None,
         }
     }
 

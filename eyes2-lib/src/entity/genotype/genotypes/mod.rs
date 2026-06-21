@@ -5,3 +5,4 @@ pub mod random;
 
 use super::genotype::Genotype;
 use super::genotype::GenotypeActions;
+use super::genotype::{GenotypeInspect, InspectLine};

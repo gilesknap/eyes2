@@ -125,8 +125,18 @@ fn do_tick(
                 GuiCmd::Load => {
                     *world = load_world();
                 }
+                GuiCmd::Inspect => world.toggle_inspect(),
+                GuiCmd::SelectNext => world.select_next(),
+                GuiCmd::SelectPrev => world.select_prev(),
+                GuiCmd::Step => {
+                    // single-step: pause, then advance exactly one tick
+                    *paused = true;
+                    world.tick();
+                }
                 _ => {}
             };
+            // refresh the inspector snapshot so the grid we send is current
+            world.refresh_inspection();
             tx_grid.send(world.grid.clone()).unwrap();
         }
 

@@ -141,11 +141,7 @@ pub fn assemble(source: &str) -> Result<Vec<u8>, AssembleError> {
     for (i, raw_line) in source.lines().enumerate() {
         let line = i + 1;
         // strip comments and surrounding whitespace
-        let text = raw_line
-            .split(|c| c == ';' || c == '#')
-            .next()
-            .unwrap_or("")
-            .trim();
+        let text = raw_line.split([';', '#']).next().unwrap_or("").trim();
         if text.is_empty() {
             continue;
         }
