@@ -7,8 +7,9 @@ Stage one
 to create the framework for evolving creatures:
 
 - DONE create a tui based representation of the world with GUI for controlling settings/tweaks
-- provide a creature implementation plugin architecture so that the decisions creatures
-  make can be 'intelligent' and inheritable
+- DONE provide a creature implementation plugin architecture so that the decisions creatures
+  make can be 'intelligent' and inheritable (see the `giles` genotype, a port of
+  the original RISC byte-code genome)
 - DONE provide a 'dumb' creature plugin with deterministic behaviour for perf testing and tui
   testing
 - provide means to implement carnivores and herbivores

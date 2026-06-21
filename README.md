@@ -42,8 +42,25 @@ This version did successfully evolve useful survival strategies in which I
 was able to turn the grass growth rate down much lower than normal values.
 (at high enough grass growth, random behaviour is sufficient for survival)
 
-I will reproduce the same 'genetic code' but this version is also extensible
-so multiple types of creature with different genetic codes may co-exist.
+I have now reproduced that same 'genetic code' as the `giles` genotype. Each
+creature carries a 1000 byte genome that is interpreted as byte-code for a tiny
+virtual machine, running one instruction per world tick. The VM has 12
+instructions (LOADC, LOADV, ANDV, ORV, JZ, JNZ, MOVV, MOVC, NOP, SAVEV, ADDV,
+SUBV), a single accumulator register `r`, five I/O registers (I1..I5) and an
+instruction pointer. Readable variables include the 8 directional vision inputs
+(V1..V8), energy (E), dead-reckoning position (X, Y), the breed threshold (B),
+the mutation rate (M) and the five I/O registers. On reproduction the genome is
+copied to the child and, with probability equal to the creature's own (and
+therefore evolvable) mutation rate, the copy is mutated - per-byte flips plus a
+roving copy point that gives gene duplication and rearrangement. The breed
+threshold and mutation rate are themselves part of the genome and so evolve too.
+
+One difference from the original: `giles` uses eyes2's existing single
+adjacent-cell Look vision (cached and refreshed after each move) rather than the
+original's 4-cell-deep ranged vision.
+
+This version is also extensible, so multiple types of creature with different
+genetic codes may co-exist.
 
 ## Goals
 
@@ -64,6 +81,8 @@ loading in future.
   src/settings.rs
 
 That's it. Now you can start to make your own custom genetic code.
+The `giles` genotype (in genotypes/giles.rs) is a fully worked example of this
+that you can look at.
 
 # Still to do
 
@@ -72,7 +91,7 @@ That's it. Now you can start to make your own custom genetic code.
 - Barriers (thanks Michael Abbott) - add some barriers that stop creature
   movement - introducing extra environmental challenges (or advantages perhaps).
   Provide the means to edit the location of barriers in the world.
-- Implementation of the original RISC Genotype
+- DONE Implementation of the original RISC Genotype (now the `giles` genotype)
 - Get some competing Genotype contributions and have some creature wars
 - Carnivores
 - Multi Threaded processing for the creatures for even more performance
