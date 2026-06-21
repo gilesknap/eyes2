@@ -8,6 +8,32 @@ pub enum BadGenomeError {
     InvalidGenome,
 }
 
+/// One line of a genotype's program listing, for the inspector.
+#[derive(Debug, Clone)]
+pub struct InspectLine {
+    /// the address of the line within the genome
+    pub addr: usize,
+    /// the rendered instruction text
+    pub text: String,
+}
+
+/// A genotype-agnostic snapshot of a creature's "brain" for the TUI inspector.
+///
+/// Genotypes that have inspectable internal state (such as the `giles` byte-code
+/// VM) return one of these from [`Genotype::inspect`]; the GUI renders it
+/// without needing to know anything about the specific genotype.
+#[derive(Debug, Clone)]
+pub struct GenotypeInspect {
+    /// a short name for the kind of genotype, e.g. "giles"
+    pub kind: &'static str,
+    /// labelled register / state values, e.g. ("R", "0x2a")
+    pub state: Vec<(String, String)>,
+    /// the program listing (may be empty for genotypes without code)
+    pub listing: Vec<InspectLine>,
+    /// the index into `listing` of the instruction about to execute, if any
+    pub active: Option<usize>,
+}
+
 // Every creature has a Genotype which defines their behaviour. It is
 // expected that the Genotype will be defined by a genome, and that the
 // genome (with mutations as appropriate) will be passed to the
@@ -27,6 +53,12 @@ pub trait Genotype: DynClone + Send {
     // the canonical energy level in in Creature itself)
     fn set_energy(&mut self, energy: i32);
 
+    // update the global settings held by the genotype. This is called by the
+    // world after deserialization so that a loaded genotype uses the loaded
+    // world's settings rather than the defaults filled in by `#[serde(skip)]`.
+    // Genotypes that do not read the config can ignore this.
+    fn set_config(&mut self, _config: Settings) {}
+
     // return the sigil used to represent this creature in the world
     fn get_sigil(&self) -> char {
         'D'
@@ -36,6 +68,12 @@ pub trait Genotype: DynClone + Send {
     // the last Look(Direction) action. The value is a 1D array of 4
     // Cells. With the nearest cell the first in the array.
     fn vision(&mut self, _vision: Vision) {}
+
+    // Return a snapshot of internal state for the TUI inspector, or None for
+    // genotypes that have nothing interesting to show.
+    fn inspect(&self) -> Option<GenotypeInspect> {
+        None
+    }
 }
 clone_trait_object!(Genotype);
 

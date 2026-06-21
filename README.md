@@ -81,8 +81,26 @@ loading in future.
   src/settings.rs
 
 That's it. Now you can start to make your own custom genetic code.
-The `giles` genotype (in genotypes/giles.rs) is a fully worked example of this
+The `giles` genotype (in genotypes/giles/) is a fully worked example of this
 that you can look at.
+
+## Inspecting evolved creatures
+
+Because a `giles` genome is just a block of byte-code, there is tooling to read
+what evolution actually produced:
+
+- A disassembler and assembler live in `eyes2_lib::giles::asm`
+  (`disassemble` / `assemble`), converting between raw genome bytes and a
+  readable listing. `GilesGenotype::disassemble()` dumps a creature's code and
+  `GilesGenotype::from_genome()` builds a creature from hand-written assembly.
+- In the TUI, press `i` to open the inspector. It shows the selected creature's
+  registers (IP, accumulator, I/O registers, energy, breed/mutation rate) and a
+  disassembly of its genome with the current instruction highlighted. Use `n`/`p`
+  to cycle through creatures and `.` to single-step the world one tick at a time.
+
+A genotype can opt into the inspector by implementing the `Genotype::inspect()`
+method (returning its registers and a listing); genotypes that don't just show
+no detail.
 
 # Still to do
 

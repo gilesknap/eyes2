@@ -24,7 +24,7 @@
 
 use crate::utils::move_pos;
 
-use super::genotype::genotype::GenotypeActions;
+use super::genotype::genotype::{GenotypeActions, GenotypeInspect};
 use super::vision::{look_world, Vision};
 use super::Genotype;
 use super::Update;
@@ -34,6 +34,21 @@ use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
 use serde::Deserialize;
 use serde::Serialize;
+
+/// A snapshot of a creature (and its genotype) for the TUI inspector.
+#[derive(Debug, Clone)]
+pub struct CreatureInspect {
+    /// the creature's unique id
+    pub id: u64,
+    /// the sigil used to render it in the world
+    pub sigil: char,
+    /// its (x, y) position in the world
+    pub coord: (i32, i32),
+    /// its current energy
+    pub energy: i32,
+    /// inspectable internal state of its genotype, if any
+    pub genotype: Option<GenotypeInspect>,
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Creature {
@@ -96,6 +111,9 @@ impl Creature {
     }
 
     pub fn set_config(&mut self, config: Settings) {
+        // keep the genotype's copy of the settings in step (it is skipped during
+        // serialization, so this restores it after a world is loaded)
+        self.genotype.set_config(config.clone());
         self.config = config;
     }
 
@@ -145,6 +163,17 @@ impl Creature {
 
     pub fn get_sigil(&self) -> char {
         self.sigil
+    }
+
+    /// Produce a snapshot of this creature for the TUI inspector.
+    pub fn inspect(&self) -> CreatureInspect {
+        CreatureInspect {
+            id: self.id,
+            sigil: self.sigil,
+            coord: (self.coord.x, self.coord.y),
+            energy: self.energy,
+            genotype: self.genotype.inspect(),
+        }
     }
 
     pub fn vision(&mut self, vision: Vision) {

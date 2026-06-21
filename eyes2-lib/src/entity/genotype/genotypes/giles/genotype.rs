@@ -25,45 +25,13 @@
 //! the world and refresh it after every move. The eight vision variables
 //! (`V1`..`V8`) read from that cache.
 
-use super::{Genotype, GenotypeActions};
+use super::super::{Genotype, GenotypeActions, GenotypeInspect, InspectLine};
+use super::asm;
+use super::isa::*;
 use crate::utils::int_to_dir;
 use crate::{entity::Vision, Cell, Settings};
 use direction::Direction;
 use serde::{Deserialize, Serialize};
-
-/// number of bytes in a genome (matches the original `CODE_SIZE`)
-const CODE_SIZE: usize = 1000;
-
-/// number of distinct instructions in the VM
-const NUMBER_OF_INSTRUCTIONS: u8 = 12;
-/// total number of readable variables (vision + state + registers)
-const NUMBER_OF_VARS: u8 = 18;
-/// number of writable I/O registers (`I1`..`I5`)
-const NUMBER_OF_IO_VARS: usize = 5;
-
-// the instruction set, values must match the byte interpreted by the VM
-const LOADC: u8 = 0; // load a constant into the accumulator
-const LOADV: u8 = 1; // load a variable into the accumulator
-const ANDV: u8 = 2; // bitwise AND the accumulator with a variable
-const ORV: u8 = 3; // bitwise OR the accumulator with a variable
-const JZ: u8 = 4; // jump if the accumulator is zero
-const JNZ: u8 = 5; // jump if the accumulator is non-zero
-const MOVV: u8 = 6; // move in the direction held in a variable
-const MOVC: u8 = 7; // move in a constant direction
-const NOP: u8 = 8; // do nothing
-const SAVEV: u8 = 9; // save the accumulator into an I/O register
-const ADDV: u8 = 10; // add a variable to the accumulator
-const SUBV: u8 = 11; // subtract a variable from the accumulator
-
-// the readable variable indices (V1..V8 are the eight vision directions)
-const VAR_V1: u8 = 0; // first vision direction
-const VAR_V8: u8 = 7; // last vision direction
-const VAR_E: u8 = 8; // energy
-const VAR_X: u8 = 9; // x position (internal dead-reckoning)
-const VAR_Y: u8 = 10; // y position (internal dead-reckoning)
-const VAR_B: u8 = 11; // breed threshold
-const VAR_M: u8 = 12; // mutation rate
-const VAR_I1: u8 = 13; // first I/O register
 
 // bounds the evolving breed threshold and mutation rate are clamped to so that
 // the population can never freeze (mutation_rate of 0) or breed for free
@@ -138,8 +106,48 @@ impl Genotype for GilesGenotype {
         self.energy = energy;
     }
 
+    fn set_config(&mut self, config: Settings) {
+        self.config = config;
+    }
+
     fn get_sigil(&self) -> char {
         'G'
+    }
+
+    fn inspect(&self) -> Option<GenotypeInspect> {
+        let lines = asm::disassemble(&self.code);
+        // the instruction about to execute is the last one at or before ip
+        let active = lines.iter().rposition(|line| line.addr <= self.ip);
+
+        let listing = lines
+            .iter()
+            .map(|line| InspectLine {
+                addr: line.addr,
+                text: match &line.operand {
+                    Some(operand) => format!("{:<6}{}", line.mnemonic, operand),
+                    None => line.mnemonic.to_string(),
+                },
+            })
+            .collect();
+
+        let mut state = vec![
+            ("IP".to_string(), format!("{:#06x}", self.ip)),
+            ("R".to_string(), format!("{:#06x}", self.r)),
+        ];
+        for (i, value) in self.vars.iter().enumerate() {
+            state.push((format!("I{}", i + 1), format!("{:#06x}", value)));
+        }
+        state.push(("energy".to_string(), self.energy.to_string()));
+        state.push(("breed".to_string(), self.breed_after.to_string()));
+        state.push(("mutate%".to_string(), self.mutation_rate.to_string()));
+        state.push(("pos".to_string(), format!("{},{}", self.x, self.y)));
+
+        Some(GenotypeInspect {
+            kind: "giles",
+            state,
+            listing,
+            active,
+        })
     }
 }
 
@@ -163,6 +171,26 @@ impl GilesGenotype {
             // look before we leap
             pending_look: true,
         }
+    }
+
+    /// The raw genome bytes that drive this creature.
+    pub fn genome(&self) -> &[u8] {
+        &self.code
+    }
+
+    /// Disassemble this creature's genome into a human readable listing.
+    pub fn disassemble(&self) -> String {
+        asm::disassemble_to_string(&self.code)
+    }
+
+    /// Build a genotype from explicit genome bytes, for example bytes produced
+    /// by [`asm::assemble`]. The genome is padded with `NOP` (or truncated) to
+    /// the required [`CODE_SIZE`].
+    pub fn from_genome(config: Settings, mut code: Vec<u8>) -> Self {
+        code.resize(CODE_SIZE, NOP);
+        let mut genotype = Self::new(config);
+        genotype.code = code;
+        genotype
     }
 
     /// Produce a child genotype, mutating its genome with probability
@@ -426,6 +454,31 @@ mod tests {
         // mutation rate must stay within bounds so evolution never freezes
         assert!(g.mutation_rate >= MIN_MUTATION_RATE);
         assert!(g.mutation_rate <= MAX_MUTATION_RATE);
+    }
+
+    #[test]
+    fn set_config_restores_settings() {
+        // config is #[serde(skip)] so it must be restorable after a load
+        let mut g = test_genotype();
+        let mut settings = Settings::default();
+        settings.size = 123;
+        settings.creature_reproduction_energy = 42;
+        g.set_config(settings);
+        assert_eq!(g.config.size, 123);
+        assert_eq!(g.config.creature_reproduction_energy, 42);
+    }
+
+    #[test]
+    fn assembled_program_executes() {
+        // a hand-written program that simply heads east should move East
+        let code = asm::assemble("MOVC 0x2").expect("assembles");
+        let mut g = GilesGenotype::from_genome(Settings::default(), code);
+        g.pending_look = false;
+        g.breed_after = i32::MAX;
+        match g.tick() {
+            GenotypeActions::Move(dir) => assert_eq!(dir, Direction::East),
+            _ => panic!("expected a Move action"),
+        }
     }
 
     #[test]

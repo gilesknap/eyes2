@@ -9,5 +9,13 @@ pub mod world;
 pub mod utils;
 
 // these are the public API structures
+pub use crate::entity::{CreatureInspect, GenotypeInspect, InspectLine};
 pub use crate::settings::Settings;
 pub use crate::world::{save_world, Cell, World, WorldGrid};
+
+/// Tooling for the `giles` genome: its instruction set ([`giles::isa`]) and a
+/// disassembler / assembler ([`giles::asm`]) for converting between the raw
+/// genome bytes and a human readable listing.
+pub mod giles {
+    pub use crate::entity::genotype::genotypes::giles::{asm, isa, GilesGenotype};
+}
