@@ -66,6 +66,15 @@ pub enum Operand {
     Jump,
 }
 
+/// The number of operand bytes that follow a given opcode in the genome.
+pub fn operand_size(opcode: u8) -> usize {
+    match operand_kind(opcode) {
+        Operand::None => 0,
+        Operand::Variable | Operand::IoVariable => 1,
+        Operand::Constant | Operand::Jump => 2,
+    }
+}
+
 /// Return the operand kind for a given opcode. The opcode must already be
 /// reduced modulo [`NUMBER_OF_INSTRUCTIONS`].
 pub fn operand_kind(opcode: u8) -> Operand {

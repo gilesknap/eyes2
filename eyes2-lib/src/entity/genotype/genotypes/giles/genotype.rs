@@ -143,6 +143,16 @@ impl GilesGenotype {
         asm::disassemble_to_string(&self.code)
     }
 
+    /// Build a genotype from explicit genome bytes, for example bytes produced
+    /// by [`asm::assemble`]. The genome is padded with `NOP` (or truncated) to
+    /// the required [`CODE_SIZE`].
+    pub fn from_genome(config: Settings, mut code: Vec<u8>) -> Self {
+        code.resize(CODE_SIZE, NOP);
+        let mut genotype = Self::new(config);
+        genotype.code = code;
+        genotype
+    }
+
     /// Produce a child genotype, mutating its genome with probability
     /// `mutation_rate`%. The world is the authority on creature energy and
     /// splits it between parent and child in [`Creature::reproduce`]; we halve
@@ -404,6 +414,19 @@ mod tests {
         // mutation rate must stay within bounds so evolution never freezes
         assert!(g.mutation_rate >= MIN_MUTATION_RATE);
         assert!(g.mutation_rate <= MAX_MUTATION_RATE);
+    }
+
+    #[test]
+    fn assembled_program_executes() {
+        // a hand-written program that simply heads east should move East
+        let code = asm::assemble("MOVC 0x2").expect("assembles");
+        let mut g = GilesGenotype::from_genome(Settings::default(), code);
+        g.pending_look = false;
+        g.breed_after = i32::MAX;
+        match g.tick() {
+            GenotypeActions::Move(dir) => assert_eq!(dir, Direction::East),
+            _ => panic!("expected a Move action"),
+        }
     }
 
     #[test]
