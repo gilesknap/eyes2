@@ -7,6 +7,10 @@ Foundation Classes 23 years ago (2000).
 
 Original source is here: https://github.com/gilesknap/eyes
 
+I have now ported the original's evolving RISC byte-code genome across as the
+`giles` genotype - a little virtual machine whose genome mutates and evolves on
+reproduction.
+
 # How
 
 I mostly read 'the book' of rust https://doc.rust-lang.org/book/title-page.html
