@@ -26,9 +26,10 @@ fn check_add_creature() {
         Box::new(_genotype).unwrap(),
         Coord { x: 1, y: 1 },
         _world.config.clone(),
-        _world.tx.clone(),
     );
-    _world.creatures.insert(1, _creature);
+    // queue an AddEntity intent and resolve it, exactly as a tick would
+    _world.queue_update(Update::AddEntity(_creature));
+    _world.apply_updates();
 
     assert_eq!(_world.creature_count(), 1);
 }
@@ -42,7 +43,12 @@ fn check_populate() {
     assert!(world.grid.grass_count() <= config.grass_count as usize);
 
     let _creature_count = world.creature_count();
-    world.creatures.remove(&1);
+    // guard the indexing below so a populate() that adds nothing fails with a
+    // clear message rather than an index-out-of-bounds panic
+    assert!(_creature_count > 0, "populate() added no creatures");
+    // remove the first creature in the store by its id
+    let first_id = world.creatures[0].id();
+    world.remove_creature(first_id);
 
     assert_eq!(world.creature_count(), _creature_count - 1 as u64);
 }

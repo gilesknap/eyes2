@@ -94,8 +94,9 @@ that you can look at.
 - DONE Implementation of the original RISC Genotype (now the `giles` genotype)
 - Get some competing Genotype contributions and have some creature wars
 - Carnivores
-- Multi Threaded processing for the creatures for even more performance
-  (may be hard as we currently loop over all and call one tick - this
-  model would need to change)
+- DONE Multi Threaded processing for the creatures for even more performance.
+  The per-creature "think" phase of a tick now runs across all cores (rayon),
+  with a serial "resolve" phase applying the results to the grid. See
+  DESIGN_MULTITHREAD.md and `cargo run --release --example scaling -p eyes2`.
 - Multi processing and a helm chart to deploy into K8S - major remodel would
   be required

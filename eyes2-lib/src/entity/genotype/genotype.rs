@@ -12,8 +12,14 @@ pub enum BadGenomeError {
 // expected that the Genotype will be defined by a genome, and that the
 // genome (with mutations as appropriate) will be passed to the
 // descendant creatures.
+//
+// `Send` is a supertrait so that `Box<dyn Genotype>` (and therefore a whole
+// `Creature`) can be moved between threads. This is what lets the simulation
+// run the per-creature "think" phase in parallel across all cores - see
+// DESIGN_MULTITHREAD.md. Every genotype only holds `Send` data, so this costs
+// nothing.
 #[typetag::serde(tag = "type")]
-pub trait Genotype: DynClone {
+pub trait Genotype: DynClone + Send {
     // execute the next instruction of your Genomic code
     fn tick(&mut self) -> GenotypeActions;
 
