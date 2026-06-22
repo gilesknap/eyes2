@@ -23,13 +23,12 @@
 //!
 
 use crate::utils::move_pos;
-use std::rc::Rc;
-use std::sync::mpsc;
 
 use super::genotype::genotype::GenotypeActions;
-use super::vision::Vision;
+use super::vision::{look_world, Vision};
 use super::Genotype;
 use super::Update;
+use crate::world::WorldGrid;
 use crate::Settings;
 use direction::{Coord, Direction};
 use fastrand::Rng as FastRng;
@@ -48,9 +47,6 @@ pub struct Creature {
     // global settings for the world which include generic creature settings
     #[serde(skip)]
     config: Settings,
-    // transmitter to send updates to the world (optional to support deserialisation)
-    #[serde(skip)]
-    tx: Option<Rc<mpsc::Sender<Update>>>,
     // the world rules are different for herbivores and carnivores
     _herbivore: bool,
     // the genotype of the creature which determines its behaviour
@@ -61,12 +57,7 @@ pub struct Creature {
 
 // The representation of a creature in the world
 impl Creature {
-    pub fn new(
-        genotype: Box<dyn Genotype>,
-        coord: Coord,
-        config: Settings,
-        tx: Rc<mpsc::Sender<Update>>,
-    ) -> Creature {
+    pub fn new(genotype: Box<dyn Genotype>, coord: Coord, config: Settings) -> Creature {
         let (b, e) = config.creature_initial_energy;
 
         // TODO maybe pass a pre-created rng around to avoid creating a new one each time
@@ -79,7 +70,6 @@ impl Creature {
             coord,
             energy,
             config,
-            tx: Some(tx),
             _herbivore: true,
             genotype,
             sigil: sigil,
@@ -105,13 +95,6 @@ impl Creature {
         }
     }
 
-    pub fn set_tx(&mut self, tx: Rc<mpsc::Sender<Update>>) {
-        // tx is immutable once set
-        if self.tx.is_none() {
-            self.tx = Some(tx);
-        }
-    }
-
     pub fn set_config(&mut self, config: Settings) {
         self.config = config;
     }
@@ -121,26 +104,42 @@ impl Creature {
         self.genotype.set_energy(self.energy);
     }
 
-    pub fn tick(&mut self) {
+    /// Advance this creature by one tick of the world clock and return the
+    /// single world `Update` it would like applied (if any).
+    ///
+    /// This is the parallel "think" phase. It is given a **read-only** view of
+    /// the grid (which is never mutated during this phase) and mutates only
+    /// this creature - energy, genotype registers and cached vision. Because it
+    /// touches no shared mutable state it is safe to run for every creature
+    /// concurrently across all cores. Any change to the *grid* is deferred to a
+    /// world `Update` that is applied later, serially. See DESIGN_MULTITHREAD.md.
+    ///
+    /// A `Look` is resolved here rather than as a deferred update: reading the
+    /// surroundings is read-only, so it can be done in parallel, and it keeps
+    /// the expensive O(N) vision work out of the serial resolve phase. The genome
+    /// still only *uses* the new vision on its next tick (it gates on its own
+    /// `pending_look`), so the one-tick perception latency is preserved.
+    pub fn think(&mut self, grid: &WorldGrid) -> Option<Update> {
         self.energy -= self.config.creature_idle_energy;
 
         let coord = self.coord();
         // check for death
         if self.energy <= 0 {
-            self.tx
-                .as_mut()
-                .unwrap()
-                .send(Update::RemoveEntity(self.id, coord))
-                .expect("failed to send remove entity");
-            return;
+            return Some(Update::RemoveEntity(self.id, coord));
         }
 
         // call the genotype specific tick method
         match self.genotype.tick() {
-            GenotypeActions::Move(direction) => self.move_dir(direction),
-            GenotypeActions::Reproduce(genotype) => self.reproduce(genotype),
-            GenotypeActions::Look => self.look(),
-            GenotypeActions::None => {}
+            GenotypeActions::Move(direction) => Some(self.move_dir(direction)),
+            GenotypeActions::Reproduce(genotype) => Some(self.reproduce(genotype)),
+            GenotypeActions::Look => {
+                // resolve the look immediately from the read-only grid and
+                // deliver it to the genotype; nothing to defer to the world
+                let vision = look_world(coord, grid);
+                self.genotype.vision(vision);
+                None
+            }
+            GenotypeActions::None => None,
         }
     }
 
@@ -155,14 +154,11 @@ impl Creature {
 
 // private instance methods
 impl Creature {
-    fn reproduce(&mut self, genotype: Box<dyn Genotype>) {
-        // TODO need to get child genotype into the new child
-        let mut child = Creature::new(
-            genotype,
-            self.coord,
-            self.config.clone(),
-            self.tx.as_mut().unwrap().clone(),
-        );
+    /// Build the child creature and return the `AddEntity` intent for it. The
+    /// world splits energy authoritatively when the intent is applied; we halve
+    /// our own estimate here so the child inherits a sensible value.
+    fn reproduce(&mut self, genotype: Box<dyn Genotype>) -> Update {
+        let mut child = Creature::new(genotype, self.coord, self.config.clone());
         self.energy /= 2;
         child.energy = self.energy;
         // child is spawned to the left unless we are against the left wall
@@ -171,31 +167,14 @@ impl Creature {
         } else {
             child.coord.x -= 1
         }
-        self.tx
-            .as_mut()
-            .unwrap()
-            .send(Update::AddEntity(child))
-            .expect("creature reproduce failed");
+        Update::AddEntity(child)
     }
 
-    fn move_dir(&mut self, direction: Direction) {
+    fn move_dir(&mut self, direction: Direction) -> Update {
         let new_pos = move_pos(self.coord, direction, self.config.size);
 
         let (id, coord) = (self.id(), self.coord());
         self.energy -= self.config.creature_move_energy;
-        self.tx
-            .as_mut()
-            .unwrap()
-            .send(Update::MoveEntity(id, coord, new_pos))
-            .expect("failed to send move entity");
-    }
-
-    fn look(&mut self) {
-        let id = self.id();
-        self.tx
-            .as_mut()
-            .unwrap()
-            .send(Update::Look(id))
-            .expect("failed to send move entity");
+        Update::MoveEntity(id, coord, new_pos)
     }
 }

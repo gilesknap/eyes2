@@ -47,7 +47,7 @@ impl Serialize for World {
                 let cell = self.grid.get_cell(coord);
                 match cell {
                     Cell::Entity(id, _) => {
-                        let creature = self.creatures.get(&id).unwrap().clone();
+                        let creature = self.get_creature(id).clone();
                         creatures.push(CreatureSer { coord, creature });
                     }
                     Cell::Grass => {
@@ -115,9 +115,8 @@ impl<'de> Deserialize<'de> for World {
                 for creature_coord in creatures.unwrap() {
                     let mut creature = creature_coord.creature.clone();
                     creature.move_to(creature_coord.coord);
-                    creature.set_tx(world.tx.clone());
                     creature.set_config(config.clone());
-                    world.tx.send(Update::AddEntity(creature)).unwrap();
+                    world.queue_update(Update::AddEntity(creature));
                 }
                 for grass_coord in grasses.unwrap() {
                     world.grid.add_grass(grass_coord);
